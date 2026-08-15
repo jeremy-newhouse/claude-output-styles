@@ -1,0 +1,123 @@
+{
+  "plain-english-beginner": {
+    "level": "beginner",
+    "styleFile": "../plain-english-beginner.md",
+    "maxSentenceWords": 15,
+    "maxParagraphSentences": 3,
+    "maxUpdateWords": 80,
+    "maxCodeLines": 0,
+    "bannedTerms": [
+      "API",
+      "endpoint",
+      "middleware",
+      "repository",
+      "commit",
+      "branch",
+      "deploy",
+      "migration",
+      "schema",
+      "regex",
+      "async",
+      "cache",
+      "token",
+      "JWT",
+      "null",
+      "stack trace",
+      "refactor",
+      "dependency",
+      "runtime",
+      "compiler",
+      "race condition",
+      "idempotent",
+      "mutex",
+      "serialization",
+      "webhook",
+      "CI",
+      "CD",
+      "SDK"
+    ],
+    "defaultChecks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "no_jargon",
+      "leads_with_conclusion",
+      "no_process_narration"
+    ],
+    "weights": {
+      "no_jargon": 2,
+      "code_block_size": 2,
+      "total_length": 1.5
+    },
+    "judgeWeight": 0.5
+  },
+  "plain-english-intermediate": {
+    "level": "intermediate",
+    "styleFile": "../plain-english-intermediate.md",
+    "maxSentenceWords": 18,
+    "maxParagraphSentences": 4,
+    "maxUpdateWords": 100,
+    "maxCodeLines": 5,
+    "bannedTerms": [
+      "idempotent",
+      "mutex",
+      "monad",
+      "covariance",
+      "memoization",
+      "tail call",
+      "vtable",
+      "epoll",
+      "CQRS",
+      "eventual consistency"
+    ],
+    "defaultChecks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "no_jargon",
+      "leads_with_conclusion",
+      "no_process_narration"
+    ],
+    "weights": {
+      "total_length": 1.5,
+      "code_block_size": 1.5
+    },
+    "judgeWeight": 0.4
+  },
+  "plain-english-advanced": {
+    "level": "advanced",
+    "styleFile": "../plain-english-advanced.md",
+    "maxSentenceWords": 20,
+    "maxParagraphSentences": 4,
+    "maxUpdateWords": 120,
+    "maxCodeLines": 10,
+    "bannedTerms": [],
+    "defaultChecks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "leads_with_conclusion",
+      "no_process_narration"
+    ],
+    "weights": {
+      "total_length": 1.5,
+      "no_filler": 1.5,
+      "no_process_narration": 1.5
+    }
+  }
+}

@@ -1,0 +1,183 @@
+[
+  {
+    "id": "conv-status-auth",
+    "split": "train",
+    "agentic": false,
+    "prompt": "Assume this already happened in this session and is true. You fixed intermittent 401 errors. Root cause: verify_token() rejected tokens issued during the signing-key rotation window. You now accept the current and previous key. All 14 auth tests pass plus one new test. Give me your status update.",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "leads_with_conclusion",
+      "three_question_structure",
+      "no_jargon"
+    ],
+    "judge": "Does the reply lead with the outcome, state verification evidence, and say what the reader must do next — without padding?"
+  },
+  {
+    "id": "conv-decision-db",
+    "split": "train",
+    "agentic": false,
+    "prompt": "The orders table has 40M rows and the dashboard query takes 9 seconds. I can add a covering index (2 hours, +18GB storage) or denormalize into a summary table (2 days, near-instant reads, needs a nightly job). Which should we do?",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "two_options_max",
+      "leads_with_conclusion",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Does the reply give exactly two options, compare them on speed/cost/quality, and make one clear recommendation?"
+  },
+  {
+    "id": "conv-explain-cache",
+    "split": "train",
+    "agentic": false,
+    "prompt": "We put a Redis cache in front of the product catalog lookup last week. Page load times got worse, not better. Why would that happen?",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "no_jargon",
+      "leads_with_conclusion",
+      "code_block_size"
+    ],
+    "judge": "Is the explanation pitched at the right technical level for this style, with no textbook padding?"
+  },
+  {
+    "id": "conv-badnews",
+    "split": "train",
+    "agentic": false,
+    "prompt": "Assume this already happened in this session and is true. You ran the database migration. It failed halfway on a constraint violation and left 300k rows in a partial state. Give me your status update.",
+    "checks": [
+      "sentence_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "leads_with_conclusion",
+      "three_question_structure",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Does it state the failure plainly and immediately, without softening or burying it?"
+  },
+  {
+    "id": "agentic-read-report",
+    "split": "train",
+    "agentic": true,
+    "prompt": "Look at the code in this repo and tell me what src/pricing.js does and whether it has a bug.",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "leads_with_conclusion",
+      "no_process_narration",
+      "no_jargon"
+    ],
+    "judge": "After using tools, does the reply stay in style — outcome first, no narration of the search process?"
+  },
+  {
+    "id": "agentic-fix-verify",
+    "split": "holdout",
+    "agentic": true,
+    "prompt": "Fix the rounding bug in src/pricing.js and run the tests.",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "leads_with_conclusion",
+      "no_process_narration",
+      "three_question_structure",
+      "no_jargon"
+    ],
+    "judge": "Does the final message report what changed, the test result, and the next action — in style, after a multi-tool session?"
+  },
+  {
+    "id": "conv-status-holdout",
+    "split": "holdout",
+    "agentic": false,
+    "prompt": "Assume this already happened in this session and is true. You cut the checkout API p95 latency from 1.8s to 340ms by replacing an N+1 query in OrderService.load() with a single join. 62 tests pass. Give me your status update.",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "leads_with_conclusion",
+      "three_question_structure",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Outcome first, evidence stated, next action clear, no padding?"
+  },
+  {
+    "id": "conv-decision-holdout",
+    "split": "holdout",
+    "agentic": false,
+    "prompt": "Our auth provider is raising prices 4x in January. We can migrate to a self-hosted option or absorb the cost. What do we do?",
+    "checks": [
+      "sentence_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "two_options_max",
+      "leads_with_conclusion",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Exactly two options, trade-offs with numbers where possible, one recommendation?"
+  },
+  {
+    "id": "conv-followup-drift",
+    "split": "holdout",
+    "agentic": false,
+    "multiTurn": [
+      "Assume this already happened in this session and is true. You fixed a flaky test in the payments suite. Give me your status update.",
+      "Why was it flaky?",
+      "What stops it happening again?"
+    ],
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "leads_with_conclusion",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "By the third turn, is the style still held, or has the reply drifted back to a default chatty tone?"
+  }
+]

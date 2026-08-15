@@ -1,0 +1,62 @@
+{
+  "models": [
+    "opus",
+    "sonnet",
+    "haiku"
+  ],
+  "styles": [
+    "plain-english-advanced",
+    "plain-english-intermediate",
+    "plain-english-beginner"
+  ],
+  "//variants": [
+    "Each variant is a harness-level configuration tested independently of the",
+    "style text, so you can tell whether a failure comes from the style wording",
+    "or from how Claude Code injects it."
+  ],
+  "variants": [
+    {
+      "id": "baseline",
+      "note": "Exactly what a user gets today: style file + outputStyle setting, nothing else."
+    },
+    {
+      "id": "long-prompt",
+      "note": "Force Claude Code's long system prompt. Opus gets an abridged one by default; the long one carries explicit anti-verbosity rules.",
+      "simpleSystemPrompt": false
+    },
+    {
+      "id": "tail-reminder",
+      "note": "Anthropic's Opus 5 guidance: in a long system prompt, repeat a one-line version of the length rule near the end.",
+      "tailReminder": "Keep outputs short and dense. Lead with the outcome. No filler, no emoji, no process narration."
+    },
+    {
+      "id": "claude-md",
+      "note": "Restate the contract in CLAUDE.md, which Claude Code wraps in an explicit override directive and re-injects as a user message.",
+      "claudeMd": "# Response style\n\nThe active output style is binding. Every reply must obey it:\n\n- Lead with the outcome in the first sentence.\n- Sentences under 20 words. No filler, no emoji, no celebration.\n- Do not narrate process. Report findings and results only.\n- Status updates answer: what I did / did it work / what you do next.\n"
+    },
+    {
+      "id": "all-fixes",
+      "note": "Long prompt + tail reminder + CLAUDE.md together.",
+      "simpleSystemPrompt": false,
+      "tailReminder": "Keep outputs short and dense. Lead with the outcome. No filler, no emoji, no process narration.",
+      "claudeMd": "# Response style\n\nThe active output style is binding. Every reply must obey it:\n\n- Lead with the outcome in the first sentence.\n- Sentences under 20 words. No filler, no emoji, no celebration.\n- Do not narrate process. Report findings and results only.\n- Status updates answer: what I did / did it work / what you do next.\n"
+    }
+  ],
+  "run": {
+    "repeats": 2,
+    "concurrency": 4,
+    "maxTurns": 12,
+    "maxBudgetUsd": 2,
+    "judge": true,
+    "judgeModel": "sonnet"
+  },
+  "improve": {
+    "targetScore": 0.9,
+    "maxIterations": 6,
+    "authorModel": "opus",
+    "trainSplit": "train",
+    "holdoutSplit": "holdout",
+    "minHoldoutDelta": -0.02,
+    "patience": 2
+  }
+}
