@@ -22,8 +22,9 @@ record of what was learned even when the raw rows are gone.
 ### Runs that persisted transcripts
 
 Every `run` invocation writes `rows.json`, `summary.json`, and `report.md`.
-`improve` writes candidates but no rows — the reason its cells are absent below,
-and the reason for COS-3.
+`improve` wrote candidates but no rows until COS-3, which is why its cells are
+absent from the runs below; from `2026-08-16T14-48-09` onward an improve run
+persists the same three files, with an `iteration` on every row.
 
 | stamp | cells | cost | scope | established |
 |---|---|---|---|---|
@@ -36,18 +37,19 @@ and the reason for COS-3.
 | `23-36-59` | 32 | $4.93 | advanced and intermediate, in-use vs cross-model candidate, both models, 4 **never-seen** cases | The decisive reversal. Advanced candidate 6.8 points worse out of sample despite winning both in-loop splits. Basis for the out-of-sample ADR. |
 | `12-44-03` | 60 | $7.52 | all three styles, both models, 5 cases, 2 repeats | The per-model baseline. Filled the beginner-on-Opus gap, which had never been measured in a saved run. |
 
-Total persisted: 237 cells, $32.26. Improve-loop spend is additional and was not
-tracked until late.
+Total persisted: 237 cells, $32.26. Improve-loop spend before COS-3 is additional
+and was not tracked until late; from COS-3 onward it is carried on the rows.
 
 ### Optimizer runs
 
-Three `improve` invocations, seven candidate rewrites, one survivor.
+Four `improve` invocations, eight candidate rewrites, one survivor.
 
 | run | scope | outcome |
 |---|---|---|
 | first | advanced, Opus only, 2 iterations | v1 reverted, **v2 kept** and adopted. The only rewrite that ever survived. |
 | second | intermediate then beginner, both models, patience 2 | Intermediate converged at v2 and was later rejected out of sample. Crashed into beginner on an unwrapped judge call at `maxTurns: 1`. |
 | third | beginner and advanced, both models, after the crash fix | Beginner converged at **v0** — both rewrites raised train ~6 and dropped holdout ~8, rejected twice. Advanced kept a v2 that was later rejected out of sample. |
+| `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells, $0.61. v1 reverted (train −0.029, holdout −0.193). On holdout the rewrite showed the usual signature — rules 70.8 → 83.3, judge 72.5 → **21.2** — while on train both halves fell. Scope too small to conclude anything about Haiku; the run existed to prove persistence. First improve run whose transcripts survive, and re-scoring them offline reproduced all four in-loop numbers exactly. |
 
 ### What the sequence taught
 

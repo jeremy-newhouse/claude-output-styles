@@ -88,10 +88,14 @@ a `CLAUDE.md` written into the workspace, or
 `results/<stamp>/candidates/`; adopting one is a manual copy. The only
 destructive operation in the project is that copy.
 
-**Transcripts are the durable artifact.** `run` persists `rows.json`, so any
-scoring change can be re-graded offline at no token cost via `score`. This is why
-deterministic scores stay comparable across the project's whole history while
-judge scores do not. `improve` does not yet persist rows — tracked as COS-3.
+**Transcripts are the durable artifact.** `run` and `improve` both persist
+`rows.json`, so any scoring change can be re-graded offline at no token cost via
+`score`. This is why deterministic scores stay comparable across the project's
+whole history while judge scores do not. An improve run's rows carry the
+`iteration` that produced them, including the reverted ones, and the run's
+reported spend is the sum of those rows rather than a counter held only in
+memory — so the loop's own numbers can be recomputed by anyone holding the run
+directory.
 
 **A grader failure must not kill a run.** Judge errors return a neutral 0.5 with
 the error on the row. An earlier version let the exception propagate and lost a
