@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 13:14'
-updated_date: '2026-08-16 22:33'
+updated_date: '2026-08-16 22:44'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies: []
@@ -134,6 +134,18 @@ Total spend this session: $2.4152 ($0.1788 probe + $2.2364 validation) against a
 Gates at finalization: `npm --prefix harness test` 45/45; `node src/cli.mjs audit` all 12 checks agree; `lore check` run after `lore sync`.
 
 Follow-up worth raising with the user, NOT done here: `sentences()` in `checks.mjs` does not treat a single newline as a boundary, so a list header ending in ':' merges with its first item. Measured at 9 of 74 over-cap sentences (12.2%), worth 1.2-1.6 points of over-20w rate. Fixing it moves numbers already published in docs/ and FINDINGS.md, which is the same shape as COS-9 and belongs in its own task.
+
+## Review findings (/code-review high) — seven raised, all real, all addressed
+
+1. **Spec mixed two metrics in adjacent sentences (blocking).** The paragraph established "share of sentences over 12 words" as its metric (42.2% -> 38.9% Opus, 42.2% -> 42.9% Sonnet), then quoted Haiku's over-**20**-word rate (30% -> 11%) as if like-for-like. Haiku's over-12 rate is 60.0% -> 40.5%. Corrected, and the correction improved the finding: compared on end states rather than movements, all three models finish at roughly the SAME compliance with a 12-word cap — 38.9%, 42.9%, 40.5% still over it. Haiku moves further only because it starts further away. Fourth session running that the only defect no automated gate caught was a plausible number in prose.
+2. **The guard was not wired into the workflow that rewrites style prose.** `AUTHOR_SYSTEM` tells the rewriter to delete instructions the measurements show are already satisfied, and `sentence_length`/`paragraph_length` sit near 1.0 — so a candidate dropping "Keep sentences under 20 words" is a normal optimizer output. The runbook's Adopt step then `cp`s it over the style file with no audit, turning `npm test` red on a rewrite that legitimately won. Added `node src/cli.mjs audit --styles=<style>` to the Adopt step with guidance on which side to fix.
+3. **README sample contradicted the paragraph introducing it.** The prose described the historical divergence as 15 words AND 3 sentences; the sample (real output, but from a different perturbation) showed `maxSentenceWords ... both say 20` and `1 of 12`. Reproduced the actual described divergence and pasted that output: 2 FAILs, `2 of 12 checks need attention`.
+4. **`configured === undefined` reported as a mismatch.** A contract omitting a cap produced "file says 0, contracts.json grades at undefined", blaming the style file. New `unconfigured` status names the contract instead. Reachable in practice — this session hand-wrote temporary contract entries.
+5. **Tests hardcoded the field and style counts.** `rows.length === Object.keys(contracts).length * 4` and `/all 12 checks agree/` would fail on the wrong thing when a maintainer adds a PATTERNS entry, which the README explicitly instructs. Both now derived.
+6. **The guard compares numbers, not conditions.** Beginner says "Never show code *unless they ask*"; `maxCodeLines: 0` cannot express the condition, and `code_block_size` scores 0 for any block regardless. So beginner can follow its own file and take the heaviest penalty in its contract while audit says "both say 0". Not fixable without changing scoring (published numbers move — the COS-9 pattern), so documented as a stated limit of the instrument.
+7. **`audit` ignored `--styles` and crashed on the drift it exists to report.** A wrong `styleFile` path threw a raw ENOENT from the eager style load before printing anything. `audit` now runs before that load, honours `--styles`, exits 1 on an unknown style id, and reports an unreadable style file as an `unreadable` finding rather than dying.
+
+Gates after fixes: `npm --prefix harness test` 47/47 (2 new cases); `node src/cli.mjs audit` all 12 agree, and verified again on the scoped, unknown-style, missing-field and broken-path paths; `lore check` 0 errors.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

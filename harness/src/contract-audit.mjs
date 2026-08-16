@@ -88,6 +88,20 @@ export function auditStyle (styleId, body, contract) {
   return Object.keys(PATTERNS).map(field => {
     const { value, status, detail } = caps[field]
     const configured = contract[field]
+    // A contract that omits the field is its own failure, and reporting it as a
+    // mismatch "against undefined" names the wrong file as the problem.
+    if (configured === undefined) {
+      return {
+        styleId,
+        field,
+        stated: status === 'stated' ? value : null,
+        configured,
+        status: 'unconfigured',
+        detail: status === 'stated'
+          ? `file says ${value}, contracts.json sets no ${field}`
+          : `neither the file nor contracts.json states ${field}`
+      }
+    }
     if (status !== 'stated') return { styleId, field, stated: null, configured, status, detail }
     if (value !== configured) {
       return {
@@ -112,7 +126,22 @@ export function auditStyle (styleId, body, contract) {
 export function auditAll (contracts, harnessRoot) {
   return Object.entries(contracts).flatMap(([styleId, contract]) => {
     const file = resolve(harnessRoot, contract.styleFile)
-    const { body } = parseStyle(readFileSync(file, 'utf8'), file)
+    let body
+    try {
+      body = parseStyle(readFileSync(file, 'utf8'), file).body
+    } catch (err) {
+      // A styleFile that does not resolve IS drift between the contract and the
+      // files, so report it as a finding. Throwing here would make the one
+      // command meant to diagnose config problems die on a config problem.
+      return [{
+        styleId,
+        field: 'styleFile',
+        stated: null,
+        configured: contract.styleFile,
+        status: 'unreadable',
+        detail: `cannot read ${contract.styleFile}: ${err.code ?? err.message}`
+      }]
+    }
     return auditStyle(styleId, body, contract)
   })
 }
@@ -121,6 +150,7 @@ export const problemsOf = rows => rows.filter(r => r.status !== 'ok')
 
 /** Human-readable audit table; `ok` is a single summary line. */
 export function renderAudit (rows) {
+  if (!rows.length) return 'style file vs contract\n\n  nothing to audit'
   const problems = problemsOf(rows)
   const lines = rows.map(r => {
     const mark = r.status === 'ok' ? 'ok  ' : r.status === 'mismatch' ? 'FAIL' : 'WARN'

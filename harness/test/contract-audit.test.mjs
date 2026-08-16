@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { statedCaps, auditStyle, auditAll, problemsOf, renderAudit } from '../src/contract-audit.mjs'
+import { statedCaps, auditStyle, auditAll, problemsOf, renderAudit, PATTERNS } from '../src/contract-audit.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const CONTRACTS_PATH = join(ROOT, 'config/contracts.json')
@@ -22,7 +22,9 @@ test('every contract field the audit covers is actually stated by every style', 
   // phrasing, this fails rather than the audit quietly covering three fields
   // instead of four.
   const rows = auditAll(contracts, ROOT)
-  assert.equal(rows.length, Object.keys(contracts).length * 4)
+  // Derived, not hardcoded: adding a PATTERNS field or a fourth style should
+  // fail on the thing that actually broke, not on an arithmetic constant here.
+  assert.equal(rows.length, Object.keys(contracts).length * Object.keys(PATTERNS).length)
   for (const r of rows) assert.notEqual(r.status, 'unstated', `${r.styleId}.${r.field}: ${r.detail}`)
 })
 
@@ -94,7 +96,28 @@ test('an unstated cap is reported even when the contract has a value', () => {
 
 test('renderAudit marks a mismatch FAIL and a clean audit with a count', () => {
   const clean = auditAll(contracts, ROOT)
-  assert.match(renderAudit(clean), /all 12 checks agree/)
+  assert.match(renderAudit(clean), new RegExp(`all ${clean.length} checks agree`))
   const dirty = auditStyle('x', 'Sentences under 20 words.', { maxSentenceWords: 15 })
   assert.match(renderAudit(dirty), /FAIL x\s+maxSentenceWords/)
+})
+
+test('a styleFile that does not resolve is a finding, not a crash', () => {
+  // The command exists to diagnose config problems; dying on one is the worst
+  // possible response. Before this it threw a raw ENOENT and printed nothing.
+  const rows = auditAll({ ghost: { styleFile: '../no-such-style.md', maxSentenceWords: 20 } }, ROOT)
+  assert.equal(rows.length, 1)
+  assert.equal(rows[0].status, 'unreadable')
+  assert.match(rows[0].detail, /cannot read \.\.\/no-such-style\.md: ENOENT/)
+  assert.equal(problemsOf(rows).length, 1)
+  assert.match(renderAudit(rows), /WARN ghost\s+styleFile/)
+})
+
+test('a contract that omits a cap is reported as unconfigured, not as a mismatch', () => {
+  // Reachable whenever a temporary contract entry is hand-written to run a
+  // paired experiment. "grades at undefined" would blame the style file.
+  const rows = auditStyle('x', 'Sentences under 20 words.', {})
+  const sent = rows.find(r => r.field === 'maxSentenceWords')
+  assert.equal(sent.status, 'unconfigured')
+  assert.match(sent.detail, /file says 20, contracts\.json sets no maxSentenceWords/)
+  assert.equal(problemsOf(rows).length, rows.length)
 })
