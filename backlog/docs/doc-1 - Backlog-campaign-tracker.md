@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-16 14:18'
+updated_date: '2026-08-16 14:20'
 ---
 # Backlog campaign tracker
 
@@ -90,3 +90,5 @@ Two issues carry known risk against that policy:
   would have produced exactly the silent Default fallback the section warns
   about. Worth carrying forward: reviewing docs against the failure they claim to
   prevent caught two traps that every automated gate passed.
+  Merged via PR #1 (rebase) as `0631c04`; `dev` and `main` both pushed at that
+  SHA, no branch litter, no open PRs.
