@@ -9,7 +9,7 @@ tasks:
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: todo
+lore_task_status: done
 ---
 
 # Make the install path safe
@@ -44,7 +44,7 @@ and conclude the styles do not work.
 <!-- lore:tasks:begin -->
 | Task | Title | Status |
 |---|---|---|
-| [COS-6](../../backlog/tasks/cos-6%20-%20Document-the-install-path-that-actually-resolves.md) | Document the install path that actually resolves | To Do |
+| [COS-6](../../backlog/tasks/cos-6%20-%20Document-the-install-path-that-actually-resolves.md) | Document the install path that actually resolves | Done |
 <!-- lore:tasks:end -->
 
 ## Notes

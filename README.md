@@ -45,10 +45,40 @@ For a **technically fluent leader** who can read code and reason about architect
 ## Install
 
 1. Copy the three `.md` files to `~/.claude/output-styles/` (all projects) or `.claude/output-styles/` inside a project.
-2. In Claude Code, run `/config`, select **Output style**, and pick a level. (The old `/output-style` command was removed in v2.1.91.)
-3. The style takes effect after `/clear` or on your next session.
+2. In Claude Code, run `/config`, select **Output style**, and pick a level. (The old `/output-style` command was removed in v2.1.91.) Claude Code writes the choice to `.claude/settings.local.json`.
+3. Start a new session. The style is part of the system prompt, which is read once at session start — so it takes effect after `/clear` or in your next session, not mid-conversation.
+4. Confirm it loaded — see below. Do not skip this.
 
-Switch levels any time — for example, Beginner for a quick status check, Advanced when reviewing an architecture change.
+Switch levels any time — for example, Beginner for a quick status check, Advanced when reviewing an architecture change. Repeat steps 2 and 3.
+
+### How the style name resolves
+
+A style's name comes from its **frontmatter `name:`**, and falls back to the filename only when the file has no YAML frontmatter at all. These three files all carry frontmatter, so their names are:
+
+- `Plain English - Beginner`
+- `Plain English - Intermediate`
+- `Plain English - Advanced`
+
+Those are the values to use if you set the style by hand rather than through `/config`:
+
+```json
+{ "outputStyle": "Plain English - Advanced" }
+```
+
+**A name that no file provides fails silently.** Claude Code prints no error and no warning — it runs Default and says nothing. On the machine these styles were written on, a global `outputStyle` naming a style no file provided ran Default across every project but one, for months, unnoticed. That is the whole reason step 4 exists.
+
+### Confirm it loaded
+
+Configured is not the same as loaded, and the silent fallback means settings alone cannot tell you which one you have.
+
+Ask for something the style visibly shapes — a status update — and check the reply against the contract: outcome first, the three beats, inside the level's word cap. If it reads like stock Claude Code, the name did not resolve. Re-check the frontmatter `name:` against your `outputStyle` value, character for character.
+
+For a decisive check, use a canary: add a line to the style body telling Claude to open every reply with a distinctive token, start a session, and see whether it obeys. Remove it afterwards. Asking the model to describe its own system prompt is unreliable.
+
+## Going deeper
+
+- [Install and switch an output style](docs/runbooks/install-and-switch-an-output-style.md) — the full procedure, including project-scoped installs, switching, and rollback.
+- [Output style injection mechanics](docs/reference/output-style-injection-mechanics.md) — how Claude Code resolves and places a style, the Agent SDK loading recipe, and where the shipped documentation disagrees with observed behaviour.
 
 ## Credits
 
