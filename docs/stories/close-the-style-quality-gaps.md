@@ -61,7 +61,7 @@ converged having changed nothing.
 |---|---|---|
 | [COS-1](../../backlog/tasks/cos-1%20-%20Close-the-multi-tool-session-and-open-ended-decision-quality-gap.md) | Close the multi-tool session and open-ended decision quality gap | To Do |
 | [COS-4](../../backlog/tasks/cos-4%20-%20Raise-beginner-style-prose-quality.md) | Raise beginner style prose quality | To Do |
-| [COS-8](../../backlog/tasks/cos-8%20-%20Decide-whether-lower-levels-need-tighter-sentence-caps.md) | Decide whether lower levels need tighter sentence caps | To Do |
+| [COS-8](../../backlog/tasks/cos-8%20-%20Decide-whether-lower-levels-need-tighter-sentence-caps.md) | Decide whether lower levels need tighter sentence caps | Done |
 <!-- lore:tasks:end -->
 
 ## Notes
@@ -73,3 +73,12 @@ comparable, and they are what this story is scored on.
 Beginner may need a different instrument rather than a different wording. Its
 rules pass while its prose does not, which is the signature of a style whose
 stated rules do not capture what makes it good.
+
+COS-8 narrowed where to look. Sentence length is not the lever: tightening
+beginner's stated cap to 12 words changed nothing measurable on either model
+(+0.26 words, 95% CI [−0.77, +1.29]) and did not move the judge. Reply length is
+the constraint that actually binds — beginner averages 119 words against its
+stated 80, with half its replies over — and where the two can be told apart, the
+judge tracks reply length far more strongly than sentence length. Any attempt at
+COS-4 that works on sentence-level wording alone is likely to repeat the six
+optimizer rewrites that already failed.

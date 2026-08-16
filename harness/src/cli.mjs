@@ -116,6 +116,14 @@ if (cmd === 'run') {
   console.log(`candidates in ${join(outDir, 'candidates')}`)
   console.log(`re-score offline with: node src/cli.mjs score --rows=${join(outDir, 'rows.json')}`)
 
+} else if (cmd === 'audit') {
+  // Cross-check what each style file SAYS against what contracts.json GRADES.
+  // Exits non-zero on any disagreement so it can gate a change to either file.
+  const { auditAll, problemsOf, renderAudit } = await import('./contract-audit.mjs')
+  const rows = auditAll(contracts, ROOT)
+  console.log(renderAudit(rows))
+  if (problemsOf(rows).length) process.exitCode = 1
+
 } else if (cmd === 'score') {
   // Re-score saved transcripts without spending tokens. Use after editing checks.
   const rowsPath = args.rows ? resolve(args.rows) : newestRows()
@@ -139,10 +147,12 @@ output-style harness
                              [--cases=id,id] [--repeats=2] [--concurrency=4] [--no-judge]
   node src/cli.mjs improve   [--styles=a] [--iterations=6] [--variants=baseline]
   node src/cli.mjs score     --rows=results/<stamp>/rows.json
+  node src/cli.mjs audit
 
   run      evaluate the matrix and write results/<stamp>/{rows,summary,report.md}
   improve  loop: measure -> rewrite the style -> re-measure -> keep if train up and holdout flat,
            then validate the winner on the reserve split and roll back to v0 if it regresses
   score    re-score saved transcripts offline after changing checks.mjs
+  audit    check every style file's stated caps against contracts.json; exit 1 on disagreement
 `)
 }
