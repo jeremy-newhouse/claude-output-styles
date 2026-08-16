@@ -105,6 +105,15 @@ Candidates land in `results/<stamp>/candidates/<style>.v<N>.md`, and the winner
 in `<style>.best.md`. Nothing is written back to the real style files — diff and
 copy them yourself.
 
+An improve run leaves the same artifacts a `run` does: `rows.json`,
+`summary.json`, and `report.md` at `results/<stamp>/`, holding every cell the
+loop measured. Each row carries the `iteration` that produced it — 0 is the
+baseline — and each iteration's cells are also written separately as
+`candidates/<style>.v<N>.<split>.json`. Reverted iterations are kept too: the
+rewrites that failed are the record of what the money bought. The run's total
+spend is the sum of those rows, not a side counter, so any number the loop
+reports can be recomputed from the files it left behind.
+
 The holdout split is the guard against the rewrite overfitting to the exact
 phrasing of the training prompts. Watch the `BY SPLIT` table: train far above
 holdout means the last rewrite gamed the checks.
@@ -115,12 +124,17 @@ cases before drawing a conclusion from a small difference.
 
 ## Offline re-scoring
 
-`run` saves every raw transcript to `results/<stamp>/rows.json`. After editing
-`checks.mjs`, re-grade them without spending a token:
+`run` and `improve` both save every raw transcript to
+`results/<stamp>/rows.json`. After editing `checks.mjs`, re-grade them without
+spending a token:
 
 ```bash
 node src/cli.mjs score --rows=results/<stamp>/rows.json
 ```
+
+With no `--rows`, `score` re-grades the newest run of either kind. Re-grading an
+improve run adds a `BY ITERATION` table, so a scoring change can be replayed
+across the whole optimization rather than one snapshot of it.
 
 ## Cost control
 

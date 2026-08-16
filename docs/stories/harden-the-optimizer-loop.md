@@ -59,7 +59,7 @@ fixed, cannot be audited, and did not appear in any spend total until a
 | Task | Title | Status |
 |---|---|---|
 | [COS-2](../../backlog/tasks/cos-2%20-%20Hold-a-case-pool-out-of-every-optimizer-split.md) | Hold a case pool out of every optimizer split | To Do |
-| [COS-3](../../backlog/tasks/cos-3%20-%20Persist-transcripts-from-improve-runs.md) | Persist transcripts from improve runs | To Do |
+| [COS-3](../../backlog/tasks/cos-3%20-%20Persist-transcripts-from-improve-runs.md) | Persist transcripts from improve runs | Done |
 <!-- lore:tasks:end -->
 
 ## Notes

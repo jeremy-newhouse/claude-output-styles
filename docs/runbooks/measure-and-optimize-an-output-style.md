@@ -71,6 +71,12 @@ that trade one model's quality for another's.
 Candidates land in `results/<stamp>/candidates/`. Nothing is written back to the
 real style files — that is a deliberate manual step.
 
+The run also writes `rows.json`, `summary.json`, and `report.md` at
+`results/<stamp>/`, exactly as a `run` does, with every cell tagged by the
+iteration that produced it. Re-score them later with
+`node src/cli.mjs score --rows=results/<stamp>/rows.json`; the `BY ITERATION`
+table is the loop's trace, and the reverted iterations are in there too.
+
 ### Validate before adopting
 
 The loop's own holdout is a tuning signal, not a verdict. Both splits come from
