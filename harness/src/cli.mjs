@@ -2,8 +2,8 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { evaluate } from './evaluate.mjs'
-import { improveStyle } from './improve.mjs'
+import { evaluate, summarize } from './evaluate.mjs'
+import { improveStyle, spendOf } from './improve.mjs'
 import { loadStyle } from './style.mjs'
 import { renderConsole, renderMarkdown } from './report.mjs'
 
@@ -83,22 +83,33 @@ if (cmd === 'run') {
   mkdirSync(outDir, { recursive: true })
   const log = m => console.error(m)
   const results = []
+  const allRows = []
   for (const style of styles) {
     try {
       results.push(await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log }))
     } catch (err) {
       log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
-      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [] })
+      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], rows: [] })
     }
     // Persist after every style: a long multi-style run must not lose finished
     // work because a later style crashed.
-    writeFileSync(join(outDir, 'improve.json'), JSON.stringify(results, null, 2))
+    allRows.push(...(results.at(-1).rows ?? []))
+    // The transcripts live in rows.json, in the same shape and at the same path
+    // the `run` command uses — that is what lets `score` re-grade an improve run
+    // offline with no arguments. improve.json stays a summary of the loop.
+    const summary = summarize(allRows)
+    writeFileSync(join(outDir, 'rows.json'), JSON.stringify(allRows, null, 2))
+    writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
+    writeFileSync(join(outDir, 'report.md'), renderMarkdown(summary, { when: stamp }))
+    writeFileSync(join(outDir, 'improve.json'), JSON.stringify(results.map(({ rows, ...r }) => r), null, 2))
   }
   for (const r of results.filter(r => r.best)) {
     console.log(`\n${r.styleId}: train ${r.best.train} holdout ${r.best.holdout} (iteration ${r.best.iteration})`)
     for (const h of r.history) console.log(`  v${h.iteration}: train ${h.train} holdout ${h.holdout} ${h.kept ? 'KEEP' : 'revert'}`)
   }
-  console.log(`\ncandidates in ${join(outDir, 'candidates')}`)
+  console.log(`\ntotal spend $${spendOf(allRows)} across ${allRows.length} saved cells`)
+  console.log(`candidates in ${join(outDir, 'candidates')}`)
+  console.log(`re-score offline with: node src/cli.mjs score --rows=${join(outDir, 'rows.json')}`)
 
 } else if (cmd === 'score') {
   // Re-score saved transcripts without spending tokens. Use after editing checks.
@@ -106,7 +117,6 @@ if (cmd === 'run') {
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   console.error(`re-scoring ${rowsPath}`)
   const rows = readJson(rowsPath)
-  const { summarize } = await import('./evaluate.mjs')
   const { scoreDeterministic } = await import('./checks.mjs')
   const rescored = rows.map(r => {
     const caseDef = allCases.find(c => c.id === r.caseId)

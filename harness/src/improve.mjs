@@ -80,7 +80,10 @@ async function rewrite ({ style, brief, model }) {
   return out.replace(/^```(?:markdown|md)?\n?/, '').replace(/\n?```\s*$/, '').trim()
 }
 
-export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log }) {
+// The loop's two boundaries to the outside world. Injectable so the persistence
+// this function is responsible for can be tested without spending anything.
+export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, deps = {} }) {
+  const { evaluate: evaluateFn = evaluate, rewrite: rewriteFn = rewrite } = deps
   const train = cases.filter(c => c.split === cfg.trainSplit)
   const holdout = cases.filter(c => c.split === cfg.holdoutSplit)
   mkdirSync(outDir, { recursive: true })
@@ -88,21 +91,27 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   let best = { text: style.text, body: style.body, train: null, holdout: null, iteration: 0 }
   const history = []
 
-  // The loop spends real money across many evaluate() calls. Track it here, or
-  // the only record is in the `run` transcripts, which the loop never writes.
-  let spentUsd = 0
-  const measure = async (styleText, caseSet) => {
-    const r = await evaluate({
+  // Every cell the loop measures is kept. Without this the loop's transcripts —
+  // most of the project's spend — vanish the moment the process exits: they
+  // cannot be re-scored after a check is fixed, and the only record of what the
+  // money bought is a summary number nobody can audit.
+  const rows = []
+  const measure = async (styleText, caseSet, split, iteration) => {
+    const r = await evaluateFn({
       styles: [{ id: style.id, text: styleText }],
       variants: [variant], models, cases: caseSet, contracts, opts
     })
-    spentUsd += r.summary.totalCostUsd
+    // A row already carries its own `split`; `iteration` is what separates one
+    // candidate's rows from the next, and 0 marks the baseline.
+    const tagged = r.rows.map(row => ({ ...row, iteration }))
+    rows.push(...tagged)
+    writeFileSync(join(outDir, `${style.id}.v${iteration}.${split}.json`), JSON.stringify(tagged, null, 2))
     return r
   }
 
   log(`[${style.id}] baseline...`)
-  const b0 = await measure(best.text, train)
-  const h0 = await measure(best.text, holdout)
+  const b0 = await measure(best.text, train, cfg.trainSplit, 0)
+  const h0 = await measure(best.text, holdout, cfg.holdoutSplit, 0)
   best.train = b0.summary.overall
   best.holdout = h0.summary.overall
   history.push({ iteration: 0, train: best.train, holdout: best.holdout, kept: true, note: 'baseline' })
@@ -124,7 +133,7 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     }
 
     const brief = failureBrief(lastRun.summary, style.id, lastRun.rows)
-    const newBody = await rewrite({ style: { ...style, body: best.body }, brief, model: cfg.authorModel })
+    const newBody = await rewriteFn({ style: { ...style, body: best.body }, brief, model: cfg.authorModel })
     if (!newBody || newBody.length < 200) {
       log(`[${style.id}] iteration ${i}: author returned nothing usable — stopping`)
       break
@@ -133,8 +142,8 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     const candidateText = renderStyle(style.meta, newBody)
     writeFileSync(join(outDir, `${style.id}.v${i}.md`), candidateText)
 
-    const t = await measure(candidateText, train)
-    const h = await measure(candidateText, holdout)
+    const t = await measure(candidateText, train, cfg.trainSplit, i)
+    const h = await measure(candidateText, holdout, cfg.holdoutSplit, i)
     const dTrain = t.summary.overall - best.train
     const dHold = h.summary.overall - best.holdout
     const keep = dTrain > 0 && dHold >= cfg.minHoldoutDelta
@@ -155,6 +164,14 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   }
 
   writeFileSync(join(outDir, `${style.id}.best.md`), best.text)
+  // Spend comes from the rows now on disk, not from a running counter: the
+  // number in the log can be recomputed by anyone holding the transcripts.
+  const spentUsd = spendOf(rows)
   log(`[${style.id}] converged at v${best.iteration}, spent ${spentUsd.toFixed(2)}`)
-  return { styleId: style.id, best, history, spentUsd: Number(spentUsd.toFixed(4)) }
+  return { styleId: style.id, best, history, spentUsd, rows }
+}
+
+/** Total cost of a set of persisted rows. The only source of truth for spend. */
+export function spendOf (rows) {
+  return Number(rows.reduce((a, r) => a + (r.costUsd ?? 0), 0).toFixed(4))
 }

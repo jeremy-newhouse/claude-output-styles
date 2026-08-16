@@ -6,7 +6,7 @@
     "run": "node src/cli.mjs run",
     "improve": "node src/cli.mjs improve",
     "score": "node src/cli.mjs score",
-    "test": "node --test test/checks.test.mjs"
+    "test": "node --test 'test/*.test.mjs'"
   },
   "keywords": [],
   "type": "module",
