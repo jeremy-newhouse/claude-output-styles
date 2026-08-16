@@ -111,21 +111,35 @@ cases (`22-27-15`) moved mean sentence length by **+0.26 words, 95% CI [−0.77,
 improve either: pooled judge 0.557 → 0.532, and mean reply length rose from 105
 words to 114 against an 80-word cap.
 
-The instruction only bites where the cap binds. Opus and Sonnet already write at
-11–12 words unprompted, so a 12-word cap has little to pull against: the share of
-sentences over 12 words moved 42.2% → 38.9% on Opus and 42.2% → 42.9% on Sonnet,
-in opposite directions. On Haiku, whose baseline is 16.6 words, the same one-line
-change moved the mean to 12.3 and the over-12-word share from 60.0% to 40.5%
-(`22-18-53`).
+Opus and Sonnet already write at 11–12 words unprompted, so a 12-word cap has
+little to pull against: the share of sentences over 12 words moved 42.2% → 38.9%
+on Opus and 42.2% → 42.9% on Sonnet, in opposite directions.
 
-Compare the *end states*, not the movements, and the point sharpens: all three
-models finish at roughly the same compliance with a 12-word cap — 38.9%, 42.9%,
-40.5% of sentences still over it. Haiku moves further only because it starts
-further away. Stating the tighter cap does not make any model obey it; it pulls
-whatever the model was doing toward the same place. **A cheap-model probe
-measures whether an instruction can bind, not whether it binds on the models the
-styles target** — the Haiku shift in mean sentence length sits 9.8 standard
-errors outside the Opus/Sonnet interval.
+The original account of this section held that Haiku was the exception — that its
+baseline of 16.6 words sat well above the cap, so the same one-line change pulled
+its over-12 share from 60.0% down to 40.5% (`22-18-53`). **That exception was an
+artifact of a four-cell sample, and `22-59-53` removed it.** Measuring the
+*unchanged* 20-word beginner file on Haiku at eight cells over the probe's own
+four cases, and again at twenty-five cells over all thirteen:
+
+| sample of the untightened file | cells | sentences | mean words | over 12 words |
+|---|---|---|---|---|
+| `22-18-53` — the probe's baseline | 4 | 30 | 16.7 | 60.0% |
+| `22-59-53`, same 4 cases | 8 | 79 | 12.2 | 43.0% |
+| `22-59-53`, all 13 cases | 25 | 268 | 12.4 | 38.4% |
+
+Haiku's untightened baseline is 38.4–43.0% over the 12-word mark. The *tightened*
+file measured 40.5%. **The cap did nothing on Haiku either** — the probe's 60.0%
+was simply a high draw, and the "improvement" was regression to Haiku's own mean.
+
+So the end-state reading holds, and now needs no exception. Every model, tightened
+or not, ends up with roughly 38–43% of its sentences over 12 words: Opus 38.9%,
+Sonnet 42.9%, Haiku 40.5% tightened and 38.4% untightened. Stating a tighter cap
+does not move any model toward it. **A cheap-model probe measures whether an
+instruction can bind, not whether it binds** — and a probe small enough to be
+cheap can hand you a baseline that will not reproduce, which is the failure that
+actually happened here. Re-measure the probe's own baseline before building an
+explanation on the gap it appears to show.
 
 **Paragraph caps.** Settled offline for free. Mean paragraph length is 1.4 to 1.8
 sentences against a cap of 4, and no paragraph in the controlled run exceeds 4.

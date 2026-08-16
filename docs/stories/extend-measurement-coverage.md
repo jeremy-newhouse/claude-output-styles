@@ -40,13 +40,27 @@ tests a suspicion the current data raises but cannot settle. Opus overruns word
 caps roughly twice as often as Sonnet, which may be a property of that model or a
 property of the tier. Three points on the curve would tell them apart.
 
-Current coverage, standard case set, ten cells per pair:
+Current coverage, five shared cases, ten cells per pair. Haiku landed under COS-5
+(run `22-59-53`); Fable is still unmeasured and is COS-7's job.
 
 | style | haiku | sonnet | opus | fable |
 |---|---|---|---|---|
-| advanced | none | rules 96.8 / judge 66.0 | rules 97.8 / judge 73.9 | none |
-| intermediate | none | rules 95.6 / judge 72.6 | rules 94.2 / judge 63.9 | none |
-| beginner | none | rules 92.3 / judge 48.4 | rules 91.5 / judge 45.9 | none |
+| advanced | rules 96.0 / judge 52.9 | rules 96.8 / judge 66.0 | rules 97.8 / judge 73.9 | none |
+| intermediate | rules 94.3 / judge 62.2 | rules 95.6 / judge 72.6 | rules 94.2 / judge 63.9 | none |
+| beginner | rules 90.9 / judge 37.5 | rules 92.3 / judge 48.4 | rules 91.5 / judge 45.9 | none |
+
+Haiku was additionally run across the full 13-case pool (78 cells, $1.88), which
+the two middle tiers have never had. Two results from that wider run shape what
+COS-7 should do:
+
+- **Reserve a column for "no reply".** Six of Haiku's 78 cells hit the 12-turn
+  limit and returned nothing, all on cases that edit a file and then run tests.
+  Averaging those in as zeros costs Haiku about 10 points of apparent rule score.
+  Fable is the tier used for the longest agentic work, so this distinction has to
+  exist in the four-tier table, not be discovered again.
+- **Do not carry a probe's number into a conclusion.** The claim that Haiku
+  writes long sentences came from four cells and did not survive a larger sample
+  of the same configuration; see the experiment ledger.
 
 ## Acceptance criteria
 
@@ -63,7 +77,7 @@ Current coverage, standard case set, ten cells per pair:
 <!-- lore:tasks:begin -->
 | Task | Title | Status |
 |---|---|---|
-| [COS-5](../../backlog/tasks/cos-5%20-%20Measure-the-styles-on-Haiku.md) | Measure the styles on Haiku | To Do |
+| [COS-5](../../backlog/tasks/cos-5%20-%20Measure-the-styles-on-Haiku.md) | Measure the styles on Haiku | Done |
 | [COS-7](../../backlog/tasks/cos-7%20-%20Measure-the-styles-on-Fable.md) | Measure the styles on Fable | To Do |
 <!-- lore:tasks:end -->
 
