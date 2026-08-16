@@ -141,7 +141,8 @@ output-style harness
   node src/cli.mjs score     --rows=results/<stamp>/rows.json
 
   run      evaluate the matrix and write results/<stamp>/{rows,summary,report.md}
-  improve  loop: measure -> rewrite the style -> re-measure -> keep if train up and holdout flat
+  improve  loop: measure -> rewrite the style -> re-measure -> keep if train up and holdout flat,
+           then validate the winner on the reserve split and roll back to v0 if it regresses
   score    re-score saved transcripts offline after changing checks.mjs
 `)
 }

@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-16 20:47'
+updated_date: '2026-08-16 20:55'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -67,4 +67,20 @@ Design decisions worth recording:
 - The verdict line was extracted from cli.mjs into report.mjs as renderVerdict(). AC #3 says a regressing candidate must be REPORTED as rejected; leaving that in a console.log would have made the criterion unverifiable except by eye. It is now three unit tests, including the dangerous case where a candidate was adopted and the reserve never ran — that renders as NOT MEASURED / unvalidated, deliberately not the same as a pass.
 
 Case-set decision: four NEW reserve cases rather than carving them out of the existing nine. The ADR says case-set size is load-bearing; moving the four historically-unseen cases into reserve would have cut train 5->3 and holdout 4->2, shrinking the training signal the loop depends on. Pool is now 13 (5 train / 4 holdout / 4 reserve). The new cases are shapes no existing split contains — a forward-looking scope question, a decision offering three options rather than two, a turn where the user overrides the recommendation, and an agentic case that writes new code — because the ADR's finding is that candidates overfit to case SHAPE, not wording.
+
+REVIEW (/code-review high) found six issues. All were real. Five fixed on the branch, one raised as a separate task.
+
+1. MEDIUM — reserve-three-options claimed to make the two-options rule bite, and it cannot. two_options_max counts only literal 'option a/b/1/2' labels, so a three-option prose reply with a recommendation scores 1.000 (verified). The check's label-blindness is deliberate and documented in checks.mjs; the gap is that nothing replaced it. NOT fixed here: changing checks.mjs moves scores already quoted in docs/ and FINDINGS.md, which is outside this task's criteria. Raised as COS-9 with that constraint written into its acceptance criteria. The case stays — its judge rubric targets the behaviour precisely, and the check does fire when a model labels its options, which happened in the 20-40-22 run ('3 labelled options (cap is 2)'). What was wrong was the claim, not the case.
+
+2. LOW — reserve-pushback graded its own reward as a failure. Its judge asks the second reply to accept the override plainly and move on; leads_with_conclusion scores 0 for exactly that, because "I'll split it into per-region jobs." trips the hedge regex (verified: score 0, evidence quotes the sentence). The check is tuned for task-start narration, not for accepting an instruction. Fixed by dropping leads_with_conclusion from that one case; no_process_narration correctly scores 1.0 on the same text and stays.
+
+3. LOW — cfg.minReserveDelta had no fallback. A matrix.json that set reserveSplit but omitted the threshold would evaluate 'delta >= undefined', false for every candidate, silently rolling back every run while logging an ordinary REJECT. Fixed with DEFAULT_MIN_RESERVE_DELTA and a warning log, pinned by a test that deletes the key from the config.
+
+4. LOW — the README told readers to compare splits in BY SPLIT. On an improve run that table pools every iteration, so train and holdout average the baseline with every discarded candidate while reserve holds only v0 and the winner; the run at 20-41-22 shows exactly that (train n=3 over v0/v1/v2, reserve n=4 over v0/v1). It also contradicted the same file's warning about pooled improve figures. Rewritten to send the reader to the by-iteration table and to scope the BY SPLIT reading to a plain run.
+
+5. LOW — cli.mjs help text still described improve as 'keep if train up and holdout flat', with no mention of a gate that can roll a run back to v0. Updated.
+
+6. LOW — task not finalized. That is this step.
+
+Also fixed before the review returned, found by re-reading my own runbook edit: the rejection example printed the rejected candidate's train and holdout on the REJECTED headline. best is rolled back before rendering, so that line carries v0's figures. The renderVerdict test already asserted the correct behaviour; only the prose disagreed. Same class as the two traps the previous sessions hit — a plausible number in a file, passing every automated gate.
 <!-- SECTION:NOTES:END -->

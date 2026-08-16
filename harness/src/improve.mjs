@@ -43,6 +43,10 @@ Rewrite the body to fix those failures. Rules for the rewrite:
 
 Return ONLY the new body in Markdown. No frontmatter. No commentary.`
 
+// Matches config/matrix.json. Only a fallback for a config that names a reserve
+// split but omits the threshold — see where it is used.
+const DEFAULT_MIN_RESERVE_DELTA = -0.02
+
 function failureBrief (summary, styleId, transcripts) {
   const fails = summary.failures.filter(f => f.styleId === styleId).slice(0, 10)
   const lines = fails.map(f =>
@@ -209,7 +213,11 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     const r0 = await measure(incumbent.text, reserveCases, cfg.reserveSplit, 0)
     const rN = await measure(best.text, reserveCases, cfg.reserveSplit, best.iteration)
     const delta = Number((rN.summary.overall - r0.summary.overall).toFixed(3))
-    const accepted = delta >= cfg.minReserveDelta
+    // Without a fallback a missing threshold means `delta >= undefined`, which
+    // is false for every candidate: every run would roll back to v0 while
+    // logging an ordinary-looking REJECT. Say so rather than fail silently.
+    if (cfg.minReserveDelta === undefined) log(`[${style.id}] WARNING: improve.minReserveDelta is not set — using ${DEFAULT_MIN_RESERVE_DELTA}`)
+    const accepted = delta >= (cfg.minReserveDelta ?? DEFAULT_MIN_RESERVE_DELTA)
     reserve = {
       split: cfg.reserveSplit,
       cases: reserveCases.length,

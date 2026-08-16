@@ -177,9 +177,15 @@ cases twice, once per side. Nothing is adopted without paying it.
 
 Reserve rows land in `rows.json` like any other, tagged with the iteration they
 validate (`v0` for the incumbent, `v<N>` for the candidate), so the comparison
-can be re-scored offline. Watch the `BY SPLIT` table: train far above holdout
-means the last rewrite gamed the checks, and either of them far above reserve
-means it gamed the pool.
+can be re-scored offline.
+
+Read those splits from the **by-iteration** table, not `BY SPLIT`. On an improve
+run `BY SPLIT` pools every iteration, so its `train` and `holdout` rows average
+the baseline together with every candidate the loop tried and threw away, while
+its `reserve` row holds only v0 and the winner. The three are not measured over
+the same versions and comparing them across an improve run says nothing. On a
+plain `run` they are comparable, and there train far above holdout means the
+style is tuned to the training prompts.
 
 **Noise.** At `repeats: 1` and a handful of cases, one case swings the mean by
 ~0.03. Treat gaps under about 3 points as noise. Raise `run.repeats` and add
