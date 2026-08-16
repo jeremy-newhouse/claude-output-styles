@@ -100,6 +100,10 @@ export function summarize (rows) {
   }
 
   return {
+    // Machine-readable counterpart to the trace warning the renderers print: an
+    // improve summary is not comparable with a run summary and must not be
+    // quoted as one.
+    kind: hasIterations ? 'improve' : 'run',
     overall: Number(mean(rows.map(r => r.total)).toFixed(3)),
     totalCostUsd: Number(rows.reduce((a, r) => a + r.costUsd, 0).toFixed(4)),
     byModel: by(r => r.model),
@@ -108,8 +112,11 @@ export function summarize (rows) {
     byStyleModel: by(r => `${r.styleId} @ ${r.model}`),
     byCase: by(r => r.caseId),
     bySplit: by(r => r.split),
+    // Keyed by style as well as iteration: `improve` defaults to every style in
+    // the matrix and pools their rows, so a style-blind key would average two
+    // independent optimizer traces into one number describing neither.
     byIteration: hasIterations
-      ? by(r => `v${r.iteration} ${r.split}`, (a, b) => String(a.key).localeCompare(String(b.key), undefined, { numeric: true }))
+      ? by(r => `${r.styleId} v${r.iteration} ${r.split}`, (a, b) => String(a.key).localeCompare(String(b.key), undefined, { numeric: true }))
       : [],
     failures: [...failures.values()]
       .map(f => ({ ...f, avgScore: Number((f.scoreSum / f.n).toFixed(3)) }))

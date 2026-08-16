@@ -80,7 +80,7 @@ async function rewrite ({ style, brief, model }) {
   return out.replace(/^```(?:markdown|md)?\n?/, '').replace(/\n?```\s*$/, '').trim()
 }
 
-export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, rows = [], deps = {} }) {
+export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, rows = [], onRows, deps = {} }) {
   // evaluate and rewrite are the loop's only boundaries to the outside world.
   // Injectable so the persistence below can be tested without spending anything.
   const { evaluate: evaluateFn = evaluate, rewrite: rewriteFn = rewrite } = deps
@@ -110,6 +110,10 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     const tagged = r.rows.map(row => ({ ...row, iteration }))
     rows.push(...tagged)
     writeFileSync(join(outDir, `${style.id}.v${iteration}.${split}.json`), JSON.stringify(tagged, null, 2))
+    // Flush now, not at the end of the style: Ctrl-C or an OOM part-way through
+    // a long paid run is the ordinary ending, and rows only `score` can read are
+    // the ones worth keeping.
+    onRows?.(rows)
     return r
   }
 

@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { improveStyle, spendOf } from '../src/improve.mjs'
 import { summarize } from '../src/evaluate.mjs'
+import { renderConsole, renderMarkdown } from '../src/report.mjs'
 
 const CASES = [
   { id: 'tr-1', split: 'train', prompt: 'p' },
@@ -38,7 +39,7 @@ async function withTmpDir (fn) {
 
 const BODY = 'x'.repeat(300)
 
-const runLoop = (outDir, { evaluate, rewrite, rows }) => improveStyle({
+const runLoop = (outDir, { evaluate, rewrite, rows, onRows }) => improveStyle({
   style: { id: 'demo', text: `---\nname: demo\n---\n${BODY}`, body: BODY, meta: { name: 'demo' } },
   variant: { id: 'baseline' },
   models: ['haiku'],
@@ -49,6 +50,7 @@ const runLoop = (outDir, { evaluate, rewrite, rows }) => improveStyle({
   outDir,
   log: () => {},
   rows,
+  onRows,
   deps: { evaluate, rewrite }
 })
 
@@ -144,23 +146,49 @@ test('a style reports only its own rows out of a shared sink', async () => {
   })
 })
 
+test('rows are flushed after every measurement, not once per style', async () => {
+  await withTmpDir(async dir => {
+    const seen = []
+    await runLoop(dir, {
+      onRows: rows => seen.push(rows.length),
+      evaluate: fakeEvaluate(0.5, 0.01),
+      rewrite: async () => 'y'.repeat(300)
+    })
+    // Four measurements: v0 train, v0 holdout, v1 train, v1 holdout. An
+    // interrupt after any one of them still leaves a readable rows.json.
+    assert.deepEqual(seen, [1, 2, 3, 4])
+  })
+})
+
 test('spendOf tolerates rows with no recorded cost', () => {
   assert.equal(spendOf([]), 0)
   assert.equal(spendOf([{ costUsd: 0.5 }, { error: 'timeout' }]), 0.5)
 })
 
+const row = (styleId, iteration, split, total) => ({
+  styleId, variantId: 'baseline', model: 'haiku', caseId: `c-${split}`,
+  split, repeat: 0, iteration, costUsd: 0.01, error: null,
+  rulesScore: total, checks: [], judgeScore: total, total
+})
+
 test('summarize groups improve rows by iteration, in loop order', () => {
-  const row = (iteration, split, total) => ({
-    styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: `c-${split}`,
-    split, repeat: 0, iteration, costUsd: 0.01, error: null,
-    rulesScore: total, checks: [], judgeScore: total, total
-  })
   const s = summarize([
-    row(1, 'train', 0.9), row(0, 'holdout', 0.4), row(0, 'train', 0.5), row(1, 'holdout', 0.8)
+    row('demo', 1, 'train', 0.9), row('demo', 0, 'holdout', 0.4),
+    row('demo', 0, 'train', 0.5), row('demo', 1, 'holdout', 0.8)
   ])
   assert.deepEqual(s.byIteration.map(g => g.key),
-    ['v0 holdout', 'v0 train', 'v1 holdout', 'v1 train'])
-  assert.equal(s.byIteration.find(g => g.key === 'v1 train').score, 0.9)
+    ['demo v0 holdout', 'demo v0 train', 'demo v1 holdout', 'demo v1 train'])
+  assert.equal(s.byIteration.find(g => g.key === 'demo v1 train').score, 0.9)
+  assert.equal(s.kind, 'improve')
+})
+
+test('two styles in one improve run keep separate traces', () => {
+  // improve defaults to every style in the matrix and pools their rows. A
+  // style-blind key would average these two into 0.6, describing neither.
+  const s = summarize([row('a', 1, 'train', 0.95), row('b', 1, 'train', 0.25)])
+  assert.equal(s.byIteration.length, 2)
+  assert.equal(s.byIteration.find(g => g.key === 'a v1 train').score, 0.95)
+  assert.equal(s.byIteration.find(g => g.key === 'b v1 train').score, 0.25)
 })
 
 test('summarize leaves byIteration empty for a plain run', () => {
@@ -170,4 +198,21 @@ test('summarize leaves byIteration empty for a plain run', () => {
     rulesScore: 1, checks: [], judgeScore: 1, total: 1
   }])
   assert.deepEqual(s.byIteration, [])
+  assert.equal(s.kind, 'run')
+})
+
+test('an improve report is labelled a trace; a plain run report is not', () => {
+  const trace = summarize([row('demo', 0, 'train', 0.5), row('demo', 1, 'train', 0.9)])
+  const md = renderMarkdown(trace)
+  assert.match(md, /^# Optimizer trace/)
+  assert.match(md, /not any style's score/)
+  assert.match(renderConsole(trace), /Optimizer trace/)
+
+  const plain = summarize([{
+    styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: 'c1',
+    split: 'train', repeat: 0, costUsd: 0.01, error: null,
+    rulesScore: 1, checks: [], judgeScore: 1, total: 1
+  }])
+  assert.match(renderMarkdown(plain), /^# Output style adherence report/)
+  assert.doesNotMatch(renderConsole(plain), /Optimizer trace/)
 })

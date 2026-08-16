@@ -77,6 +77,11 @@ iteration that produced it. Re-score them later with
 `node src/cli.mjs score --rows=results/<stamp>/rows.json`; the `BY ITERATION`
 table is the loop's trace, and the reverted iterations are in there too.
 
+Read that table, not the headline. An improve `report.md` pools the baseline with
+every rejected candidate, so its overall figure describes no style — it opens
+with a warning saying as much. The style's real numbers are the `v0` rows, or the
+kept iteration if one survived.
+
 ### Validate before adopting
 
 The loop's own holdout is a tuning signal, not a verdict. Both splits come from

@@ -26,6 +26,12 @@ Every `run` invocation writes `rows.json`, `summary.json`, and `report.md`.
 absent from the runs below; from `2026-08-16T14-48-09` onward an improve run
 persists the same three files, with an `iteration` on every row.
 
+**Do not add an improve run to the table above.** Its headline pools the baseline
+with every rejected candidate, so it is not a score for anything and is not
+comparable with the rows here. Its `report.md` is titled *Optimizer trace* and
+its `summary.json` carries `kind: "improve"` for exactly this reason; improve
+runs belong in the optimizer table below.
+
 | stamp | cells | cost | scope | established |
 |---|---|---|---|---|
 | `20-09-49` | 4 | $0.43 | advanced, both models, 2 cases | Smoke test. Harness works end to end. |

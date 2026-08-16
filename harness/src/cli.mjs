@@ -84,24 +84,32 @@ if (cmd === 'run') {
   const log = m => console.error(m)
   const results = []
   const allRows = []
-  for (const style of styles) {
-    try {
-      results.push(await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows }))
-    } catch (err) {
-      log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
-      // allRows already holds whatever this style measured before it threw.
-      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [] })
-    }
-    // Persist after every style: a long multi-style run must not lose finished
-    // work because a later style crashed.
-    // The transcripts live in rows.json, in the same shape and at the same path
-    // the `run` command uses — that is what lets `score` re-grade an improve run
-    // offline with no arguments. improve.json stays a summary of the loop.
+  // The transcripts live in rows.json, in the same shape and at the same path
+  // the `run` command uses — that is what lets `score` re-grade an improve run
+  // offline with no arguments. improve.json stays a summary of the loop.
+  const flush = () => {
     const summary = summarize(allRows)
     writeFileSync(join(outDir, 'rows.json'), JSON.stringify(allRows, null, 2))
     writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
     writeFileSync(join(outDir, 'report.md'), renderMarkdown(summary, { when: stamp }))
-    writeFileSync(join(outDir, 'improve.json'), JSON.stringify(results.map(({ rows, ...r }) => r), null, 2))
+    writeFileSync(join(outDir, 'improve.json'), JSON.stringify(results, null, 2))
+  }
+  for (const style of styles) {
+    const before = allRows.length
+    try {
+      // improveStyle returns its own rows; strip them so improve.json stays a
+      // summary of the loop rather than a second copy of rows.json.
+      const { rows, ...r } = await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows, onRows: flush })
+      results.push(r)
+    } catch (err) {
+      log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
+      // allRows already holds whatever this style measured before it threw, so
+      // the spend it burned is still attributable to it.
+      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], spentUsd: spendOf(allRows.slice(before)) })
+    }
+    // Persist after every style too: flush() during the loop only ran if the
+    // style got as far as its first measurement.
+    flush()
   }
   for (const r of results.filter(r => r.best)) {
     console.log(`\n${r.styleId}: train ${r.best.train} holdout ${r.best.holdout} (iteration ${r.best.iteration})`)
