@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:45'
-updated_date: '2026-08-16 14:14'
+updated_date: '2026-08-16 14:19'
 labels:
   - 'doc:stories/make-the-install-path-safe'
 dependencies: []
@@ -55,6 +55,16 @@ AC #3 - README.md:68: "**A name that no file provides fails silently.** Claude C
 Also added a "## Going deeper" section linking the runbook and the mechanics reference rather than duplicating them; both relative paths confirmed to resolve from the repo root. Facts were lifted from docs/reference/output-style-injection-mechanics.md and docs/runbooks/install-and-switch-an-output-style.md, not re-derived.
 
 Gates: npm --prefix harness test 11/11 pass. lore sync run to reconcile the story status/managed block that this task moving status put into drift; lore check exits 0 with 0 errors. No harness measurement run - nothing in this task asserts a number.
+
+Review (`/code-review high`, adversarial subagent over `git diff dev...HEAD`) raised three findings. All three were real; all three fixed on the branch before the PR.
+
+1. (medium) The tracker's resolved row shipped a literal `<PR_SHA>` placeholder, and asserted "merged" while the PR was still open. The tracker is the campaign system of record — a later session auditing whether COS-6 landed would have had no SHA to check and no way to tell "merged, unrecorded" from "never merged". Fixed: the row now says "Task Done" and states the merge SHA is recorded in the session log once the PR lands.
+
+2. (medium) Install step 2 said `/config` "writes the choice to `.claude/settings.local.json`" directly under a step 1 that offers `~/.claude/output-styles/` as the all-projects install. A user installing globally and selecting via `/config` gets the style in that one repo only, and the troubleshooting text then sent them to re-check the frontmatter name — the wrong diagnosis for a scope problem, in the one document whose job is preventing silent install failures. Fixed: step 2 states the scope explicitly and points at `~/.claude/settings.json` for a user-wide default; the confirm section now names both causes (name did not resolve, or setting scoped to another project).
+
+3. (low, but the same trap the section documents) The three literal names are listed with an ASCII hyphen, while the level headings at README:17/23/29 typeset them with an em dash. Copying a heading into settings yields a name no file provides — the exact silent Default fallback the section warns about. Fixed: an explicit note to copy from the list, not the headings, plus "watching for the em dash" in the troubleshooting line.
+
+Gates re-run after the fixes: `npm --prefix harness test` 11/11 pass; `lore check` 23 files, 0 errors, 0 warnings; all three frontmatter names still appear verbatim in the README (3/3). The reviewer independently confirmed the three names, both doc links, that every README claim traces to the mechanics reference or the install runbook, and the tracker cost arithmetic.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

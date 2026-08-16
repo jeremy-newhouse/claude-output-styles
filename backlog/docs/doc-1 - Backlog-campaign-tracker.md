@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-16 14:14'
+updated_date: '2026-08-16 14:18'
 ---
 # Backlog campaign tracker
 
@@ -42,7 +42,7 @@ Estimated remaining: ~$73 (COS-6 cost nothing).
 
 | # | Issue | Status/date/session | Evidence summary |
 |---|---|---|---|
-| 1 | COS-6 | Done — 2026-08-16, session 1 | README-only. All 3 ACs checked against quoted README lines: name resolution from frontmatter `name:` with filename fallback (:56), a "Confirm it loaded" section giving the behavioural check and the canary (:70-76), and the silent-fallback statement (:68). Scripted checks: all three frontmatter names appear verbatim in the README (3/3); both new doc links resolve. `npm --prefix harness test` 11/11; `lore check` 0 errors after `lore sync`. Merged as <PR_SHA>. |
+| 1 | COS-6 | Task Done — 2026-08-16, session 1 | README-only. All 3 ACs checked against quoted README lines: name resolution from frontmatter `name:` with filename fallback, a "Confirm it loaded" section giving the behavioural check and the canary, and the silent-fallback statement. Scripted checks: all three frontmatter names appear verbatim in the README (3/3); both new doc links resolve. `npm --prefix harness test` 11/11; `lore check` 0 errors after `lore sync`. Review found 3 issues, all fixed on the branch. Merge SHA recorded in the session log below once the PR lands. |
 
 ## Not queued — needs a human / blocked
 
@@ -82,3 +82,11 @@ Two issues carry known risk against that policy:
   all: moving COS-6's status put the story's managed task block into drift, and
   `lore check` failed until it was reconciled (it also auto-commits the touched
   `backlog/` file — expect that commit on the branch). Cursor advanced to COS-3.
+  `/code-review high` raised three issues, all real and all fixed before the PR:
+  a `<PR_SHA>` placeholder committed into this tracker's resolved row; `/config`
+  described as if it set the style globally when it writes a project-scoped
+  `.claude/settings.local.json`; and the README's own level headings using an em
+  dash where the literal style names use an ASCII hyphen — copying a heading
+  would have produced exactly the silent Default fallback the section warns
+  about. Worth carrying forward: reviewing docs against the failure they claim to
+  prevent caught two traps that every automated gate passed.
