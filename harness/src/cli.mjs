@@ -86,14 +86,14 @@ if (cmd === 'run') {
   const allRows = []
   for (const style of styles) {
     try {
-      results.push(await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log }))
+      results.push(await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows }))
     } catch (err) {
       log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
-      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], rows: [] })
+      // allRows already holds whatever this style measured before it threw.
+      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [] })
     }
     // Persist after every style: a long multi-style run must not lose finished
     // work because a later style crashed.
-    allRows.push(...(results.at(-1).rows ?? []))
     // The transcripts live in rows.json, in the same shape and at the same path
     // the `run` command uses — that is what lets `score` re-grade an improve run
     // offline with no arguments. improve.json stays a summary of the loop.

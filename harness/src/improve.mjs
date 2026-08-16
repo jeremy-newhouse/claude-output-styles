@@ -82,8 +82,13 @@ async function rewrite ({ style, brief, model }) {
 
 // The loop's two boundaries to the outside world. Injectable so the persistence
 // this function is responsible for can be tested without spending anything.
-export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, deps = {} }) {
+export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, rows = [], deps = {} }) {
   const { evaluate: evaluateFn = evaluate, rewrite: rewriteFn = rewrite } = deps
+  // Callers pass a shared sink so that a style crashing mid-loop still leaves
+  // the cells it already paid for in the caller's hands. This loop has crashed
+  // a paid multi-style run before; the rows must not go with it.
+  const start = rows.length
+  const mine = () => rows.slice(start)
   const train = cases.filter(c => c.split === cfg.trainSplit)
   const holdout = cases.filter(c => c.split === cfg.holdoutSplit)
   mkdirSync(outDir, { recursive: true })
@@ -95,7 +100,6 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   // most of the project's spend — vanish the moment the process exits: they
   // cannot be re-scored after a check is fixed, and the only record of what the
   // money bought is a summary number nobody can audit.
-  const rows = []
   const measure = async (styleText, caseSet, split, iteration) => {
     const r = await evaluateFn({
       styles: [{ id: style.id, text: styleText }],
@@ -166,9 +170,9 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   writeFileSync(join(outDir, `${style.id}.best.md`), best.text)
   // Spend comes from the rows now on disk, not from a running counter: the
   // number in the log can be recomputed by anyone holding the transcripts.
-  const spentUsd = spendOf(rows)
+  const spentUsd = spendOf(mine())
   log(`[${style.id}] converged at v${best.iteration}, spent ${spentUsd.toFixed(2)}`)
-  return { styleId: style.id, best, history, spentUsd, rows }
+  return { styleId: style.id, best, history, spentUsd, rows: mine() }
 }
 
 /** Total cost of a set of persisted rows. The only source of truth for spend. */
