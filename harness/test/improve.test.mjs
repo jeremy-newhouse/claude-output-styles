@@ -38,7 +38,7 @@ async function withTmpDir (fn) {
 
 const BODY = 'x'.repeat(300)
 
-const runLoop = (outDir, { evaluate, rewrite }) => improveStyle({
+const runLoop = (outDir, { evaluate, rewrite, rows }) => improveStyle({
   style: { id: 'demo', text: `---\nname: demo\n---\n${BODY}`, body: BODY, meta: { name: 'demo' } },
   variant: { id: 'baseline' },
   models: ['haiku'],
@@ -48,6 +48,7 @@ const runLoop = (outDir, { evaluate, rewrite }) => improveStyle({
   cfg: CFG,
   outDir,
   log: () => {},
+  rows,
   deps: { evaluate, rewrite }
 })
 
@@ -105,6 +106,40 @@ test('a rewrite that returns nothing stops the loop after the baseline', async (
     assert.deepEqual(readdirSync(dir).filter(f => f.endsWith('.json')).sort(),
       ['demo.v0.holdout.json', 'demo.v0.train.json'])
     assert.equal(r.rows.length, 2)
+    assert.equal(r.spentUsd, 0.02)
+  })
+})
+
+test('a style that throws leaves its measured cells in the shared sink', async () => {
+  await withTmpDir(async dir => {
+    const shared = []
+    let calls = 0
+    await assert.rejects(runLoop(dir, {
+      rows: shared,
+      // Baseline train and holdout land, then the candidate measurement dies.
+      evaluate: async arg => {
+        if (++calls > 2) throw new Error('judge exploded')
+        return fakeEvaluate(0.5, 0.01)(arg)
+      },
+      rewrite: async () => 'y'.repeat(300)
+    }), /judge exploded/)
+    assert.equal(shared.length, 2)
+    assert.equal(spendOf(shared), 0.02)
+    assert.deepEqual(shared.map(r => r.iteration), [0, 0])
+  })
+})
+
+test('a style reports only its own rows out of a shared sink', async () => {
+  await withTmpDir(async dir => {
+    const shared = [{ styleId: 'other', costUsd: 5, iteration: 0 }]
+    const r = await runLoop(dir, {
+      rows: shared,
+      evaluate: fakeEvaluate(0.5, 0.01),
+      rewrite: async () => ''
+    })
+    assert.equal(shared.length, 3)
+    assert.equal(r.rows.length, 2)
+    assert.ok(r.rows.every(row => row.styleId === 'demo'))
     assert.equal(r.spentUsd, 0.02)
   })
 })
