@@ -227,8 +227,11 @@ node src/cli.mjs audit     # exit 1 on any disagreement
 ```
 
 ```
+style file vs contract
   ok   plain-english-beginner     maxSentenceWords       both say 20
   FAIL plain-english-beginner     maxParagraphSentences  file says 4, contracts.json grades at 3
+  ...
+1 of 12 checks need attention
 ```
 
 The same comparison runs in `test/contract-audit.test.mjs`, so `npm test` fails
