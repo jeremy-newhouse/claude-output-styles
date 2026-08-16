@@ -112,14 +112,20 @@ improve either: pooled judge 0.557 → 0.532, and mean reply length rose from 10
 words to 114 against an 80-word cap.
 
 The instruction only bites where the cap binds. Opus and Sonnet already write at
-11–12 words unprompted, so a 12-word cap has nothing to pull against, and the
-share of sentences over 12 words barely moved — 42.2% → 38.9% on Opus and 42.2%
-→ 42.9% on Sonnet, in opposite directions. On Haiku, whose baseline is 16.6
-words, the same one-line change moved the mean to
-12.3 and cut over-cap sentences from 30% to 11% (`22-18-53`). **A cheap-model
-probe measures whether an instruction can bind, not whether it binds on the
-models the styles target.** The Haiku effect sits 9.8 standard errors outside the
-Opus/Sonnet interval.
+11–12 words unprompted, so a 12-word cap has little to pull against: the share of
+sentences over 12 words moved 42.2% → 38.9% on Opus and 42.2% → 42.9% on Sonnet,
+in opposite directions. On Haiku, whose baseline is 16.6 words, the same one-line
+change moved the mean to 12.3 and the over-12-word share from 60.0% to 40.5%
+(`22-18-53`).
+
+Compare the *end states*, not the movements, and the point sharpens: all three
+models finish at roughly the same compliance with a 12-word cap — 38.9%, 42.9%,
+40.5% of sentences still over it. Haiku moves further only because it starts
+further away. Stating the tighter cap does not make any model obey it; it pulls
+whatever the model was doing toward the same place. **A cheap-model probe
+measures whether an instruction can bind, not whether it binds on the models the
+styles target** — the Haiku shift in mean sentence length sits 9.8 standard
+errors outside the Opus/Sonnet interval.
 
 **Paragraph caps.** Settled offline for free. Mean paragraph length is 1.4 to 1.8
 sentences against a cap of 4, and no paragraph in the controlled run exceeds 4.

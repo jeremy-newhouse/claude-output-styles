@@ -226,13 +226,19 @@ every beginner run was scored against a rule no reader of the style could see.
 node src/cli.mjs audit     # exit 1 on any disagreement
 ```
 
+Against that divergence it prints:
+
 ```
 style file vs contract
-  ok   plain-english-beginner     maxSentenceWords       both say 20
+  FAIL plain-english-beginner     maxSentenceWords       file says 20, contracts.json grades at 15
   FAIL plain-english-beginner     maxParagraphSentences  file says 4, contracts.json grades at 3
+  ok   plain-english-beginner     maxUpdateWords         both say 80
   ...
-1 of 12 checks need attention
+2 of 12 checks need attention
 ```
+
+It reports every field rather than stopping at the first, so one run tells you
+the whole extent of the drift.
 
 The same comparison runs in `test/contract-audit.test.mjs`, so `npm test` fails
 on drift too. Recognised phrasings, one per contract field:
@@ -252,7 +258,17 @@ as `ambiguous`. Add the phrasing to `PATTERNS` in `src/contract-audit.mjs` when 
 style legitimately needs a new one.
 
 Run it after editing a style file or a contract — those are the two moments the
-pair can drift.
+pair can drift. After adopting an optimizer candidate too; see the adopt step in
+`docs/runbooks/measure-and-optimize-an-output-style.md` for why that one bites.
+
+**It compares numbers, not conditions.** Beginner's file says "Never show code
+*unless they ask*", and the guard reads that as a flat 0 because that is all
+`maxCodeLines` can express. `code_block_size` then scores 0 for any code block at
+weight 2, whether or not the user asked — so on a prompt that requests a snippet,
+beginner follows its own style file and takes the heaviest penalty in its
+contract while `audit` reports "both say 0". The conditional half of a rule is
+invisible to both instruments. Treat a clean audit as "the numbers agree", not as
+"the file and the contract mean the same thing".
 
 ## Cost control
 

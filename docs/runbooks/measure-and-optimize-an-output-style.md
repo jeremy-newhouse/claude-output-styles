@@ -129,8 +129,20 @@ node src/cli.mjs run --styles=<current>,<candidate> --models=opus,sonnet --repea
 
 ```bash
 cp results/<stamp>/candidates/<style>.best.md ../<style>.md
+node src/cli.mjs audit --styles=<style>          # must pass before the next line
 cp ../<style>.md ~/.claude/output-styles/<style>.md
 ```
+
+**The audit step is not optional here, and it will fire sooner or later.** The
+rewriter is told to delete instructions the measurements show are already
+satisfied, and `sentence_length` and `paragraph_length` sit near 1.0 — so a
+candidate that drops or rephrases "Keep sentences under 20 words" is a normal
+optimizer output, not a malfunction. Adopting it puts the file and
+`contracts.json` out of agreement and turns `npm test` red on a rewrite that
+legitimately won. When that happens, decide which side is right — if the cap
+still applies, restore the line to the adopted body; if the rewrite genuinely
+retired it, change `contracts.json` to match and re-run the numbers, because the
+old ones were graded against a rule the style no longer states.
 
 Takes effect on the next session or after `/clear`. Confirm it actually loaded
 rather than merely being configured — see the injection-mechanics reference.
