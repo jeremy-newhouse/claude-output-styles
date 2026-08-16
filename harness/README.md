@@ -185,6 +185,14 @@ means it gamed the pool.
 ~0.03. Treat gaps under about 3 points as noise. Raise `run.repeats` and add
 cases before drawing a conclusion from a small difference.
 
+This bites the reserve hardest, because it is the smallest split — four cases,
+measured once per side. At `repeats: 1` a single case moves the reserve mean far
+more than `minReserveDelta`, so the pass is a floor and not a proof: it reliably
+catches a collapse of the size that motivated it (6.8 points), and it can miss a
+small real regression or reject a sound candidate on a coin flip. Raise
+`run.repeats` for a rewrite you intend to ship, and grow the reserve. Treating
+`ACCEPT` as "measured to be no worse" overstates what four cases can say.
+
 ## Offline re-scoring
 
 `run` and `improve` both save every raw transcript to
