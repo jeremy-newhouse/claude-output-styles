@@ -305,6 +305,24 @@ test('no reserve pass runs, and nothing is spent on it, when no rewrite was kept
   })
 })
 
+test('a config missing minReserveDelta warns and still accepts a sound candidate', async () => {
+  await withTmpDir(async dir => {
+    const lines = []
+    // `delta >= undefined` is false for every candidate, so without a fallback
+    // this config would silently roll back every run it was used on.
+    const { minReserveDelta, ...noThreshold } = CFG
+    const r = await runLoop(dir, {
+      cfg: noThreshold,
+      evaluate: splitAwareEvaluate(RESERVE_CLEARS),
+      rewrite: proposeCandidate,
+      log: m => lines.push(m)
+    })
+    assert.equal(r.reserve.accepted, true)
+    assert.equal(r.best.iteration, 1)
+    assert.match(lines.join('\n'), /minReserveDelta is not set/)
+  })
+})
+
 test('an adoption with no reserve cases is reported as unvalidated, not as validated', async () => {
   await withTmpDir(async dir => {
     const lines = []
