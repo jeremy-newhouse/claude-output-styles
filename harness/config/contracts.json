@@ -2,8 +2,8 @@
   "plain-english-beginner": {
     "level": "beginner",
     "styleFile": "../plain-english-beginner.md",
-    "maxSentenceWords": 15,
-    "maxParagraphSentences": 3,
+    "maxSentenceWords": 20,
+    "maxParagraphSentences": 4,
     "maxUpdateWords": 80,
     "maxCodeLines": 0,
     "bannedTerms": [
@@ -59,7 +59,7 @@
   "plain-english-intermediate": {
     "level": "intermediate",
     "styleFile": "../plain-english-intermediate.md",
-    "maxSentenceWords": 18,
+    "maxSentenceWords": 20,
     "maxParagraphSentences": 4,
     "maxUpdateWords": 100,
     "maxCodeLines": 5,

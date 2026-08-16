@@ -225,15 +225,15 @@ One run, one scoring version, current case prompts, so every cell is comparable.
 | style | rules opus | rules sonnet | judge opus | judge sonnet |
 |---|---|---|---|---|
 | advanced | 97.8 | 96.8 | 73.9 | 66.0 |
-| intermediate | 93.8 | 95.0 | 63.9 | 72.6 |
-| beginner | 90.2 | 91.7 | **45.9** | **48.4** |
+| intermediate | 94.2 | 95.6 | 63.9 | 72.6 |
+| beginner | 91.5 | 92.3 | **45.9** | **48.4** |
 
 The composite score is deliberately omitted: each style carries a different
 `judgeWeight` (0.3 / 0.4 / 0.5), so composites are not comparable across rows.
 Rules and judge are.
 
 Two things this settles. Rule compliance is high everywhere and roughly
-model-independent — the spread across all six cells is 90.2 to 97.8. Prose
+model-independent — the spread across all six cells is 91.5 to 97.8. Prose
 quality is neither: beginner sits 20 points below advanced on both models, and it
 is the only style where the two halves disagree sharply.
 

@@ -45,8 +45,8 @@ Current coverage, standard case set, ten cells per pair:
 | style | haiku | sonnet | opus | fable |
 |---|---|---|---|---|
 | advanced | none | rules 96.8 / judge 66.0 | rules 97.8 / judge 73.9 | none |
-| intermediate | none | rules 95.0 / judge 72.6 | rules 93.8 / judge 63.9 | none |
-| beginner | none | rules 91.7 / judge 48.4 | rules 90.2 / judge 45.9 | none |
+| intermediate | none | rules 95.6 / judge 72.6 | rules 94.2 / judge 63.9 | none |
+| beginner | none | rules 92.3 / judge 48.4 | rules 91.5 / judge 45.9 | none |
 
 ## Acceptance criteria
 

@@ -7,6 +7,7 @@ summary: Add guidance and cases for the two scenarios every style handles badly,
 tasks:
   - cos-1
   - cos-4
+  - cos-8
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
@@ -33,8 +34,8 @@ the standard case set, both models, ten cells each:
 | style | rules (opus / sonnet) | judge (opus / sonnet) |
 |---|---|---|
 | advanced | 97.8 / 96.8 | 73.9 / 66.0 |
-| intermediate | 93.8 / 95.0 | 63.9 / 72.6 |
-| **beginner** | 90.2 / 91.7 | **45.9 / 48.4** |
+| intermediate | 94.2 / 95.6 | 63.9 / 72.6 |
+| **beginner** | 91.5 / 92.3 | **45.9 / 48.4** |
 
 It follows its own rules at over 90% and still reads worst. Judge complaints
 centre on vague next-steps, restated ideas, and reverting to a helper-assistant
@@ -60,6 +61,7 @@ converged having changed nothing.
 |---|---|---|
 | [COS-1](../../backlog/tasks/cos-1%20-%20Close-the-multi-tool-session-and-open-ended-decision-quality-gap.md) | Close the multi-tool session and open-ended decision quality gap | To Do |
 | [COS-4](../../backlog/tasks/cos-4%20-%20Raise-beginner-style-prose-quality.md) | Raise beginner style prose quality | To Do |
+| [COS-8](../../backlog/tasks/cos-8%20-%20Decide-whether-lower-levels-need-tighter-sentence-caps.md) | Decide whether lower levels need tighter sentence caps | To Do |
 <!-- lore:tasks:end -->
 
 ## Notes

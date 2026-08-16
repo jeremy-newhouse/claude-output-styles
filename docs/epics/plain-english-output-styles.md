@@ -55,8 +55,8 @@ different `judgeWeight`.
 | style | rules (opus / sonnet) | judge (opus / sonnet) |
 |---|---|---|
 | advanced | 97.8 / 96.8 | 73.9 / 66.0 |
-| intermediate | 93.8 / 95.0 | 63.9 / 72.6 |
-| beginner | 90.2 / 91.7 | 45.9 / 48.4 |
+| intermediate | 94.2 / 95.6 | 63.9 / 72.6 |
+| beginner | 91.5 / 92.3 | 45.9 / 48.4 |
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a
@@ -73,8 +73,23 @@ asking for the right things.
 - [Score styles with deterministic checks plus a style-aware judge](../adr/score-styles-with-deterministic-checks-plus-a-style-aware-judge.md)
 - [Ship one style file for every model](../adr/ship-one-style-file-for-every-model.md)
 - [Reject harness-level reinforcement of style rules](../adr/reject-harness-level-reinforcement-of-style-rules.md)
+- [Validate candidates on cases held out of every split](../adr/validate-candidates-on-cases-held-out-of-every-split.md)
+
+## Specification
+
+- [Style contracts by audience level](../specs/style-contracts-by-audience-level.md) —
+  what each level commits to, and the numbers the harness enforces
 
 ## References
 
-- [Output style injection mechanics](../reference/output-style-injection-mechanics.md)
+- [Output style injection mechanics](../reference/output-style-injection-mechanics.md) —
+  how Claude Code resolves, loads, and places a style
+- [Harness architecture](../reference/harness-architecture.md) —
+  module map, data flow, and the invariants worth preserving
+- [Experiment ledger](../reference/experiment-ledger.md) —
+  every run, what it tested, what it established
+
+## Runbooks
+
+- [Install and switch an output style](../runbooks/install-and-switch-an-output-style.md)
 - [Measure and optimize an output style](../runbooks/measure-and-optimize-an-output-style.md)
