@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-16 22:46'
+updated_date: '2026-08-16 23:21'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-5** — queue order confirmed by the user on 2026-08-16, who
+**Next issue: COS-7** — queue order confirmed by the user on 2026-08-16, who
 chose the "Safety-first" option from a presented comparison: "COS-6 → COS-3 →
 COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4. Free doc task proves the loop,
 then harness plumbing, then the caps guard, then measurement, then the two hard
@@ -28,7 +28,6 @@ Do not re-ask before taking the next item.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
-| 5 | COS-5 | measure | Haiku across all three styles. ~$5. |
 | 6 | COS-7 | measure | Fable across all three styles. Most expensive tier, ~$20. |
 | 7 | COS-1 | styles | Multi-tool sessions and open-ended decisions. Judge bar 65%, currently ~48%. ~$15. |
 | 8 | COS-4 | styles | Beginner prose. Judge bar 70%, currently 45.9/48.4. Hardest. ~$20. |
@@ -37,9 +36,16 @@ Not queued yet, raised during session 3: **COS-9** — make `two_options_max` se
 prose option sprawl. Discovered by COS-2's review. Deliberately left out of the
 confirmed order, which is the user's to change.
 
-Estimated remaining: ~$60. Spent so far: $4.05 (COS-6 cost nothing; COS-3 came in
+Estimated remaining: ~$55. Spent so far: $5.93 (COS-6 cost nothing; COS-3 came in
 well under its ~$2 budget; COS-2 came in at $0.88 against ~$3; COS-8 at $2.42
-against ~$8).
+against ~$8; COS-5 at $1.88 against ~$5).
+
+Two spend caveats recorded under COS-5. Cells that abort on the turn limit carry
+`costUsd: 0`, so `22-59-53`'s six failed cells burned tokens no row records. And
+one aborted invocation — `node src/cli.mjs run --help`, which the CLI treats as
+`run` because the subcommand has no help flag — ran about two minutes at
+concurrency 4 across the full matrix before being killed. It wrote no
+`rows.json`, so its spend is real, unquantified, and excluded from the $5.93.
 
 ## Resolved
 
@@ -49,6 +55,7 @@ against ~$8).
 | 2 | COS-3 | Task Done — 2026-08-16, session 2 | All 3 ACs proved against a real improve run on the reviewed code, `results/2026-08-16T15-04-22-436Z/` (beginner, Haiku, 2 cases, 1 iteration, 4 cells, $0.0919), after an earlier 18-cell run at `14-48-09` ($0.6097) established the same three identities on the first implementation. AC #1: all four per-iteration transcript files present including the reverted v1, and `rows.json` groups 1/1/1/1 across v0 and v1. AC #2: rows sum = `summary.json` totalCostUsd = `improve.json` spentUsd = 0.0919, the counter deleted in favour of `spendOf(rows)`. AC #3: `score --rows` reproduced the loop's logged 0.8 / 0.9 / 0.669 / 0.85 exactly, exit 0 with the API pointed at a dead socket and no new results directory; no-arg `score` finds an improve run unaided. Plain-run path unchanged (12-44-03 still 81.0% at $7.517). `npm --prefix harness test` 23/23 (12 new); `lore check` 0 errors. `/code-review high` found five issues, all real and all fixed on the branch. Merged as `1daff4d`. |
 | 3 | COS-2 | Task Done — 2026-08-16, session 3 | All 4 ACs proved on real improve runs against the committed code, not unit tests alone. Six paid runs, $1.18 total against a ~$3 budget. The decisive one is `results/2026-08-16T20-57-54-086Z/` (beginner, Haiku, 1 train + 1 holdout + 2 reserve, 3 iterations, 12 cells, $0.30): the real optimizer produced a candidate that won train and beat holdout by 29.5 points (0.644 -> 0.99), and was **17.7 points worse on the reserve** (0.623 vs 0.800). The guard rejected it and rolled back — `best.md` came out byte-identical to the shipped `plain-english-beginner.md` (`diff -q`), with the rejected rewrite preserved at `v2.md`. Offline re-scoring shows the ADR's signature exactly: reserve rules flat 92.6 -> 89.6, judge collapsed 67.5 -> 35.0. AC #1 checked by scripted search of persisted rows — 0 reserve case ids in any train or holdout row, reserve files written for v0 and the winner only. AC #2's accept path proved in `20-50-12` (v1 0.582 vs v0 0.591, -0.009, ACCEPT); the no-adoption skip path in `20-47-28` and `20-55-37`. Case pool 9 -> 13 (5/4/4), new cases rather than carved out. `npm --prefix harness test` 34/34 (11 new); `lore check` 0 errors. `/code-review high` found six issues, all real: five fixed on the branch — including a config footgun where a missing `minReserveDelta` would have silently rolled back every run — and the sixth raised as COS-9. Merged via PR #4 (rebase) as `2d4bcb4`. |
 | 4 | COS-8 | Task Done — 2026-08-16, session 4 | All 4 ACs verified; the caps question was settled by trying the change and measuring it, not by argument. AC #4 first and free: new `harness/src/contract-audit.mjs` parses each style file's stated caps out of its own prose and compares them against `contracts.json`, exposed as `node src/cli.mjs audit` (exit 1 on disagreement) and 11 test cases; suite 34 -> 45. Proved by re-creating the divergence that actually shipped (contracts back to beginner 15/3, intermediate 18): 3 FAILs, CLI exit 1, `npm test` 43/45. AC #1: measured `results/2026-08-16T12-44-03-883Z/` — all three levels already write the same sentence length (beginner 12.3, intermediate 12.4, advanced 11.5 words), so the lower levels are not being served shorter sentences today; paragraph caps settled offline for free as inert (1.4-1.8 sentences against a cap of 4; re-scoring at cap 3 moves the check 0.000-0.017). A $0.18 Haiku probe (`22-18-53`) said a 12-word cap works — 16.6 -> 12.3 words, over-cap 30% -> 11% — and the user ratified tightening on it, conditional on both-model validation. AC #3 killed it: paired opus+sonnet run over 6 cases spanning all three splits (`22-27-15`, 24 cells, $2.24) moved mean sentence length **+0.26 words, 95% CI [-0.77, +1.29]**, 6 of 12 pairs shorter, judge 0.557 -> 0.532, reply length 105 -> 114. Reverted; `git status` clean on both files. AC #2 is checked but vacuous — nothing shipped tightened; the mechanism was exercised (file first, contracts second, audit caught the in-flight mismatch) before the revert. `/code-review high` found seven issues, all real and all fixed on the branch — including a fourth-consecutive-session prose-number defect (the spec quoted Haiku's over-20-word rate against an over-12-word metric) and the guard not being wired into the optimizer runbook's adopt step, where it would predictably have turned `npm test` red on a legitimately-won rewrite. Suite 34 -> 47. Total spend $2.4152 against ~$8. Merged via PR #5 (rebase) as `ac1a161`. |
+| 5 | COS-5 | Task Done — 2026-08-16, session 5 | All 3 ACs verified against `results/2026-08-16T22-59-53-852Z` (3 styles x haiku x baseline x **13 cases** x 2 repeats = 78 cells, $1.8770). AC #1 ran the full pool, not the 5 cases the old baseline used. AC #2 was satisfied **without re-running opus/sonnet** (~$19.5 at 12-44-03's measured $0.1253/cell, against a ~$5 budget): the new haiku rows were sliced to the same 5 case ids `12-44-03` used, after verifying in git that those 5 case definitions are byte-identical across 444b221/8a76f13/49fd1fa/HEAD and that the style files, `checks.mjs` and `contracts.json` are all unchanged between the runs; re-scoring `12-44-03` offline reproduced its 12 published FINDINGS figures to the tenth of a point. Zero errored cells in that slice on any model. Result: rules survive the drop to the cheapest tier (haiku 90.9–96.0, never more than 1.8 points behind the better of opus/sonnet, and ahead of opus on intermediate); judge does not (37.5–62.2, last on all three styles). AC #3's failure mode is **turn-limit exhaustion, not wording**: 6 of 78 cells returned no reply at all, every one a 12-turn abort on a case that edits a file then runs tests (agentic-fix-verify 5/6, reserve-agentic-write 1/6, read-only agentic 0/6); opus 0 in 21 saved agentic cells, sonnet 0 in 28, and it hit all three styles, so no rewrite fixes it. Because an empty reply scores 0.0 on every rule, pooling those cells understates haiku's rule compliance ~10 points — FINDINGS.md now reports "replies only" and "counting no-reply as 0" separately. **The predicted failure mode was refuted**: the inherited 16.6-word sentence claim does not reproduce (12.2w at 8 cells, 12.4w at 25, cell-level gap +4.10w with 95% CI [-0.40, 8.61]; paired [-0.11, 8.32], df=3), and decisively, the probe's own case — a 12-word cap cutting the over-12 share 60.0% → 40.5% — collapses because haiku's *untightened* share is 38.4–43.0%. COS-8's revert stands and is strengthened; its stated mechanism was wrong and is corrected in the ledger and the audience-level spec. `npm test` 47/47; `audit` exit 0; `lore check` exit 0. |
 
 ## Not queued — needs a human / blocked
 
@@ -153,3 +160,31 @@ Two issues carry known risk against that policy:
   Also settled for free: paragraph caps are inert at every level (1.4-1.8 sentences against a cap of 4; re-scoring the same replies at cap 3 moves the check by 0.000-0.017), so there was never a differentiation to be had there. And the finding that actually matters for COS-4, recorded in the story: the binding constraint at the lower levels is reply length, not sentence length — beginner averages 119 words against its stated 80 with half its replies over, and where the two can be told apart the judge tracks reply length at -0.647 against sentence length's -0.368.
 
   Raised but not done, needs the user's call: `sentences()` in `checks.mjs` does not split on a single newline, so a list header ending in ':' merges with its first item — 9 of 74 over-cap sentences (12.2%), worth 1.2-1.6 points of over-20w rate. Too small to change any conclusion here, but fixing it moves numbers already published in `docs/` and `FINDINGS.md`, which is the COS-9 shape. Total spend this session $2.4152 against ~$8. Merged via PR #5 (rebase) as `ac1a161`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. Cursor advanced to COS-5.
+- 2026-08-16 — session 5: resolved COS-5 on `feature/COS-5`. No drift at restore:
+  `dev`, `main` and both remotes level at 092f3b4, clean tree, no leftover
+  branches, no open PRs — the handover matched reality exactly.
+  The budget question the handover flagged (re-run opus/sonnet on the full pool,
+  ~$19.5, or state the case-count difference) was answered a third way: slice the
+  new haiku rows to the five case ids the old run used, after proving in git that
+  the case definitions, style files, `checks.mjs` and `contracts.json` are all
+  unchanged between the runs. That makes the table like-for-like on cases rather
+  than merely captioned, costs nothing, and leaves the run/date difference as the
+  only stated caveat. Re-scoring `12-44-03` offline first — free — reproduced all
+  twelve published figures exactly, which is what made reuse defensible.
+  **Two findings, one of them a correction to published work.** The measured
+  Haiku failure mode is turn-limit exhaustion on fix-then-test cases, which
+  forced a distinction the two-model data never needed: a cell that never
+  answered is not a badly-styled cell, and pooling the two hid a ~10-point effect.
+  The larger one is that this run refuted the hypothesis the handover handed it.
+  Session 4's $0.18 probe reported Haiku at 16.6-word sentences and built the
+  project's central "a cap only bites where it binds" explanation on it; at 6x
+  the sample on an identical configuration Haiku measures 12.2, and its
+  *untightened* over-12 share (38.4–43.0%) brackets the 40.5% the probe credited
+  to the tightened file. So the cap did nothing on Haiku either. COS-8's decision
+  survives — reverting was right, and for a simpler reason than it recorded: no
+  model in the matrix had headroom. The ledger and the audience-level spec were
+  corrected rather than deleted, both samples shown.
+  Carry forward: **the free check was available at the time and nobody ran it.**
+  Re-measuring a probe's own baseline from saved rows costs nothing, and it is
+  the check that would have caught this before it became three documents.
+  Review findings and the merge SHA are appended to this entry after the merge.
