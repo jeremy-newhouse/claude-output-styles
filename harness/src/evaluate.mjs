@@ -60,7 +60,8 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
 const mean = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
 
 export function summarize (rows) {
-  const by = (keyFn) => {
+  const byScore = (a, b) => b.score - a.score
+  const by = (keyFn, sort = byScore) => {
     const g = new Map()
     for (const r of rows) {
       const k = keyFn(r)
@@ -77,8 +78,12 @@ export function summarize (rows) {
         costUsd: Number(rs.reduce((a, r) => a + r.costUsd, 0).toFixed(4)),
         errors: rs.filter(r => r.error).length
       }))
-      .sort((a, b) => b.score - a.score)
+      .sort(sort)
   }
+
+  // Improve-loop rows carry an iteration; plain-run rows do not. When they do,
+  // the useful reading is the optimizer's trace in order, not a leaderboard.
+  const hasIterations = rows.some(r => r.iteration !== undefined)
 
   // Which specific rules fail, and where. This is what drives the optimizer.
   const failures = new Map()
@@ -103,6 +108,9 @@ export function summarize (rows) {
     byStyleModel: by(r => `${r.styleId} @ ${r.model}`),
     byCase: by(r => r.caseId),
     bySplit: by(r => r.split),
+    byIteration: hasIterations
+      ? by(r => `v${r.iteration} ${r.split}`, (a, b) => String(a.key).localeCompare(String(b.key), undefined, { numeric: true }))
+      : [],
     failures: [...failures.values()]
       .map(f => ({ ...f, avgScore: Number((f.scoreSum / f.n).toFixed(3)) }))
       .sort((a, b) => a.avgScore - b.avgScore)

@@ -19,6 +19,7 @@ export function renderConsole (summary) {
   out += table('BY STYLE x MODEL', summary.byStyleModel)
   out += table('BY CASE', summary.byCase)
   out += table('BY SPLIT', summary.bySplit)
+  out += table('BY ITERATION (improve run)', summary.byIteration ?? [])
 
   const f = summary.failures.slice(0, 12)
   if (f.length) {
@@ -46,6 +47,7 @@ export function renderMarkdown (summary, meta = {}) {
     md('By style x model', summary.byStyleModel),
     md('By case', summary.byCase),
     md('By split (overfit check)', summary.bySplit),
+    md('By iteration (improve run)', summary.byIteration ?? []),
     '\n### Worst rules\n',
     '| rule | model | style | avg | n | evidence |',
     '|---|---|---|---|---|---|',
