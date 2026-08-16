@@ -58,7 +58,7 @@ author model from the failures, rewrite, re-measure, keep or revert.
 | `checks.mjs` | one function per style rule; pure, no model calls, unit-tested |
 | `judge.mjs` | rubric grading against the style body |
 | `evaluate.mjs` | crosses the matrix, combines the two scores by `judgeWeight`, summarizes |
-| `improve.mjs` | the optimizer loop, keep/revert rule, patience stop, spend tracking |
+| `improve.mjs` | the optimizer loop, keep/revert rule, patience stop, reserve validation, spend tracking |
 | `report.mjs` | console and Markdown rendering |
 
 ### Configuration
@@ -70,7 +70,9 @@ author model from the failures, rewrite, re-measure, keep or revert.
   parameter blocks.
 - `cases/cases.json` — prompts with a split, a check list, and a judge rubric.
   `multiTurn` replaces `prompt` for drift cases; `agentic: true` marks cases that
-  need the fixture repo.
+  need the fixture repo. The split is one of `train`, `holdout`, or `reserve`;
+  `improve` selects the first two by name and measures the third only to
+  validate a candidate it wants to adopt.
 - `fixtures/repo/` — a small module with a real rounding bug and a test file
   whose comments contradict its assertions, copied into every workspace.
 

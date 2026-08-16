@@ -82,22 +82,43 @@ every rejected candidate, so its overall figure describes no style — it opens
 with a warning saying as much. The style's real numbers are the `v0` rows, or the
 kept iteration if one survived.
 
-### Validate before adopting
+### Read the reserve verdict
 
 The loop's own holdout is a tuning signal, not a verdict. Both splits come from
 the same case pool, so a rewrite can satisfy both and still degrade on genuinely
-unseen prompts — this has happened twice and was caught only here.
+unseen prompts — this has happened twice.
 
-Run the candidate against cases the optimizer saw in no split:
+The loop now checks this itself. When a rewrite is kept, `improve` measures the
+incumbent and the winner on the `reserve` split — cases it never selects for
+train or holdout — and prints the verdict on the style's headline line:
 
-```bash
-node src/cli.mjs run --styles=<current>,<candidate> --models=opus,sonnet \
-  --cases=<cases-not-used-in-the-loop> --repeats=2
+```
+plain-english-advanced: v3 REJECTED on reserve — keeping v0  (train 0.914 holdout 0.957)
+  reserve: v3 0.840 vs v0 0.908 (-0.068) over 4 cases
 ```
 
-Adopt only if the candidate wins on both models. Watch the two halves
-separately: a candidate whose rules rise while its judge score falls is gaming
-the checks, and every rejected candidate in this project has that signature.
+A rejection is a rollback, not a warning label: `<style>.best.md` holds the
+incumbent, and the rejected rewrite stays at `<style>.v<N>.md`. So the file you
+copy in the next step is already the one that survived — there is no separate
+validation command to run.
+
+Two things still need your eyes:
+
+- **Watch the two halves separately** in the `BY SPLIT` and by-iteration tables.
+  A candidate whose rules rise while its judge score falls is gaming the checks,
+  and every rejected candidate in this project has that signature. The composite
+  can clear the reserve bar while that trade is happening underneath it.
+- **`reserve: NOT MEASURED`** on an adopted candidate means there were no
+  reserve cases in the run — often because `--cases=` filtered them out. That is
+  an unvalidated adoption, not a pass. Re-run with reserve cases included before
+  adopting.
+
+The reserve is a floor, not a promise. Cross-model confirmation is still worth
+buying for a rewrite you intend to ship:
+
+```bash
+node src/cli.mjs run --styles=<current>,<candidate> --models=opus,sonnet --repeats=2
+```
 
 ### Adopt
 

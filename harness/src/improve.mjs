@@ -2,6 +2,14 @@
 // the observed failures -> re-evaluate -> keep only if train improves AND
 // holdout does not regress. Holdout is what stops the rewrite from overfitting
 // to the exact phrasing of the training prompts.
+//
+// Holdout is a tuning signal, not a verdict. It is drawn from the same small
+// case pool as train, so a rewrite can satisfy both and still degrade on prompt
+// shapes neither split contains — measured, not hypothesised: a candidate that
+// won both in-loop splits was 6.8 points worse on cases the loop had never seen.
+// So whatever the loop wants to adopt is validated once, at the end, against a
+// reserve split the loop never selects. See the ADR
+// docs/adr/validate-candidates-on-cases-held-out-of-every-split.md.
 
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -91,9 +99,16 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   const mine = () => rows.slice(start)
   const train = cases.filter(c => c.split === cfg.trainSplit)
   const holdout = cases.filter(c => c.split === cfg.holdoutSplit)
+  // Guarded on cfg: an older config with no reserveSplit would otherwise match
+  // every case that carries no split at all.
+  const reserveCases = cfg.reserveSplit ? cases.filter(c => c.split === cfg.reserveSplit) : []
   mkdirSync(outDir, { recursive: true })
 
-  let best = { text: style.text, body: style.body, train: null, holdout: null, iteration: 0 }
+  // The incumbent, kept whole. If the reserve rejects the loop's winner this is
+  // what the run adopts, so it has to survive the loop intact rather than be
+  // reconstructed from history afterwards.
+  const incumbent = { text: style.text, body: style.body, train: null, holdout: null, iteration: 0 }
+  let best = { ...incumbent }
   const history = []
 
   // Every cell the loop measures is kept. Without this the loop's transcripts —
@@ -120,8 +135,8 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   log(`[${style.id}] baseline...`)
   const b0 = await measure(best.text, train, cfg.trainSplit, 0)
   const h0 = await measure(best.text, holdout, cfg.holdoutSplit, 0)
-  best.train = b0.summary.overall
-  best.holdout = h0.summary.overall
+  best.train = incumbent.train = b0.summary.overall
+  best.holdout = incumbent.holdout = h0.summary.overall
   history.push({ iteration: 0, train: best.train, holdout: best.holdout, kept: true, note: 'baseline' })
   log(`[${style.id}] baseline train=${best.train} holdout=${best.holdout}`)
 
@@ -176,12 +191,53 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     }
   }
 
+  // Validation. The loop has finished arguing with itself; now the candidate it
+  // wants to adopt meets cases it has never been measured on in any iteration.
+  let reserve = null
+  if (best.iteration === 0) {
+    // Nothing was kept, so the style is unchanged and there is no claim to test.
+    // Not measuring it is the point: the pass exists to guard an adoption.
+    log(`[${style.id}] no rewrite kept — nothing to validate`)
+  } else if (!reserveCases.length) {
+    log(`[${style.id}] WARNING: no ${cfg.reserveSplit ? `${cfg.reserveSplit} cases` : 'reserve split configured'} — ` +
+        `v${best.iteration} adopted on the loop's own verdict, unvalidated`)
+  } else {
+    log(`[${style.id}] validating v${best.iteration} on ${reserveCases.length} reserve cases...`)
+    // Both sides measured here and now, on the same cases in the same run.
+    // Reusing a reserve number from an earlier run would compare across model
+    // drift and case edits, which is the comparison this guard exists to avoid.
+    const r0 = await measure(incumbent.text, reserveCases, cfg.reserveSplit, 0)
+    const rN = await measure(best.text, reserveCases, cfg.reserveSplit, best.iteration)
+    const delta = Number((rN.summary.overall - r0.summary.overall).toFixed(3))
+    const accepted = delta >= cfg.minReserveDelta
+    reserve = {
+      split: cfg.reserveSplit,
+      cases: reserveCases.length,
+      baseline: r0.summary.overall,
+      candidate: rN.summary.overall,
+      delta,
+      accepted,
+      iteration: best.iteration
+    }
+    log(`[${style.id}] ${cfg.reserveSplit}: v${best.iteration} ${rN.summary.overall} vs v0 ${r0.summary.overall} ` +
+        `(${delta >= 0 ? '+' : ''}${delta}) -> ${accepted ? 'ACCEPT' : 'REJECT'}`)
+    if (!accepted) {
+      // A rejection is a rollback, not an annotation. best.md is documented as
+      // the winner and is the file a reader diffs and copies, so it must hold
+      // what survived. The rejected candidate stays at v<N>.md and in history.
+      // Falling back to v0 rather than an earlier kept iteration is the only
+      // move the evidence supports: reserve was measured for v0 and vN only.
+      log(`[${style.id}] v${best.iteration} rejected on ${cfg.reserveSplit} — keeping v0`)
+      best = { ...incumbent }
+    }
+  }
+
   writeFileSync(join(outDir, `${style.id}.best.md`), best.text)
   // Spend comes from the rows now on disk, not from a running counter: the
   // number in the log can be recomputed by anyone holding the transcripts.
   const spentUsd = spendOf(mine())
-  log(`[${style.id}] converged at v${best.iteration}, spent ${spentUsd.toFixed(2)}`)
-  return { styleId: style.id, best, history, spentUsd, rows: mine() }
+  log(`[${style.id}] adopted v${best.iteration}, spent ${spentUsd.toFixed(2)}`)
+  return { styleId: style.id, best, history, reserve, spentUsd, rows: mine() }
 }
 
 /** Total cost of a set of persisted rows. The only source of truth for spend. */
