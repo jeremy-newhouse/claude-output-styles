@@ -110,9 +110,17 @@ An improve run leaves the same artifacts a `run` does: `rows.json`,
 loop measured. Each row carries the `iteration` that produced it — 0 is the
 baseline — and each iteration's cells are also written separately as
 `candidates/<style>.v<N>.<split>.json`. Reverted iterations are kept too: the
-rewrites that failed are the record of what the money bought. The run's total
-spend is the sum of those rows, not a side counter, so any number the loop
-reports can be recomputed from the files it left behind.
+rewrites that failed are the record of what the money bought. Rows are flushed
+after every measurement, so interrupting a long run still leaves everything it
+paid for readable. The run's total spend is the sum of those rows, not a side
+counter, so any number the loop reports can be recomputed from the files it left
+behind.
+
+**An improve `report.md` is not a scorecard.** It pools the baseline with every
+candidate the loop tried and rejected, so its headline is their mean and belongs
+to no style. The file says so at the top, `summary.json` carries
+`kind: "improve"`, and the honest reading is the by-iteration table, which is
+keyed by style so a multi-style run does not blend two traces into one.
 
 The holdout split is the guard against the rewrite overfitting to the exact
 phrasing of the training prompts. Watch the `BY SPLIT` table: train far above
@@ -133,8 +141,9 @@ node src/cli.mjs score --rows=results/<stamp>/rows.json
 ```
 
 With no `--rows`, `score` re-grades the newest run of either kind. Re-grading an
-improve run adds a `BY ITERATION` table, so a scoring change can be replayed
-across the whole optimization rather than one snapshot of it.
+improve run adds the `BY ITERATION` table and the same trace warning, so a
+scoring change can be replayed across the whole optimization rather than one
+snapshot of it.
 
 ## Cost control
 
