@@ -1,11 +1,11 @@
 ---
 id: COS-5
 title: Measure the styles on Haiku
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-16 23:14'
+updated_date: '2026-08-16 23:20'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies: []
@@ -25,9 +25,9 @@ Haiku is the cheapest model and the most likely to drop instructions under load,
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 All three styles measured on haiku across the standard case set
-- [ ] #2 Per-model comparison in FINDINGS.md covers haiku alongside opus and sonnet
-- [ ] #3 Any haiku-specific failure mode is recorded, or its absence stated
+- [x] #1 All three styles measured on haiku across the standard case set
+- [x] #2 Per-model comparison in FINDINGS.md covers haiku alongside opus and sonnet
+- [x] #3 Any haiku-specific failure mode is recorded, or its absence stated
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -120,4 +120,56 @@ MECHANISM — 'the cap binds on Haiku because Haiku writes 16.6-word sentences'.
 That premise rests on 4 cells and does not survive a 6x larger sample of the
 identical configuration. Ledger corrected rather than deleted, with both samples
 and the interval shown, since the probe row is real data about that run.
+
+## AC verification
+
+**AC #1 — all three styles measured on haiku across the standard case set.**
+results/2026-08-16T22-59-53-852Z: 78 cells = 3 styles x haiku x baseline x 13
+cases x 2 repeats, $1.8770. Full pool, unfiltered — 'the standard case set' is
+today's 13, not the 5 that 12-44-03 happened to use. 72 cells returned a reply;
+the 6 that did not are reported rather than dropped.
+
+**AC #2 — per-model comparison in FINDINGS.md covers haiku alongside opus and
+sonnet.** FINDINGS.md 'Per-model baseline, all three styles' now carries three
+model columns for rules and three for judge. Like-for-like: the haiku rows are
+the new run sliced to the same 5 case ids opus/sonnet were measured on, with the
+prerequisites for that reuse verified in git (see plan). Zero errored cells on
+any model in that slice, so no column is polluted by a no-reply zero. The 13-case
+haiku figures are given in their own labelled subsection, so no figure travels
+without its case count.
+
+**AC #3 — any haiku-specific failure mode recorded.** Recorded, and it is not the
+one that was predicted. See below.
+
+## Gates
+npm --prefix harness test 47/47. node src/cli.mjs audit exit 0 (12 checks agree).
+lore sync then lore check exit 0. Every figure quoted in FINDINGS.md, the story
+doc, the spec and the ledger came from this session's run or from an offline
+re-score of cited saved rows; nothing was carried over from a previous session's
+prose.
+
+## Numbers corrected during review of my own draft
+Three claims I wrote did not survive checking against the data and were fixed
+before commit: (a) 'the judge falls monotonically with model tier' — false,
+sonnet beats opus on intermediate and beginner; (b) 'beginner sits 20 points
+below advanced' — it is 15.4/17.6/28.0 depending on model; (c) 'haiku never loses
+more than 1.4 points of rule score' — the advanced deficit is 1.8. Recording
+these because a plausible-but-unchecked prose number has been the defect that
+survived every automated gate in four consecutive sessions.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Measured all three styles on Haiku across the full 13-case pool — results/2026-08-16T22-59-53-852Z, 78 cells, $1.8770 — and folded Haiku into FINDINGS.md's per-model comparison as a third model column.
+
+The cross-model table is like-for-like rather than a re-run: the new Haiku rows are sliced to the same five case ids run 12-44-03 used, after verifying in git that those five case definitions, all three style files, checks.mjs and contracts.json are all unchanged between the two runs. Re-scoring 12-44-03 offline reproduced its twelve published figures to the tenth of a point, so the Opus/Sonnet columns are current, not stale. That saved roughly $19.5 against a ~$5 budget with no loss of comparability; the run/date difference is stated in the table.
+
+Result: rule compliance survives the drop to the cheapest tier (Haiku 90.9-96.0, never more than 1.8 points behind the better of Opus and Sonnet, and ahead of Opus on intermediate), while judge score does not (37.5-62.2, last on all three styles). Beginner reads worst on all three models, which makes it a property of the style file rather than of one model's taste.
+
+AC #3's Haiku-specific failure mode is turn-limit exhaustion, not anything about wording: six of 78 cells returned no reply at all, every one a 12-turn abort, every one on a case that edits a file and then runs tests (agentic-fix-verify 5/6, reserve-agentic-write 1/6, read-only agentic 0/6). Opus has never hit it in 21 saved agentic cells, Sonnet never in 28, and it struck all three styles, so no style rewrite addresses it. Because an empty reply scores 0.0 on every rule, pooling those cells understates Haiku's rule compliance by about ten points; FINDINGS.md now reports 'replies only' and 'counting no-reply as 0' as separate columns.
+
+The predicted failure mode was refuted. The handover carried session 4's finding that Haiku writes 16.6-word sentences against Opus/Sonnet's 11-12. It does not reproduce: the same file, model, variant and four case ids measure 12.2 words at 8 cells and 12.4 at 25, and the cell-level gap is +4.10 words with 95% CI [-0.40, 8.61] (paired [-0.11, 8.32], df=3) — both crossing zero. Decisively, the probe's case was that a 12-word cap cut Haiku's over-12 share from 60.0% to 40.5%; Haiku's untightened share is 38.4-43.0%, so the cap did nothing on Haiku either and the 60.0% was a high draw. COS-8's decision to revert stands and is strengthened — no model in the matrix had headroom for a 12-word cap. Its stated mechanism was wrong and is corrected in the experiment ledger and in the audience-level spec, with both samples and the intervals shown.
+
+Verified: npm --prefix harness test 47/47; node src/cli.mjs audit exit 0; lore check exit 0 after lore sync. Three numeric claims in my own draft failed checking against the data and were corrected before commit.
+<!-- SECTION:FINAL_SUMMARY:END -->
