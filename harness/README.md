@@ -98,7 +98,10 @@ same checks grade Beginner and Advanced against different caps.
    prohibitions, restate the most-violated rule at the end, delete
    self-verification instructions, avoid "only"/"just", never grow the file.
 4. Re-measure. **Keep only if train improves and holdout does not regress**
-   past `minHoldoutDelta`. Otherwise revert and brief again from the failure.
+   past `minHoldoutDelta`. Otherwise discard the candidate and brief the next
+   iteration from the incumbent again — the author is always asked to rewrite
+   the style that is currently winning, so the evidence it gets has to describe
+   that same text.
 5. Stop at `targetScore` or `maxIterations`.
 
 Candidates land in `results/<stamp>/candidates/<style>.v<N>.md`, and the winner
