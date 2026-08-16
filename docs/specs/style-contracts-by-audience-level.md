@@ -113,8 +113,9 @@ words to 114 against an 80-word cap.
 
 The instruction only bites where the cap binds. Opus and Sonnet already write at
 11–12 words unprompted, so a 12-word cap has nothing to pull against, and the
-share of sentences over 12 words stayed near 42% whichever file was in use. On
-Haiku, whose baseline is 16.6 words, the same one-line change moved the mean to
+share of sentences over 12 words barely moved — 42.2% → 38.9% on Opus and 42.2%
+→ 42.9% on Sonnet, in opposite directions. On Haiku, whose baseline is 16.6
+words, the same one-line change moved the mean to
 12.3 and cut over-cap sentences from 30% to 11% (`22-18-53`). **A cheap-model
 probe measures whether an instruction can bind, not whether it binds on the
 models the styles target.** The Haiku effect sits 9.8 standard errors outside the
