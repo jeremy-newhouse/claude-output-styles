@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-16 14:20'
+updated_date: '2026-08-16 14:56'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-3** — queue order confirmed by the user on 2026-08-16, who
+**Next issue: COS-2** — queue order confirmed by the user on 2026-08-16, who
 chose the "Safety-first" option from a presented comparison: "COS-6 → COS-3 →
 COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4. Free doc task proves the loop,
 then harness plumbing, then the caps guard, then measurement, then the two hard
@@ -28,7 +28,6 @@ Do not re-ask before taking the next item.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
-| 2 | COS-3 | harness | Persist improve-run transcripts so they can be re-graded offline. ~$2. |
 | 3 | COS-2 | harness | Third split the optimizer never sees. The safety net later issues depend on. ~$3. |
 | 4 | COS-8 | styles | Caps decision + a guard catching a style file disagreeing with its contract. ~$8. |
 | 5 | COS-5 | measure | Haiku across all three styles. ~$5. |
@@ -36,13 +35,16 @@ Do not re-ask before taking the next item.
 | 7 | COS-1 | styles | Multi-tool sessions and open-ended decisions. Judge bar 65%, currently ~48%. ~$15. |
 | 8 | COS-4 | styles | Beginner prose. Judge bar 70%, currently 45.9/48.4. Hardest. ~$20. |
 
-Estimated remaining: ~$73 (COS-6 cost nothing).
+Estimated remaining: ~$71. Spent so far: $0.61 (COS-6 cost nothing; COS-3 came in
+well under its ~$2 budget because the proving run was deliberately kept to one
+style on Haiku at one iteration).
 
 ## Resolved
 
 | # | Issue | Status/date/session | Evidence summary |
 |---|---|---|---|
-| 1 | COS-6 | Task Done — 2026-08-16, session 1 | README-only. All 3 ACs checked against quoted README lines: name resolution from frontmatter `name:` with filename fallback, a "Confirm it loaded" section giving the behavioural check and the canary, and the silent-fallback statement. Scripted checks: all three frontmatter names appear verbatim in the README (3/3); both new doc links resolve. `npm --prefix harness test` 11/11; `lore check` 0 errors after `lore sync`. Review found 3 issues, all fixed on the branch. Merge SHA recorded in the session log below once the PR lands. |
+| 1 | COS-6 | Task Done — 2026-08-16, session 1 | README-only. All 3 ACs checked against quoted README lines: name resolution from frontmatter `name:` with filename fallback, a "Confirm it loaded" section giving the behavioural check and the canary, and the silent-fallback statement. Scripted checks: all three frontmatter names appear verbatim in the README (3/3); both new doc links resolve. `npm --prefix harness test` 11/11; `lore check` 0 errors after `lore sync`. Review found 3 issues, all fixed on the branch. Merged as `0631c04`. |
+| 2 | COS-3 | Task Done — 2026-08-16, session 2 | All 3 ACs proved against one real improve run, `results/2026-08-16T14-48-09-866Z/` (beginner, Haiku, 1 iteration, 18 cells, $0.6097). AC #1: the four per-iteration transcript files exist and `rows.json` groups 5/4/5/4 across v0 and v1, the reverted iteration included. AC #2: `summary.json` totalCostUsd = sum of the 18 rows' costUsd = `improve.json` spentUsd = 0.6097, with the counter deleted in favour of `spendOf(rows)`. AC #3: `score --rows=<that run>` reproduced the loop's own 0.654 / 0.716 / 0.625 / 0.523 exactly, still exit 0 with the API pointed at a dead socket and creating no new results directory; no-arg `score` now finds an improve run unaided. `npm --prefix harness test` 18/18 (7 new); `lore check` 0 errors after `lore sync`. |
 
 ## Not queued — needs a human / blocked
 
@@ -92,3 +94,18 @@ Two issues carry known risk against that policy:
   prevent caught two traps that every automated gate passed.
   Merged via PR #1 (rebase) as `0631c04`; `dev` and `main` both pushed at that
   SHA, no branch litter, no open PRs.
+- 2026-08-16 — session 2: resolved COS-3 on `feature/COS-3`. No drift at restore:
+  `dev`, `main`, and both remotes level at 325d2b0, no leftover branches, PR #1
+  merged and pruned. The design question the handover flagged — where improve
+  rows should live — resolved in favour of writing them at
+  `results/<stamp>/rows.json`, the exact path `score`'s `newestRows()` already
+  globs, so `score` needed no change at all to satisfy AC #3. Rows carry an
+  `iteration` tag; reverted iterations are persisted too. `spentUsd` deleted in
+  favour of summing the rows. `improveStyle` gained an optional `deps`
+  ({ evaluate, rewrite }) purely so the persistence could be unit-tested without
+  spend — 7 new cases in `harness/test/improve.test.mjs`. Two things worth
+  carrying forward: the `npm test` script named `checks.test.mjs` explicitly and
+  would have silently skipped the new file (now globs `test/*.test.mjs`), and
+  three docs asserted "improve persists no rows" as a standing fact — the same
+  class of stale-claim trap session 1 hit, found by grepping the docs for what
+  the change made false rather than by any gate. Cursor advanced to COS-2.
