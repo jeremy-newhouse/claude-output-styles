@@ -10,6 +10,7 @@ Built on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/typesc
 npm install
 node src/cli.mjs run --styles=plain-english-advanced --models=opus,sonnet
 node src/cli.mjs improve --styles=plain-english-advanced --iterations=4
+node src/cli.mjs audit
 ```
 
 ## The injection recipe
@@ -214,9 +215,51 @@ improve run adds the `BY ITERATION` table and the same trace warning, so a
 scoring change can be replayed across the whole optimization rather than one
 snapshot of it.
 
+## Auditing a style file against its contract
+
+A style file states its caps in prose; `config/contracts.json` states them as
+numbers. Nothing connected the two, and they diverged: contracts graded beginner
+at 15 words and 3 sentences per paragraph against a file that said 20 and 4, so
+every beginner run was scored against a rule no reader of the style could see.
+
+```bash
+node src/cli.mjs audit     # exit 1 on any disagreement
+```
+
+```
+  ok   plain-english-beginner     maxSentenceWords       both say 20
+  FAIL plain-english-beginner     maxParagraphSentences  file says 4, contracts.json grades at 3
+```
+
+The same comparison runs in `test/contract-audit.test.mjs`, so `npm test` fails
+on drift too. Recognised phrasings, one per contract field:
+
+| field | prose |
+|---|---|
+| `maxSentenceWords` | "sentences under _N_ words" |
+| `maxParagraphSentences` | "paragraphs under _N_ sentences" |
+| `maxUpdateWords` | "the whole update/reply under _N_" |
+| `maxCodeLines` | "code/diffs/snippet under _N_ lines", or "never show code" for 0 |
+
+**Unrecognised phrasing fails as `unstated` rather than passing.** A style file
+that states a cap some other way is a gap in the guard, and the guard says so
+instead of quietly checking three fields where it used to check four. Two
+different numbers for one cap, or prose that both bans code and sizes it, report
+as `ambiguous`. Add the phrasing to `PATTERNS` in `src/contract-audit.mjs` when a
+style legitimately needs a new one.
+
+Run it after editing a style file or a contract — those are the two moments the
+pair can drift.
+
 ## Cost control
 
 `config/matrix.json` → `run.maxBudgetUsd` caps each cell; `run.concurrency`
 caps parallelism; `--no-judge` drops the LLM grader. A cell costs roughly
 $0.10–0.15 conversational, more when agentic. Cell count is
 `styles × variants × models × cases × repeats` — it multiplies fast.
+
+Probe on Haiku to decide whether an experiment is worth running, but do not
+conclude from it. A tighter sentence cap moved Haiku a lot and Opus and Sonnet
+not at all, because the cap sat under what Haiku already wrote and above what the
+other two did (`docs/reference/experiment-ledger.md`, runs `22-18-53` and
+`22-27-15`). Measure the baseline on the target model before believing a probe.

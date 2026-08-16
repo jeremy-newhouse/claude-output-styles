@@ -42,9 +42,16 @@ runs belong in the optimizer table below.
 | `21-12-58` | 40 | $4.28 | same, Sonnet, 2 repeats, corrected judge | Reproduced the split on the fixed instrument. Intermediate candidate −3.0 net with judge −12.3. Both candidates rejected. |
 | `23-36-59` | 32 | $4.93 | advanced and intermediate, in-use vs cross-model candidate, both models, 4 **never-seen** cases | The decisive reversal. Advanced candidate 6.8 points worse out of sample despite winning both in-loop splits. Basis for the out-of-sample ADR. |
 | `12-44-03` | 60 | $7.52 | all three styles, both models, 5 cases, 2 repeats | The per-model baseline. Filled the beginner-on-Opus gap, which had never been measured in a saved run. |
+| `22-18-53` | 8 | $0.18 | beginner 20-word vs 12-word cap, Haiku, 4 cases | A tighter stated cap **does** change Haiku: mean sentence 16.6 → 12.3 words, over-cap 30% → 11%, reply length flat. Read alone it argues for tightening. It does not replicate on the target models — see the row below. |
+| `22-27-15` | 24 | $2.24 | beginner 20-word vs 12-word cap, both models, 6 cases across all three splits, paired | **The change was rejected.** Mean sentence length moved +0.26 words, 95% CI [−0.77, +1.29], six of twelve pairs shorter. Judge 0.557 → 0.532, reply length 105 → 114 words. Basis for keeping one sentence cap for all three levels. |
 
-Total persisted: 237 cells, $32.26. Improve-loop spend before COS-3 is additional
+Total persisted: 269 cells, $34.68. Improve-loop spend before COS-3 is additional
 and was not tracked until late; from COS-3 onward it is carried on the rows.
+
+The last two rows are a matched pair and belong together. `22-18-53` was a cheap
+Haiku probe run to decide whether a tighter cap was worth validating; `22-27-15`
+is the validation, and it reversed the probe's answer. Quoting either alone
+misrepresents what was measured.
 
 ### Optimizer runs
 
@@ -87,7 +94,16 @@ to sentence and paragraph caps stricter than their own style files state, for
 every run in the table above. Found by review, not by any check. Corrected; the
 saved rows were re-graded offline and rule scores moved 0.4 to 1.3 points with no
 conclusion changed. All figures quoted elsewhere in the bundle are post-
-correction.
+correction. `node src/cli.mjs audit` now catches this class of drift, and the
+same comparison runs under `npm test`.
+
+**A cheap-model probe can point the wrong way.** `22-18-53` cost $0.18 and said a
+tighter sentence cap works; `22-27-15` cost $2.24 and said it does nothing. Both
+are correct about their own model. The instruction only changes behaviour where
+the cap sits under what the model already does — Haiku writes 16.6-word sentences
+and felt a 12-word cap, Opus and Sonnet write 11–12 and did not. Probe the cheap
+model to find out whether an instruction *can* bind; measure the target models
+before believing it *does*.
 
 **Noise floor.** At one repeat and five cases, a single case moves the mean by
 about 0.03. Differences under three points are not real.

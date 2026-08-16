@@ -53,8 +53,8 @@ Every style guarantees the same five things:
 | explanation style | everyday analogies | one-line "why" per change | root cause, numbers, blast radius |
 
 Only the reply-length cap and the code and jargon rules vary by level. All three
-files state the same sentence and paragraph limits. Whether the lower levels
-*should* differ is an open design question, not a settled one — see below.
+files state the same sentence and paragraph limits, and that is now a decision
+rather than an accident — see "Why sentence and paragraph caps do not vary".
 
 The beginner ban list is explicit and enforced: API, endpoint, middleware,
 repository, commit, branch, deploy, migration, schema, regex, async, cache,
@@ -96,25 +96,75 @@ Per-case check lists in `cases/cases.json` are level-agnostic. Every case carrie
 `no_jargon` and `code_block_size`; the contract decides whether they bite. For
 advanced, an empty ban list and a 10-line cap make both free.
 
+### Why sentence and paragraph caps do not vary
+
+They were tried and measured. Beginner was tightened to 12 words, validated on
+both models, and reverted.
+
+**Sentence caps.** The premise — a non-technical reader needs shorter sentences
+than a technical leader — is reasonable, and the styles do not deliver it: at
+`12-44-03` all three levels write about the same length, beginner 12.3 words,
+intermediate 12.4, advanced 11.5. Stating a tighter cap does not close that gap.
+A paired run of the 20-word and 12-word beginner files across both models and six
+cases (`22-27-15`) moved mean sentence length by **+0.26 words, 95% CI [−0.77,
++1.29]**, with six of twelve pairs shorter and six longer. Quality did not
+improve either: pooled judge 0.557 → 0.532, and mean reply length rose from 105
+words to 114 against an 80-word cap.
+
+The instruction only bites where the cap binds. Opus and Sonnet already write at
+11–12 words unprompted, so a 12-word cap has nothing to pull against, and the
+share of sentences over 12 words stayed near 42% whichever file was in use. On
+Haiku, whose baseline is 16.6 words, the same one-line change moved the mean to
+12.3 and cut over-cap sentences from 30% to 11% (`22-18-53`). **A cheap-model
+probe measures whether an instruction can bind, not whether it binds on the
+models the styles target.** The Haiku effect sits 9.8 standard errors outside the
+Opus/Sonnet interval.
+
+**Paragraph caps.** Settled offline for free. Mean paragraph length is 1.4 to 1.8
+sentences against a cap of 4, and no paragraph in the controlled run exceeds 4.
+Re-scoring the same replies at a cap of 3 moves `paragraph_length` by 0.000 to
+0.017. The constraint does not bind at any level, so differentiating it cannot
+change behaviour.
+
+**Where the real gap is.** The cap that already varies by level — reply length,
+80/100/120 — is the one being missed, and missed worst at the lowest level:
+beginner averages 119 words against 80 with half its replies over, intermediate
+120 against 100 with 45% over, while advanced sits at 85 against 120 with 15%
+over. Where sentence length and reply length can be told apart (intermediate,
+where they correlate at only −0.05), the judge tracks reply length at −0.647 and
+sentence length at only −0.368.
+
+### Keeping a style file and its contract in agreement
+
+`node src/cli.mjs audit` parses each style file's stated caps out of its own prose
+and compares them against `contracts.json`, exiting 1 on any disagreement. The
+same comparison runs in `harness/test/contract-audit.test.mjs`, so `npm test`
+fails on drift. It recognises the phrasings the shipped styles use:
+
+| contract field | phrasing in the style file |
+|---|---|
+| `maxSentenceWords` | "sentences under _N_ words" |
+| `maxParagraphSentences` | "paragraphs under _N_ sentences" |
+| `maxUpdateWords` | "the whole update/reply under _N_" |
+| `maxCodeLines` | "code/diffs/snippet under _N_ lines", or "never show code" for 0 |
+
+A cap stated in some other phrasing is reported as **unstated**, not skipped, and
+two different numbers for one cap are reported as **ambiguous**. Silence is the
+failure mode this guard exists to prevent, so it never resolves an unclear file
+by guessing.
+
 ## Open questions
 
-**Do lower levels need tighter sentence caps?** Unanswered. The contracts once
-held beginner to 15 words and 3 sentences and intermediate to 18 words — numbers
-no style file states. That was a defect, found by reviewing the spec against the
-files, and correcting it raised measured rule scores by 0.4 to 1.3 points without
-changing any conclusion. The design question it exposed stands: a reader with no
-programming background plausibly needs shorter sentences than a technical leader,
-and today gets the same limit. Tracked as COS-8.
+Reply length, code allowance, and the ban lists have never been swept. They were
+chosen by judgement when the styles were written. The sentence-cap experiment
+above says something about how such a sweep would read: a cap that sits well
+inside what the model already does is inert, and one that sits under it changes
+behaviour, so "the model ignores the cap" and "the cap was never binding" are
+distinguishable only by measuring the baseline first.
 
-Nothing currently catches a style file and its contract disagreeing. The mismatch
-above survived every run in the project because the harness grades the contract
-and never reads the prose limits out of the file.
-
-Whether the per-level numbers are right has never been tested. They were chosen
-by judgement when the styles were written and have never been swept. A cap that
-is too tight shows up as a rule the model cannot satisfy without hurting the
-reply, which is indistinguishable in the current data from a model that ignores
-it.
+The reply-length cap is the concrete case. It binds — beginner misses 80 words
+half the time — and it has never been swept, so whether 80 is achievable or
+merely aspirational is unknown.
 
 The 0.7/0.3 default rules-to-judge split is likewise unswept.
 
