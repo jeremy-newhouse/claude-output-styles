@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-16 13:49'
+updated_date: '2026-08-16 14:14'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-6** — queue order confirmed by the user on 2026-08-16, who
+**Next issue: COS-3** — queue order confirmed by the user on 2026-08-16, who
 chose the "Safety-first" option from a presented comparison: "COS-6 → COS-3 →
 COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4. Free doc task proves the loop,
 then harness plumbing, then the caps guard, then measurement, then the two hard
@@ -28,7 +28,6 @@ Do not re-ask before taking the next item.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
-| 1 | COS-6 | docs | README: how style names resolve, and how to confirm one loaded. No cost. |
 | 2 | COS-3 | harness | Persist improve-run transcripts so they can be re-graded offline. ~$2. |
 | 3 | COS-2 | harness | Third split the optimizer never sees. The safety net later issues depend on. ~$3. |
 | 4 | COS-8 | styles | Caps decision + a guard catching a style file disagreeing with its contract. ~$8. |
@@ -37,12 +36,13 @@ Do not re-ask before taking the next item.
 | 7 | COS-1 | styles | Multi-tool sessions and open-ended decisions. Judge bar 65%, currently ~48%. ~$15. |
 | 8 | COS-4 | styles | Beginner prose. Judge bar 70%, currently 45.9/48.4. Hardest. ~$20. |
 
-Estimated campaign total: ~$73.
+Estimated remaining: ~$73 (COS-6 cost nothing).
 
 ## Resolved
 
 | # | Issue | Status/date/session | Evidence summary |
 |---|---|---|---|
+| 1 | COS-6 | Done — 2026-08-16, session 1 | README-only. All 3 ACs checked against quoted README lines: name resolution from frontmatter `name:` with filename fallback (:56), a "Confirm it loaded" section giving the behavioural check and the canary (:70-76), and the silent-fallback statement (:68). Scripted checks: all three frontmatter names appear verbatim in the README (3/3); both new doc links resolve. `npm --prefix harness test` 11/11; `lore check` 0 errors after `lore sync`. Merged as <PR_SHA>. |
 
 ## Not queued — needs a human / blocked
 
@@ -73,3 +73,12 @@ Two issues carry known risk against that policy:
   user. Tracker created as doc-1. `.claude/handovers/` gitignored and
   `archive/handovers/` created during skill adoption (aed40a2). Cursor armed at
   COS-6.
+- 2026-08-16 — session 1: resolved COS-6 on `feature/COS-6`. No drift found at
+  restore: `dev`, `main`, and both remotes were all level at 80bc691, no leftover
+  branches, no open PRs. Rewrote README.md's Install section and added "How the
+  style name resolves", "Confirm it loaded", and "Going deeper". Facts were
+  lifted from the existing mechanics reference and install runbook rather than
+  re-derived — no probing, no harness run, no cost. `lore sync` was needed after
+  all: moving COS-6's status put the story's managed task block into drift, and
+  `lore check` failed until it was reconciled (it also auto-commits the touched
+  `backlog/` file — expect that commit on the branch). Cursor advanced to COS-3.
