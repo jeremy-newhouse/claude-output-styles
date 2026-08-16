@@ -166,9 +166,14 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
       lastRun = t
       sinceKeep = 0
     } else {
+      // On revert, lastRun deliberately stays where it is, so the next brief
+      // describes the incumbent rather than the candidate just discarded: the
+      // author is handed best.body to rewrite, and evidence drawn from a
+      // rejected candidate would describe text it is not editing. Pinned by
+      // "a reverted iteration briefs from the incumbent, not the failed
+      // candidate" in test/improve.test.mjs.
       sinceKeep++
     }
-    // On revert, keep briefing from the failed attempt: it shows what did not work.
   }
 
   writeFileSync(join(outDir, `${style.id}.best.md`), best.text)

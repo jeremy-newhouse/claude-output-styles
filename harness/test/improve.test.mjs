@@ -39,14 +39,14 @@ async function withTmpDir (fn) {
 
 const BODY = 'x'.repeat(300)
 
-const runLoop = (outDir, { evaluate, rewrite, rows, onRows }) => improveStyle({
+const runLoop = (outDir, { evaluate, rewrite, rows, onRows, cfg = CFG }) => improveStyle({
   style: { id: 'demo', text: `---\nname: demo\n---\n${BODY}`, body: BODY, meta: { name: 'demo' } },
   variant: { id: 'baseline' },
   models: ['haiku'],
   cases: CASES,
   contracts: { demo: {} },
   opts: { repeats: 1 },
-  cfg: CFG,
+  cfg,
   outDir,
   log: () => {},
   rows,
@@ -143,6 +143,34 @@ test('a style reports only its own rows out of a shared sink', async () => {
     assert.equal(r.rows.length, 2)
     assert.ok(r.rows.every(row => row.styleId === 'demo'))
     assert.equal(r.spentUsd, 0.02)
+  })
+})
+
+test('a reverted iteration briefs from the incumbent, not the failed candidate', async () => {
+  await withTmpDir(async dir => {
+    // The author is handed best.body to rewrite, so the evidence it is given has
+    // to describe that same text. Tag each measurement's replies so the brief
+    // says which run it was built from.
+    let call = 0
+    const briefs = []
+    await runLoop(dir, {
+      cfg: { ...CFG, maxIterations: 2 },
+      evaluate: async ({ cases }) => {
+        const tag = call++ < 2 ? 'BASELINE-REPLY' : `CANDIDATE-${Math.floor(call / 2)}-REPLY`
+        const rows = cases.map(c => ({
+          styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
+          split: c.split, repeat: 0, text: tag, costUsd: 0.01, error: null,
+          rulesScore: 0.5, checks: [], judgeScore: 0.5, judgeViolations: [], total: 0.5
+        }))
+        return { rows, summary: summarize(rows) }
+      },
+      // Flat scores, so every candidate reverts.
+      rewrite: async ({ brief }) => { briefs.push(brief); return 'y'.repeat(300) }
+    })
+    assert.equal(briefs.length, 2)
+    // Iteration 2 follows iteration 1's revert and still quotes the baseline.
+    assert.match(briefs[1], /BASELINE-REPLY/)
+    assert.doesNotMatch(briefs[1], /CANDIDATE-/)
   })
 })
 
