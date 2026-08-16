@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-16 14:56'
+updated_date: '2026-08-16 15:08'
 ---
 # Backlog campaign tracker
 
@@ -35,16 +35,16 @@ Do not re-ask before taking the next item.
 | 7 | COS-1 | styles | Multi-tool sessions and open-ended decisions. Judge bar 65%, currently ~48%. ~$15. |
 | 8 | COS-4 | styles | Beginner prose. Judge bar 70%, currently 45.9/48.4. Hardest. ~$20. |
 
-Estimated remaining: ~$71. Spent so far: $0.61 (COS-6 cost nothing; COS-3 came in
-well under its ~$2 budget because the proving run was deliberately kept to one
-style on Haiku at one iteration).
+Estimated remaining: ~$71. Spent so far: $0.75 (COS-6 cost nothing; COS-3 came in
+well under its ~$2 budget because every proving run was kept to one style on
+Haiku at one iteration).
 
 ## Resolved
 
 | # | Issue | Status/date/session | Evidence summary |
 |---|---|---|---|
 | 1 | COS-6 | Task Done — 2026-08-16, session 1 | README-only. All 3 ACs checked against quoted README lines: name resolution from frontmatter `name:` with filename fallback, a "Confirm it loaded" section giving the behavioural check and the canary, and the silent-fallback statement. Scripted checks: all three frontmatter names appear verbatim in the README (3/3); both new doc links resolve. `npm --prefix harness test` 11/11; `lore check` 0 errors after `lore sync`. Review found 3 issues, all fixed on the branch. Merged as `0631c04`. |
-| 2 | COS-3 | Task Done — 2026-08-16, session 2 | All 3 ACs proved against one real improve run, `results/2026-08-16T14-48-09-866Z/` (beginner, Haiku, 1 iteration, 18 cells, $0.6097). AC #1: the four per-iteration transcript files exist and `rows.json` groups 5/4/5/4 across v0 and v1, the reverted iteration included. AC #2: `summary.json` totalCostUsd = sum of the 18 rows' costUsd = `improve.json` spentUsd = 0.6097, with the counter deleted in favour of `spendOf(rows)`. AC #3: `score --rows=<that run>` reproduced the loop's own 0.654 / 0.716 / 0.625 / 0.523 exactly, still exit 0 with the API pointed at a dead socket and creating no new results directory; no-arg `score` now finds an improve run unaided. `npm --prefix harness test` 18/18 (7 new); `lore check` 0 errors after `lore sync`. |
+| 2 | COS-3 | Task Done — 2026-08-16, session 2 | All 3 ACs proved against a real improve run on the reviewed code, `results/2026-08-16T15-04-22-436Z/` (beginner, Haiku, 2 cases, 1 iteration, 4 cells, $0.0919), after an earlier 18-cell run at `14-48-09` ($0.6097) established the same three identities on the first implementation. AC #1: all four per-iteration transcript files present including the reverted v1, and `rows.json` groups 1/1/1/1 across v0 and v1. AC #2: rows sum = `summary.json` totalCostUsd = `improve.json` spentUsd = 0.0919, the counter deleted in favour of `spendOf(rows)`. AC #3: `score --rows` reproduced the loop's logged 0.8 / 0.9 / 0.669 / 0.85 exactly, exit 0 with the API pointed at a dead socket and no new results directory; no-arg `score` finds an improve run unaided. Plain-run path unchanged (12-44-03 still 81.0% at $7.517). `npm --prefix harness test` 23/23 (12 new); `lore check` 0 errors. `/code-review high` found five issues, all real and all fixed on the branch. |
 
 ## Not queued — needs a human / blocked
 
@@ -101,11 +101,25 @@ Two issues carry known risk against that policy:
   `results/<stamp>/rows.json`, the exact path `score`'s `newestRows()` already
   globs, so `score` needed no change at all to satisfy AC #3. Rows carry an
   `iteration` tag; reverted iterations are persisted too. `spentUsd` deleted in
-  favour of summing the rows. `improveStyle` gained an optional `deps`
-  ({ evaluate, rewrite }) purely so the persistence could be unit-tested without
-  spend — 7 new cases in `harness/test/improve.test.mjs`. Two things worth
-  carrying forward: the `npm test` script named `checks.test.mjs` explicitly and
-  would have silently skipped the new file (now globs `test/*.test.mjs`), and
-  three docs asserted "improve persists no rows" as a standing fact — the same
-  class of stale-claim trap session 1 hit, found by grepping the docs for what
-  the change made false rather than by any gate. Cursor advanced to COS-2.
+  favour of summing the rows. `improveStyle` gained three optional parameters —
+  `rows` (a caller-supplied sink), `onRows` (flush callback) and `deps`
+  ({ evaluate, rewrite }) — so the persistence could be unit-tested without
+  spend and could survive a crash; 12 new cases in `harness/test/improve.test.mjs`.
+  `/code-review high` found five issues, all real and all fixed before the PR.
+  The serious one is worth carrying forward: writing an improve run's
+  `summary.json` and `report.md` at the same paths and shapes a plain `run` uses
+  made the loop's pooled mean — baseline plus every rejected candidate — look
+  like a style's score, and the first evidence run's report headlined 63.0% for a
+  style whose real measured figure was 65.4/71.6. That is the same class of trap
+  as session 1's: a number that every automated gate passes and only a reader
+  catches. Fixed by labelling rather than by hiding the file. Also found: a
+  by-iteration table that averaged two styles' traces together, no spend recorded
+  for a style that crashed, and rows flushed only between styles. Two smaller
+  lessons: the `npm test` script named `checks.test.mjs` explicitly and would
+  have silently skipped the new file (now globs `test/*.test.mjs`), and three
+  docs asserted "improve persists no rows" as standing fact — found by grepping
+  the docs for what the change made false, not by any gate. Left for the user to
+  rule on: a pre-existing comment/code disagreement at `harness/src/improve.mjs`
+  about whether a reverted iteration briefs from the failed attempt or the
+  incumbent — the code does the latter, the comment claims the former. Total
+  spend this session $0.75 across three proving runs. Cursor advanced to COS-2.
