@@ -10,7 +10,7 @@ tasks:
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: todo
+lore_task_status: done
 ---
 
 # Harden the optimizer loop
@@ -58,9 +58,23 @@ fixed, cannot be audited, and did not appear in any spend total until a
 <!-- lore:tasks:begin -->
 | Task | Title | Status |
 |---|---|---|
-| [COS-2](../../backlog/tasks/cos-2%20-%20Hold-a-case-pool-out-of-every-optimizer-split.md) | Hold a case pool out of every optimizer split | To Do |
+| [COS-2](../../backlog/tasks/cos-2%20-%20Hold-a-case-pool-out-of-every-optimizer-split.md) | Hold a case pool out of every optimizer split | Done |
 | [COS-3](../../backlog/tasks/cos-3%20-%20Persist-transcripts-from-improve-runs.md) | Persist transcripts from improve runs | Done |
 <!-- lore:tasks:end -->
+
+## Outcome
+
+Both tasks are done, so the Goal above describes the state this story was opened
+against, not the harness as it stands. `improve` now persists every cell it
+measures (COS-3) and validates its winner on a reserve split it never selects,
+rolling back to v0 when that split disagrees (COS-2).
+
+The narrow gap the Notes below describe was then hit for real, which is the
+useful part. In `results/2026-08-16T20-57-54-086Z/` the optimizer produced a
+candidate that improved train and beat holdout by 29.5 points, and was 17.7
+points worse on the reserve — deterministic rules flat at 92.6 → 89.6, judge
+collapsed 67.5 → 35.0. The same trade as every rejected candidate, caught by the
+harness instead of by a follow-up run.
 
 ## Notes
 
