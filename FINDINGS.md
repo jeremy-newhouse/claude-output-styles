@@ -217,6 +217,30 @@ new. Multi-tool sessions and open-ended decisions are handled poorly by all
 three styles. That is a content gap, not a wording gap — rewriting the same
 rules will not close it.
 
+## Per-model baseline, all three styles
+
+Standard case set, both models, baseline variant, 2 repeats — 10 cells per pair.
+One run, one scoring version, current case prompts, so every cell is comparable.
+
+| style | rules opus | rules sonnet | judge opus | judge sonnet |
+|---|---|---|---|---|
+| advanced | 97.8 | 96.8 | 73.9 | 66.0 |
+| intermediate | 93.8 | 95.0 | 63.9 | 72.6 |
+| beginner | 90.2 | 91.7 | **45.9** | **48.4** |
+
+The composite score is deliberately omitted: each style carries a different
+`judgeWeight` (0.3 / 0.4 / 0.5), so composites are not comparable across rows.
+Rules and judge are.
+
+Two things this settles. Rule compliance is high everywhere and roughly
+model-independent — the spread across all six cells is 90.2 to 97.8. Prose
+quality is neither: beginner sits 20 points below advanced on both models, and it
+is the only style where the two halves disagree sharply.
+
+Beginner follows its own rules at over 90% and still reads worst. That is the
+signature of a style whose stated rules do not capture what makes it good, which
+is why the optimizer could not fix it by rewording them.
+
 ## Sources
 
 - [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5) — response length, agentic narration, over-verification, correction narration

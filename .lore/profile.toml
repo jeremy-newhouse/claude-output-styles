@@ -1,0 +1,25 @@
+# lore profile — committed, declarative type vocabulary for this bundle.
+# OPTIONAL: with this file absent, or every line below commented, lore uses the built-in
+# built-in profile (Epic/Story/Spec/ADR/Runbook/Reference plus Attested Computation). Define your
+# own types. lore generates its runtime validators + editor JSON Schemas from this file at load.
+
+# [profile]
+# name = "my-project"      # required once any line below is uncommented
+# okf_version = "0.2"      # required; supported targets are 0.1 and 0.2
+# case = "Title"           # type-name casing convention (advisory; powers the did-you-mean hint)
+# resource_base = ""       # prefix for the stamped `resource` link (empty = none)
+
+# [base.fields]
+# Fields every type carries. `type` MUST be required (OKF's one hard requirement).
+# type = { required = true }
+# title = {}
+# description = {}
+# tags = { kind = "list" }
+# summary = {}
+# timestamp = { kind = "datetime" }
+
+# [[types]]
+# name = "Spec"                       # the OKF `type` value
+# sections = ["Summary", "Design"]    # required body headings (## …)
+# template = "spec.md"                # template under .lore/templates/
+# fields = { feature = { required = true }, status = { enum = ["draft", "approved"] } }
