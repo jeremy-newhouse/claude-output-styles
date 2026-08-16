@@ -80,9 +80,9 @@ async function rewrite ({ style, brief, model }) {
   return out.replace(/^```(?:markdown|md)?\n?/, '').replace(/\n?```\s*$/, '').trim()
 }
 
-// The loop's two boundaries to the outside world. Injectable so the persistence
-// this function is responsible for can be tested without spending anything.
 export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, rows = [], deps = {} }) {
+  // evaluate and rewrite are the loop's only boundaries to the outside world.
+  // Injectable so the persistence below can be tested without spending anything.
   const { evaluate: evaluateFn = evaluate, rewrite: rewriteFn = rewrite } = deps
   // Callers pass a shared sink so that a style crashing mid-loop still leaves
   // the cells it already paid for in the caller's hands. This loop has crashed
