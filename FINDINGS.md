@@ -221,27 +221,94 @@ rules will not close it.
 
 ## Per-model baseline, all three styles
 
-Standard case set, both models, baseline variant, 2 repeats — 10 cells per pair.
-One run, one scoring version, current case prompts, so every cell is comparable.
+Baseline variant, 2 repeats, five cases, 10 cells per pair. Every cell in this
+table answered the *same five prompts* under the *same style text* and was graded
+by the *same scoring code*, so the columns are directly comparable. Opus and
+Sonnet come from run `12-44-03`, Haiku from `22-59-53`; the two runs are separate
+invocations on the same day, which is the only difference between the columns.
 
-| style | rules opus | rules sonnet | judge opus | judge sonnet |
-|---|---|---|---|---|
-| advanced | 97.8 | 96.8 | 73.9 | 66.0 |
-| intermediate | 94.2 | 95.6 | 63.9 | 72.6 |
-| beginner | 91.5 | 92.3 | **45.9** | **48.4** |
+| style | rules haiku | rules sonnet | rules opus | judge haiku | judge sonnet | judge opus |
+|---|---|---|---|---|---|---|
+| advanced | 96.0 | 96.8 | 97.8 | 52.9 | 66.0 | 73.9 |
+| intermediate | 94.3 | 95.6 | 94.2 | 62.2 | 72.6 | 63.9 |
+| beginner | 90.9 | 92.3 | 91.5 | **37.5** | **48.4** | **45.9** |
 
 The composite score is deliberately omitted: each style carries a different
 `judgeWeight` (0.3 / 0.4 / 0.5), so composites are not comparable across rows.
 Rules and judge are.
 
-Two things this settles. Rule compliance is high everywhere and roughly
-model-independent — the spread across all six cells is 91.5 to 97.8. Prose
-quality is neither: beginner sits 20 points below advanced on both models, and it
-is the only style where the two halves disagree sharply.
+Three things this settles. Rule compliance is high everywhere and roughly
+model-independent — the spread across all nine cells is 90.9 to 97.8, and adding
+a tier that costs a quarter of Sonnet per cell ($0.024 against $0.101, measured)
+widened that spread by 0.6 points. Prose quality is neither: beginner sits 15 to
+28 points below advanced depending on the model, and it is the only style where
+the two halves disagree sharply. And Haiku is last on the judge for all three
+styles while never giving up more than 1.8 points of rule score against the best
+of the other two — and on intermediate it beats Opus outright. Whatever the cheap
+model gives up, it is not rule-following.
 
-Beginner follows its own rules at over 90% and still reads worst. That is the
-signature of a style whose stated rules do not capture what makes it good, which
-is why the optimizer could not fix it by rewording them.
+The judge column is *not* a clean tier ranking, though. Opus leads on advanced,
+but Sonnet beats it on intermediate (72.6 to 63.9) and on beginner (48.4 to 45.9).
+Only the bottom of the range is stable: Haiku is last every time.
+
+Beginner follows its own rules at over 90% and still reads worst, on all three
+models. That is the signature of a style whose stated rules do not capture what
+makes it good, which is why the optimizer could not fix it by rewording them.
+A third model, at a quarter of the cost, reproduces the pattern exactly — so it
+is a property of the style file, not of any one model's taste.
+
+### Haiku on the full case set, and what it cannot do at all
+
+The table above uses five cases because that is what Opus and Sonnet were
+measured on. Haiku was also run across the full 13-case pool — 78 cells, $1.88 —
+and that run exposes something five conversational cases cannot.
+
+**Six of the 78 cells produced no reply at all.** Every one is
+`Reached maximum number of turns (12)`, and every one is a case that requires
+editing a file and then running the tests:
+
+| case | what it asks for | haiku cells with no reply |
+|---|---|---|
+| `agentic-fix-verify` | fix a bug, then run the tests | 5 of 6 |
+| `reserve-agentic-write` | add a test, then run the suite | 1 of 6 |
+| `agentic-read-report` | read the code and report (no writes) | 0 of 6 |
+
+Opus has never hit the turn limit in 21 saved agentic cells, and Sonnet never in
+28. Haiku hit it on all three styles, which makes it a property of the model and
+not of any style file — no rewording of a style can fix it.
+
+This forces a distinction the two-model data never needed. **A cell that answered
+badly and a cell that never answered are different failures, and averaging them
+together hides the second one.** Haiku's full-pool rule scores read very
+differently depending on which question you are asking:
+
+| style | replies | no reply | rules, replies only | rules, counting no-reply as 0 |
+|---|---|---|---|---|
+| advanced | 23 | 3 | 94.2 | 83.4 |
+| intermediate | 24 | 2 | 92.3 | 85.2 |
+| beginner | 25 | 1 | 86.6 | 83.3 |
+
+The left number is how well Haiku follows the style when it speaks. The right
+number is what a user actually experiences. Quote whichever you mean, and say
+which one it is.
+
+### What Haiku does not do
+
+Two rules where the cheap model was expected to fail, and did not:
+
+- **Sentence length.** Haiku writes 12.2-word sentences across the full pool
+  (732 sentences), against Sonnet's 13.7 and Opus's 11.4 on the shared five.
+  Haiku is not the long-sentence model — Sonnet is, and by a wider margin
+  (21.1% of Sonnet's sentences run over the 20-word cap, against Haiku's 12.7%).
+  This **reverses** the reading taken from a four-cell probe during the sentence
+  cap work; see the experiment ledger for the arithmetic.
+- **Code blocks and filler.** `code_block_size` and `no_filler` score 100.0 on
+  every model including Haiku.
+
+Where Haiku is genuinely worse, on the like-for-like five cases, it is worse at
+*opening the reply*, not at obeying caps: `leads_with_conclusion` 83.3 against
+Sonnet's 100.0 and Opus's 90.0 — the same pre-tool-call narration failure this
+document opens with, one tier more pronounced.
 
 ## Sources
 
