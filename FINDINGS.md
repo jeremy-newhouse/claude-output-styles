@@ -119,7 +119,9 @@ only lever that measured neutral-to-positive:
   Opus 5 already does, and the instruction compounds into longer output.
 
 `harness/src/cli.mjs improve` automates exactly this rewrite-and-measure loop,
-with a holdout split so the rewrite cannot game the checks.
+with a holdout split so the rewrite cannot game the training prompts, and a
+reserve split — held out of the loop entirely — that the winner must clear
+before it is presented as one.
 
 ## The loop, run once
 

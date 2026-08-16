@@ -43,6 +43,40 @@ export function renderConsole (summary) {
   return out
 }
 
+/**
+ * One style's verdict after an improve run.
+ *
+ * The loop's winner is not automatically the run's winner. A candidate the
+ * reserve split rejected has already been rolled back to v0, so the headline
+ * has to say REJECTED — printing train and holdout alone would read as an
+ * adoption, and those are the two splits the rejected candidate won.
+ *
+ * @param {object} r  one entry of improve.json (best, history, reserve)
+ * @param {string} [reserveSplit]  split name, for the "not measured" case
+ */
+export function renderVerdict (r, reserveSplit = 'reserve') {
+  const rejected = r.reserve && !r.reserve.accepted
+  const headline = rejected
+    ? `v${r.reserve.iteration} REJECTED on ${r.reserve.split} — keeping v0`
+    : `adopted v${r.best.iteration}`
+  const lines = [`${r.styleId}: ${headline}  (train ${r.best.train} holdout ${r.best.holdout})`]
+
+  if (r.reserve) {
+    const d = r.reserve.delta
+    lines.push(`  ${r.reserve.split}: v${r.reserve.iteration} ${r.reserve.candidate} vs v0 ${r.reserve.baseline} ` +
+               `(${d >= 0 ? '+' : ''}${d}) over ${r.reserve.cases} cases`)
+  } else if (r.best.iteration === 0) {
+    lines.push('  reserve: not measured — no rewrite was kept')
+  } else {
+    // Unmeasured is not the same as passed, and the line must not let a reader
+    // treat it as one — usually this is --cases= having filtered the split out.
+    lines.push(`  reserve: NOT MEASURED — no ${reserveSplit} cases in this run; this candidate is unvalidated`)
+  }
+
+  for (const h of r.history) lines.push(`  v${h.iteration}: train ${h.train} holdout ${h.holdout} ${h.kept ? 'KEEP' : 'revert'}`)
+  return lines.join('\n')
+}
+
 export function renderMarkdown (summary, meta = {}) {
   const md = (title, rows) => rows.length
     ? `\n### ${title}\n\n| | score | rules | judge | n | errors |\n|---|---|---|---|---|---|\n` +

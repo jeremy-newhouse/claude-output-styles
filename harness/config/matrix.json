@@ -50,13 +50,22 @@
     "judge": true,
     "judgeModel": "sonnet"
   },
+  "//improve": [
+    "trainSplit and holdoutSplit are the loop's own signals. reserveSplit is not:",
+    "the loop never selects it, and it is measured once at the end to validate the",
+    "candidate the loop wants to adopt. minReserveDelta is deliberately as tight as",
+    "minHoldoutDelta even though it sits inside the noise floor — rejecting a sound",
+    "rewrite costs a re-run, adopting a bad one ships a regression."
+  ],
   "improve": {
     "targetScore": 0.9,
     "maxIterations": 6,
     "authorModel": "opus",
     "trainSplit": "train",
     "holdoutSplit": "holdout",
+    "reserveSplit": "reserve",
     "minHoldoutDelta": -0.02,
+    "minReserveDelta": -0.02,
     "patience": 2
   }
 }

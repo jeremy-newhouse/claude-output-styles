@@ -63,15 +63,25 @@ Adopting a rewrite costs an extra measurement pass beyond the loop. That is the
 price of the loop having been wrong twice out of three times it declared a
 winner.
 
-The harness does not yet enforce this: the reserve split and its reporting are
-manual, and the loop still presents its own winner without qualification.
-Automating it is COS-2.
+The harness enforces this as of COS-2. `cases.json` carries a third split,
+`reserve`, that the loop never selects for train or holdout, and `improveStyle`
+measures the incumbent and the candidate on it — same cases, same run — before
+presenting a winner. A candidate that comes in below the incumbent by more than
+`minReserveDelta` is rejected and rolled back to v0 rather than annotated: the
+`best.md` a reader diffs and copies holds what survived. The pass runs only when
+a rewrite was actually kept, so a run that reverts everything pays nothing for
+it.
 
 The one surviving rewrite, adopted into `plain-english-advanced.md`, predates
 this decision. It was validated by a same-run comparison on both models and then
 independently confirmed on four never-seen cases at 90.8 against the candidate
 that tried to replace it — so it satisfies this rule retroactively.
 
-Case-set size is now load-bearing. Three splits from nine cases leaves few cases
-per split, which raises the noise floor. Growing the case set is a prerequisite
-for trusting narrow margins, not an optional improvement.
+Case-set size is now load-bearing. Rather than carve three splits out of the
+original nine cases — which would have cut train to three and holdout to two —
+COS-2 wrote four new cases for the reserve, taking the pool to thirteen. They
+are deliberately shapes no existing split contains: a forward-looking scope
+question, a decision offering three options rather than two, a turn where the
+user overrides the recommendation, and an agentic case that writes new code.
+Shape, not wording, is what the rejected candidates overfitted to. Growing the
+case set further remains a prerequisite for trusting narrow margins.

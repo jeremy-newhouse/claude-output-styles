@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { evaluate, summarize } from './evaluate.mjs'
 import { improveStyle, spendOf } from './improve.mjs'
 import { loadStyle } from './style.mjs'
-import { renderConsole, renderMarkdown } from './report.mjs'
+import { renderConsole, renderMarkdown, renderVerdict } from './report.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const readJson = p => JSON.parse(readFileSync(p, 'utf8'))
@@ -105,16 +105,13 @@ if (cmd === 'run') {
       log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
       // allRows already holds whatever this style measured before it threw, so
       // the spend it burned is still attributable to it.
-      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], spentUsd: spendOf(allRows.slice(before)) })
+      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], reserve: null, spentUsd: spendOf(allRows.slice(before)) })
     }
     // Persist after every style too: flush() during the loop only ran if the
     // style got as far as its first measurement.
     flush()
   }
-  for (const r of results.filter(r => r.best)) {
-    console.log(`\n${r.styleId}: train ${r.best.train} holdout ${r.best.holdout} (iteration ${r.best.iteration})`)
-    for (const h of r.history) console.log(`  v${h.iteration}: train ${h.train} holdout ${h.holdout} ${h.kept ? 'KEEP' : 'revert'}`)
-  }
+  for (const r of results.filter(r => r.best)) console.log(`\n${renderVerdict(r, cfg.reserveSplit)}`)
   console.log(`\ntotal spend $${spendOf(allRows)} across ${allRows.length} saved cells`)
   console.log(`candidates in ${join(outDir, 'candidates')}`)
   console.log(`re-score offline with: node src/cli.mjs score --rows=${join(outDir, 'rows.json')}`)

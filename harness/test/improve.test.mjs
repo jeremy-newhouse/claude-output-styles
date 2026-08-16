@@ -5,11 +5,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { improveStyle, spendOf } from '../src/improve.mjs'
 import { summarize } from '../src/evaluate.mjs'
-import { renderConsole, renderMarkdown } from '../src/report.mjs'
+import { renderConsole, renderMarkdown, renderVerdict } from '../src/report.mjs'
 
 const CASES = [
   { id: 'tr-1', split: 'train', prompt: 'p' },
-  { id: 'ho-1', split: 'holdout', prompt: 'p' }
+  { id: 'ho-1', split: 'holdout', prompt: 'p' },
+  { id: 'rs-1', split: 'reserve', prompt: 'p' }
 ]
 
 const CFG = {
@@ -18,7 +19,9 @@ const CFG = {
   authorModel: 'opus',
   trainSplit: 'train',
   holdoutSplit: 'holdout',
+  reserveSplit: 'reserve',
   minHoldoutDelta: -0.02,
+  minReserveDelta: -0.02,
   patience: 2
 }
 
@@ -39,20 +42,52 @@ async function withTmpDir (fn) {
 
 const BODY = 'x'.repeat(300)
 
-const runLoop = (outDir, { evaluate, rewrite, rows, onRows, cfg = CFG }) => improveStyle({
+const runLoop = (outDir, { evaluate, rewrite, rows, onRows, cfg = CFG, cases = CASES, log = () => {} }) => improveStyle({
   style: { id: 'demo', text: `---\nname: demo\n---\n${BODY}`, body: BODY, meta: { name: 'demo' } },
   variant: { id: 'baseline' },
   models: ['haiku'],
-  cases: CASES,
+  cases,
   contracts: { demo: {} },
   opts: { repeats: 1 },
   cfg,
   outDir,
-  log: () => {},
+  log,
   rows,
   onRows,
   deps: { evaluate, rewrite }
 })
+
+// A rewrite the fake scorer can recognise, so a measurement can score the
+// candidate differently from the incumbent it replaced.
+const MARKED = `CANDIDATE ${'y'.repeat(300)}`
+const proposeCandidate = async () => MARKED
+
+/**
+ * Stand-in for evaluate() that scores by split and by whether it is looking at
+ * the candidate. That is what lets a rewrite win train and holdout and then be
+ * caught, or cleared, by the reserve — the case the loop exists to handle.
+ */
+const splitAwareEvaluate = table => async ({ cases, styles }) => {
+  const side = styles[0].text.includes('CANDIDATE') ? 'candidate' : 'baseline'
+  const rows = cases.map(c => {
+    const total = table[c.split][side]
+    return {
+      styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
+      split: c.split, repeat: 0, text: 'reply', costUsd: 0.01, error: null,
+      rulesScore: total, checks: [], judgeScore: total, judgeViolations: [], total
+    }
+  })
+  return { rows, summary: summarize(rows) }
+}
+
+// Train rises and holdout holds, so the loop keeps the candidate. Only the
+// reserve column differs between the two scenarios.
+const WINS_THE_LOOP = {
+  train: { baseline: 0.5, candidate: 0.7 },
+  holdout: { baseline: 0.5, candidate: 0.5 }
+}
+const RESERVE_CLEARS = { ...WINS_THE_LOOP, reserve: { baseline: 0.5, candidate: 0.6 } }
+const RESERVE_REGRESSES = { ...WINS_THE_LOOP, reserve: { baseline: 0.5, candidate: 0.4 } }
 
 test('every iteration writes its train and holdout transcripts', async () => {
   await withTmpDir(async dir => {
@@ -191,6 +226,139 @@ test('rows are flushed after every measurement, not once per style', async () =>
 test('spendOf tolerates rows with no recorded cost', () => {
   assert.equal(spendOf([]), 0)
   assert.equal(spendOf([{ costUsd: 0.5 }, { error: 'timeout' }]), 0.5)
+})
+
+test('the loop never draws reserve cases into train or holdout', async () => {
+  await withTmpDir(async dir => {
+    await runLoop(dir, { evaluate: splitAwareEvaluate(RESERVE_CLEARS), rewrite: proposeCandidate })
+    const written = readdirSync(dir).filter(f => f.endsWith('.json')).sort()
+    assert.deepEqual(written, [
+      'demo.v0.holdout.json', 'demo.v0.reserve.json', 'demo.v0.train.json',
+      'demo.v1.holdout.json', 'demo.v1.reserve.json', 'demo.v1.train.json'
+    ])
+    // Every measurement the loop itself used to decide is free of the reserve
+    // case. If it leaked in, the validation would be scoring what it trained on.
+    for (const f of written.filter(f => !f.includes('.reserve.'))) {
+      const rows = JSON.parse(readFileSync(join(dir, f), 'utf8'))
+      assert.ok(rows.every(r => r.caseId !== 'rs-1'), `${f} contains a reserve case`)
+    }
+  })
+})
+
+test('a candidate that holds up on the reserve is adopted, with both numbers reported', async () => {
+  await withTmpDir(async dir => {
+    const r = await runLoop(dir, { evaluate: splitAwareEvaluate(RESERVE_CLEARS), rewrite: proposeCandidate })
+    assert.equal(r.best.iteration, 1)
+    assert.deepEqual(r.reserve, {
+      split: 'reserve', cases: 1, baseline: 0.5, candidate: 0.6,
+      delta: 0.1, accepted: true, iteration: 1
+    })
+    // Reported alongside train and holdout, not instead of them.
+    assert.equal(r.best.train, 0.7)
+    assert.equal(r.best.holdout, 0.5)
+    assert.match(readFileSync(join(dir, 'demo.best.md'), 'utf8'), /CANDIDATE/)
+  })
+})
+
+test('a candidate that regresses on the reserve is rejected, not reported as the winner', async () => {
+  await withTmpDir(async dir => {
+    const r = await runLoop(dir, { evaluate: splitAwareEvaluate(RESERVE_REGRESSES), rewrite: proposeCandidate })
+    // The loop wanted it: train rose, holdout held. That verdict stays visible.
+    assert.equal(r.history.at(-1).kept, true)
+    // The run's verdict is the opposite, and it names the rejected iteration.
+    assert.equal(r.reserve.accepted, false)
+    assert.equal(r.reserve.iteration, 1)
+    assert.equal(r.reserve.delta, -0.1)
+    // What is adopted is the incumbent, with the incumbent's own numbers —
+    // not the candidate's train and holdout wearing a rejection label.
+    assert.equal(r.best.iteration, 0)
+    assert.equal(r.best.train, 0.5)
+    assert.equal(r.best.holdout, 0.5)
+    assert.doesNotMatch(readFileSync(join(dir, 'demo.best.md'), 'utf8'), /CANDIDATE/)
+    // The rejected rewrite is kept for the record, as rejected/ requires.
+    assert.match(readFileSync(join(dir, 'demo.v1.md'), 'utf8'), /CANDIDATE/)
+  })
+})
+
+test('reserve rows are tagged with the iteration each one validates', async () => {
+  await withTmpDir(async dir => {
+    const r = await runLoop(dir, { evaluate: splitAwareEvaluate(RESERVE_REGRESSES), rewrite: proposeCandidate })
+    const reserveRows = r.rows.filter(row => row.split === 'reserve')
+    // v0 is the incumbent's reserve score, v1 the candidate's: the two halves of
+    // the comparison, both re-scorable offline from rows.json.
+    assert.deepEqual(reserveRows.map(row => row.iteration), [0, 1])
+    assert.equal(r.spentUsd, spendOf(r.rows))
+    assert.equal(r.rows.length, 6)
+  })
+})
+
+test('no reserve pass runs, and nothing is spent on it, when no rewrite was kept', async () => {
+  await withTmpDir(async dir => {
+    // Flat scores: the candidate never beats the baseline, so there is no
+    // adoption to validate and the extra measurement is not worth paying for.
+    const r = await runLoop(dir, { evaluate: fakeEvaluate(0.5, 0.01), rewrite: proposeCandidate })
+    assert.equal(r.best.iteration, 0)
+    assert.equal(r.reserve, null)
+    assert.ok(!readdirSync(dir).some(f => f.includes('.reserve.')))
+    assert.ok(r.rows.every(row => row.split !== 'reserve'))
+    assert.equal(r.spentUsd, 0.04)
+  })
+})
+
+test('an adoption with no reserve cases is reported as unvalidated, not as validated', async () => {
+  await withTmpDir(async dir => {
+    const lines = []
+    const r = await runLoop(dir, {
+      cases: CASES.filter(c => c.split !== 'reserve'),
+      evaluate: splitAwareEvaluate(RESERVE_CLEARS),
+      rewrite: proposeCandidate,
+      log: m => lines.push(m)
+    })
+    assert.equal(r.best.iteration, 1)
+    // reserve: null means "not measured". It must never be readable as "passed".
+    assert.equal(r.reserve, null)
+    assert.match(lines.join('\n'), /unvalidated/)
+  })
+})
+
+// What a caller of improveStyle hands the renderer, minus the rows.
+const result = (best, reserve) => ({
+  styleId: 'demo',
+  best: { train: 0.914, holdout: 0.957, iteration: 3, ...best },
+  history: [{ iteration: 0, train: 0.888, holdout: 0.905, kept: true }],
+  reserve
+})
+
+test('a reserve rejection is rendered as a rejection, not as an adoption', () => {
+  const out = renderVerdict(result({ train: 0.888, holdout: 0.905, iteration: 0 }, {
+    split: 'reserve', cases: 4, baseline: 0.908, candidate: 0.84, delta: -0.068, accepted: false, iteration: 3
+  }))
+  assert.match(out, /v3 REJECTED on reserve — keeping v0/)
+  assert.doesNotMatch(out, /adopted/)
+  // The numbers on the headline are the incumbent's, and the losing side of the
+  // comparison is named as v3 so it cannot be read as the style's new score.
+  assert.match(out, /train 0\.888 holdout 0\.905/)
+  assert.match(out, /reserve: v3 0\.84 vs v0 0\.908 \(-0\.068\) over 4 cases/)
+})
+
+test('an accepted candidate is rendered as adopted, with the reserve delta signed', () => {
+  const out = renderVerdict(result({}, {
+    split: 'reserve', cases: 4, baseline: 0.908, candidate: 0.912, delta: 0.004, accepted: true, iteration: 3
+  }))
+  assert.match(out, /demo: adopted v3/)
+  assert.doesNotMatch(out, /REJECTED/)
+  assert.match(out, /reserve: v3 0\.912 vs v0 0\.908 \(\+0\.004\) over 4 cases/)
+})
+
+test('an unmeasured reserve is never rendered as a pass', () => {
+  const noRewrite = renderVerdict(result({ iteration: 0 }, null))
+  assert.match(noRewrite, /reserve: not measured — no rewrite was kept/)
+
+  // The dangerous one: a candidate WAS adopted and the reserve never ran.
+  const unvalidated = renderVerdict(result({}, null))
+  assert.match(unvalidated, /NOT MEASURED/)
+  assert.match(unvalidated, /unvalidated/)
+  assert.doesNotMatch(unvalidated, /REJECTED/)
 })
 
 const row = (styleId, iteration, split, total) => ({

@@ -53,3 +53,10 @@ protection. Both splits came from the same five cases and the same author, so a
 rewrite could satisfy both and still degrade on genuinely unseen prompts. Hold
 back cases the optimizer never sees in any split, and treat the loop's own
 holdout as a tuning signal rather than a verdict.
+
+That is no longer a manual discipline. `cases.json` carries a `reserve` split
+the loop never selects, and `improve` measures the incumbent against the
+candidate on it before presenting a winner — rolling back to v0 when the
+candidate regresses. Both entries above would now be caught by the harness
+itself rather than by a follow-up run. See the three-splits section of
+`harness/README.md`.

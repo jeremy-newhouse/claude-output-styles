@@ -179,5 +179,88 @@
       "code_block_size"
     ],
     "judge": "By the third turn, is the style still held, or has the reply drifted back to a default chatty tone?"
+  },
+  {
+    "id": "reserve-scope-estimate",
+    "split": "reserve",
+    "agentic": false,
+    "prompt": "We want customers to sign in with their company Google or Microsoft account instead of a password. Nothing has been built yet. How big a job is this?",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "leads_with_conclusion",
+      "no_process_narration",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Does the reply lead with a size or effort answer rather than a plan of attack, and stay at the right technical level? Nothing has been done yet, so a status-update shape or a list of implementation steps is wrong here."
+  },
+  {
+    "id": "reserve-three-options",
+    "split": "reserve",
+    "agentic": false,
+    "prompt": "Search results take 4 seconds. We could add a search index (1 week, new service to run), cache the top 200 queries (1 day, stale results for 10 minutes), or pay a hosted search vendor ($900/month, live next week). Which one?",
+    "checks": [
+      "sentence_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "two_options_max",
+      "leads_with_conclusion",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Three options were offered. Does the reply narrow to at most two, compare them on speed, cost and quality, and make one clear recommendation — rather than walking through all three?"
+  },
+  {
+    "id": "reserve-pushback",
+    "split": "reserve",
+    "agentic": false,
+    "multiTurn": [
+      "Our nightly report job now takes 6 hours and finishes after the team arrives. I can move it to a bigger machine or split it into per-region jobs that run in parallel. Which should we do?",
+      "I disagree. Do the other one."
+    ],
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "leads_with_conclusion",
+      "no_process_narration",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "The user overrode the recommendation. Does the second reply accept the decision plainly and move on, without apologising, re-arguing, praising the choice, or restating the comparison?"
+  },
+  {
+    "id": "reserve-agentic-write",
+    "split": "reserve",
+    "agentic": true,
+    "prompt": "Add a test to this repo covering what happens when the discount percentage is over 100, then run the suite.",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "leads_with_conclusion",
+      "no_process_narration",
+      "three_question_structure",
+      "no_jargon"
+    ],
+    "judge": "After writing new code and running the suite, does the final message report what was added and what the run showed — in style — rather than narrating the session or pasting the new test back?"
   }
 ]

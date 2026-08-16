@@ -81,7 +81,8 @@ judge is not itself under an output style.
     in an explicit override directive and re-injects as a user message
   - `all-fixes` — all three together
 - **cases** — `cases/cases.json`. Conversational, agentic (against
-  `fixtures/repo`), and one three-turn case that specifically tests drift.
+  `fixtures/repo`), and multi-turn cases that specifically test drift. Each case
+  carries a `split`: `train`, `holdout`, or `reserve` (see below).
 
 `config/contracts.json` holds the numeric thresholds per style level, so the
 same checks grade Beginner and Advanced against different caps.
@@ -103,6 +104,7 @@ same checks grade Beginner and Advanced against different caps.
    the style that is currently winning, so the evidence it gets has to describe
    that same text.
 5. Stop at `targetScore` or `maxIterations`.
+6. **Validate the winner on the reserve split** before presenting it. See below.
 
 Candidates land in `results/<stamp>/candidates/<style>.v<N>.md`, and the winner
 in `<style>.best.md`. Nothing is written back to the real style files — diff and
@@ -125,9 +127,59 @@ to no style. The file says so at the top, `summary.json` carries
 `kind: "improve"`, and the honest reading is the by-iteration table, which is
 keyed by style so a multi-style run does not blend two traces into one.
 
-The holdout split is the guard against the rewrite overfitting to the exact
-phrasing of the training prompts. Watch the `BY SPLIT` table: train far above
-holdout means the last rewrite gamed the checks.
+## Three splits, not two
+
+Cases are split three ways. The optimizer sees two of them:
+
+| split | who uses it | what it is for |
+|---|---|---|
+| `train` | the loop, every iteration | the failure evidence the rewrite is authored from |
+| `holdout` | the loop, every iteration | tuning signal — catches a rewrite overfitting to the exact phrasing of the training prompts |
+| `reserve` | **nobody, until the end** | the verdict — measured once, on the candidate the loop wants to adopt |
+
+**Two splits were not enough, and this is measured rather than assumed.** Train
+and holdout are drawn from the same small pool, written by the same author in
+the same session. A rewrite can satisfy both and still degrade on prompt shapes
+neither split contains. Two candidates that won both in-loop splits were then
+run on cases the optimizer had seen in no split: the advanced candidate came in
+**6.8 points worse out of sample** while its deterministic rules stayed flat and
+its judge score collapsed. Full numbers in `rejected/README.md` and the
+reasoning in
+`docs/adr/validate-candidates-on-cases-held-out-of-every-split.md`.
+
+So the loop's own verdict is not the run's verdict:
+
+- The reserve pass runs **only when a rewrite was actually kept**. If every
+  candidate reverted, the style is unchanged and there is nothing to validate,
+  so nothing is spent on it.
+- It measures the **incumbent and the winner on the same cases in the same run**.
+  Comparing against a reserve number from an earlier run would fold in model
+  drift and case edits — the exact confound this guard exists to remove.
+- If the candidate comes in below the incumbent by more than `minReserveDelta`,
+  it is **rejected and rolled back**: `<style>.best.md` holds the incumbent, the
+  console headline says `REJECTED`, and the rejected rewrite stays at
+  `<style>.v<N>.md`. A rejection is a rollback, not a footnote — `best.md` is
+  the file you diff and copy, so it has to hold what survived.
+- Rollback goes to **v0**, not to an earlier kept iteration. The reserve was
+  measured for v0 and the winner only, so v0 is the only alternative the
+  evidence actually supports.
+- With no reserve cases configured, an adopted candidate is reported as
+  `NOT MEASURED — unvalidated`. That is deliberately not the same thing as
+  passing.
+
+`minReserveDelta` is as tight as `minHoldoutDelta` (−0.02) even though the noise
+section below puts the noise floor near 3 points, so it can fire on noise. That
+asymmetry is intended: rejecting a sound rewrite costs a re-run, adopting a bad
+one ships a regression.
+
+The pass costs one extra measurement round per adopting style — the reserve
+cases twice, once per side. Nothing is adopted without paying it.
+
+Reserve rows land in `rows.json` like any other, tagged with the iteration they
+validate (`v0` for the incumbent, `v<N>` for the candidate), so the comparison
+can be re-scored offline. Watch the `BY SPLIT` table: train far above holdout
+means the last rewrite gamed the checks, and either of them far above reserve
+means it gamed the pool.
 
 **Noise.** At `repeats: 1` and a handful of cases, one case swings the mean by
 ~0.03. Treat gaps under about 3 points as noise. Raise `run.repeats` and add
