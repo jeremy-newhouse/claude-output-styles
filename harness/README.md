@@ -278,7 +278,14 @@ $0.10–0.15 conversational, more when agentic. Cell count is
 `styles × variants × models × cases × repeats` — it multiplies fast.
 
 Probe on Haiku to decide whether an experiment is worth running, but do not
-conclude from it. A tighter sentence cap moved Haiku a lot and Opus and Sonnet
-not at all, because the cap sat under what Haiku already wrote and above what the
-other two did (`docs/reference/experiment-ledger.md`, runs `22-18-53` and
-`22-27-15`). Measure the baseline on the target model before believing a probe.
+conclude from it — and **re-measure the probe's own baseline before you explain
+its result.** A four-cell probe reported that a tighter sentence cap moved Haiku
+a lot; the validation found nothing on Opus or Sonnet, and a later 25-cell run
+found Haiku's untightened baseline sitting right where the probe's "improved" arm
+landed, so there was no movement left to explain. Two rounds of mechanism were
+written for an effect that a larger sample of the same configuration dissolved
+(`docs/reference/experiment-ledger.md`, runs `22-18-53`, `22-27-15`, `22-59-53`).
+Re-scoring saved rows is free; use it before believing a probe.
+
+Note that a cell which aborts on the turn limit records `costUsd: 0`, so a run's
+summed spend understates what it actually burned whenever cells error.

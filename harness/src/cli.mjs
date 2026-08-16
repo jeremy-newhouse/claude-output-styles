@@ -6,6 +6,7 @@ import { evaluate, summarize } from './evaluate.mjs'
 import { improveStyle, spendOf } from './improve.mjs'
 import { loadStyle } from './style.mjs'
 import { renderConsole, renderMarkdown, renderVerdict } from './report.mjs'
+import { USAGE, wantsHelp } from './usage.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const readJson = p => JSON.parse(readFileSync(p, 'utf8'))
@@ -31,6 +32,13 @@ function newestRows () {
 
 const args = parseArgs(process.argv.slice(2))
 const cmd = args._[0] ?? 'help'
+
+// Must run before anything reads config or spends a token — see usage.mjs for
+// why this guard exists.
+if (wantsHelp(args)) {
+  console.log(USAGE)
+  process.exit(0)
+}
 
 const matrix = readJson(join(ROOT, 'config/matrix.json'))
 const contracts = readJson(join(ROOT, 'config/contracts.json'))
@@ -149,19 +157,7 @@ if (cmd === 'run') {
   console.log(renderConsole(summarize(rescored)))
 
 } else {
-  console.log(`
-output-style harness
-
-  node src/cli.mjs run       [--styles=a,b] [--models=opus,sonnet] [--variants=baseline]
-                             [--cases=id,id] [--repeats=2] [--concurrency=4] [--no-judge]
-  node src/cli.mjs improve   [--styles=a] [--iterations=6] [--variants=baseline]
-  node src/cli.mjs score     --rows=results/<stamp>/rows.json
-  node src/cli.mjs audit     [--styles=a,b]
-
-  run      evaluate the matrix and write results/<stamp>/{rows,summary,report.md}
-  improve  loop: measure -> rewrite the style -> re-measure -> keep if train up and holdout flat,
-           then validate the winner on the reserve split and roll back to v0 if it regresses
-  score    re-score saved transcripts offline after changing checks.mjs
-  audit    check every style file's stated caps against contracts.json; exit 1 on disagreement
-`)
+  console.error(`unknown command "${cmd}"`)
+  console.log(USAGE)
+  process.exitCode = 2
 }
