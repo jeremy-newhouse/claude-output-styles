@@ -18,12 +18,16 @@ lore_task_status: todo
 
 ## Goal
 
-Every measurement in this project covers Opus and Sonnet. `config/matrix.json`
-lists `haiku` as a target and no style has ever been run against it; Fable, the
-top tier, is not in the matrix at all.
+This story opened with every measurement in the project covering Opus and Sonnet
+only: `config/matrix.json` listed `haiku` as a target that no style had ever been
+run against, and Fable, the top tier, was not in the matrix at all.
 
 That matters for a claim already made: that one style file serves every model. It
-is verified for two adjacent tiers and stated as though it were general.
+was verified for two adjacent tiers and stated as though it were general.
+
+**Haiku has since been measured** under COS-5 (run `22-59-53`) and the table below
+now spans three tiers. Fable remains untested and is COS-7's job, so the claim is
+still short of the full range.
 
 The two untested ends answer different questions.
 

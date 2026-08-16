@@ -117,29 +117,40 @@ on Opus and 42.2% → 42.9% on Sonnet, in opposite directions.
 
 The original account of this section held that Haiku was the exception — that its
 baseline of 16.6 words sat well above the cap, so the same one-line change pulled
-its over-12 share from 60.0% down to 40.5% (`22-18-53`). **That exception was an
-artifact of a four-cell sample, and `22-59-53` removed it.** Measuring the
-*unchanged* 20-word beginner file on Haiku at eight cells over the probe's own
-four cases, and again at twenty-five cells over all thirteen:
+its over-12 share from 60.0% down to 40.5% (`22-18-53`). **`22-59-53` removed the
+grounds for that exception.** It measured the *unchanged* 20-word beginner file on
+Haiku at eight cells over the probe's own four cases, and again at twenty-five
+cells over all thirteen:
 
 | sample of the untightened file | cells | sentences | mean words | over 12 words |
 |---|---|---|---|---|
-| `22-18-53` — the probe's baseline | 4 | 30 | 16.7 | 60.0% |
-| `22-59-53`, same 4 cases | 8 | 79 | 12.2 | 43.0% |
-| `22-59-53`, all 13 cases | 25 | 268 | 12.4 | 38.4% |
+| `22-18-53` — the probe's baseline arm | 4 | 30 | 16.6 | 60.0% |
+| `22-59-53`, same 4 cases | 8 | 79 | 12.1 | 43.0% |
+| `22-59-53`, all 13 cases | 25 | 268 | 12.2 | 38.4% |
 
-Haiku's untightened baseline is 38.4–43.0% over the 12-word mark. The *tightened*
-file measured 40.5%. **The cap did nothing on Haiku either** — the probe's 60.0%
-was simply a high draw, and the "improvement" was regression to Haiku's own mean.
+The probe's tightened arm measured 40.5%. Haiku's untightened share, at two and
+six times that sample, is 43.0% and 38.4% — and 40.5% sits inside that range. The
+movement the probe reported is therefore fully accounted for by where its
+baseline arm happened to land, with no work left for the cap to do.
 
-So the end-state reading holds, and now needs no exception. Every model, tightened
-or not, ends up with roughly 38–43% of its sentences over 12 words: Opus 38.9%,
-Sonnet 42.9%, Haiku 40.5% tightened and 38.4% untightened. Stating a tighter cap
-does not move any model toward it. **A cheap-model probe measures whether an
-instruction can bind, not whether it binds** — and a probe small enough to be
-cheap can hand you a baseline that will not reproduce, which is the failure that
-actually happened here. Re-measure the probe's own baseline before building an
-explanation on the gap it appears to show.
+That is a statement about the *evidence*, not a proof of no effect. The tightened
+arm is also only four cells and has never been re-measured, so it is equally
+imprecise; this does not show that a 12-word cap does nothing on Haiku. It shows
+there is no longer a measured gap to explain — and a mechanism was published to
+explain one.
+
+So the end-state reading holds and needs no Haiku exception. Every model lands in
+the same band, roughly 38–43% of sentences over 12 words: Opus 38.9% and Sonnet
+42.9% (`22-27-15`), Haiku 40.5% tightened (`22-18-53`) and 38.4% untightened
+(`22-59-53`). Those are three separate runs, so treat the band as a band and not
+as a ranking — Sonnet alone measures 48.0% on `12-44-03`, which is the size of
+run-to-run movement to expect here.
+
+**A cheap-model probe measures whether an instruction can bind, not whether it
+binds** — and a probe small enough to be cheap is small enough that its baseline
+arm may not reproduce, which is the failure that actually happened here.
+Re-measure a probe's own baseline before building an explanation on the gap it
+appears to show.
 
 **Paragraph caps.** Settled offline for free. Mean paragraph length is 1.4 to 1.8
 sentences against a cap of 4, and no paragraph in the controlled run exceeds 4.

@@ -48,15 +48,20 @@ decision.
 
 ## Where things stand
 
-Standard case set, both models, ten cells per pair. Rules and judge are directly
-comparable across styles; the composite is not, because each style carries a
-different `judgeWeight`.
+Five shared cases, ten cells per pair, three of the four model tiers. Rules and
+judge are directly comparable across styles; the composite is not, because each
+style carries a different `judgeWeight`.
 
-| style | rules (opus / sonnet) | judge (opus / sonnet) |
+| style | rules (opus / sonnet / haiku) | judge (opus / sonnet / haiku) |
 |---|---|---|
-| advanced | 97.8 / 96.8 | 73.9 / 66.0 |
-| intermediate | 94.2 / 95.6 | 63.9 / 72.6 |
-| beginner | 91.5 / 92.3 | 45.9 / 48.4 |
+| advanced | 97.8 / 96.8 / 96.0 | 73.9 / 66.0 / 52.9 |
+| intermediate | 94.2 / 95.6 / 94.3 | 63.9 / 72.6 / 62.2 |
+| beginner | 91.5 / 92.3 / 90.9 | 45.9 / 48.4 / 37.5 |
+
+Adding the cheapest tier changed the rules picture barely at all and the judge
+picture a lot, which is the epic's central result in miniature: the style files
+carry their rules down the range, and what the cheap model loses is prose
+quality. Fable, the top tier, is still unmeasured (COS-7).
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a

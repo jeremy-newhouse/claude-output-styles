@@ -12,6 +12,7 @@
 - 2026-08-16T16:04:38-05:00 2d4bcb4b917b84c636ce20b86f286b0d20afb056 Close out the story and advance the campaign cursor
 - 2026-08-16T17:45:40-05:00 ac1a161adc1c51c20cac93a23778e35559720ab6 Fix seven findings from the branch review
 - 2026-08-16T17:45:40-05:00 bb8c6fdcf742090f9dcde0e3e6a808f819c5eb2d Guard style files against their contracts, and settle the caps question
+- 2026-08-16T18:21:49-05:00 afcfff3981c0abae2cd97d91f7d8b17bd9073f1c Measure all three styles on Haiku, and correct what a four-cell probe claimed
 
 ## docs/adr
 
@@ -32,6 +33,7 @@
 - 2026-08-16T10:08:47-05:00 a3e8a9cc0b0e4fa055254e9cd5db7580d0e1e7be Correct the docs that said improve persists nothing
 - 2026-08-16T16:04:38-05:00 8a76f13629aac5c95abc3abdd6dc3ed01d03bc3a Validate the optimizer's winner on a split it never sees
 - 2026-08-16T17:45:40-05:00 bb8c6fdcf742090f9dcde0e3e6a808f819c5eb2d Guard style files against their contracts, and settle the caps question
+- 2026-08-16T18:21:49-05:00 afcfff3981c0abae2cd97d91f7d8b17bd9073f1c Measure all three styles on Haiku, and correct what a four-cell probe claimed
 
 ## docs/runbooks
 
@@ -49,6 +51,7 @@
 - 2026-08-16T17:45:40-05:00 a092b844c6457f1e756851bc27aab0519dfc518e Quote the over-cap rates instead of rounding them to one figure
 - 2026-08-16T17:45:40-05:00 ac1a161adc1c51c20cac93a23778e35559720ab6 Fix seven findings from the branch review
 - 2026-08-16T17:45:40-05:00 bb8c6fdcf742090f9dcde0e3e6a808f819c5eb2d Guard style files against their contracts, and settle the caps question
+- 2026-08-16T18:21:49-05:00 afcfff3981c0abae2cd97d91f7d8b17bd9073f1c Measure all three styles on Haiku, and correct what a four-cell probe claimed
 
 ## docs/stories
 
@@ -59,3 +62,4 @@
 - 2026-08-16T10:08:47-05:00 a3e8a9cc0b0e4fa055254e9cd5db7580d0e1e7be Correct the docs that said improve persists nothing
 - 2026-08-16T16:04:38-05:00 2d4bcb4b917b84c636ce20b86f286b0d20afb056 Close out the story and advance the campaign cursor
 - 2026-08-16T17:45:40-05:00 bb8c6fdcf742090f9dcde0e3e6a808f819c5eb2d Guard style files against their contracts, and settle the caps question
+- 2026-08-16T18:21:49-05:00 afcfff3981c0abae2cd97d91f7d8b17bd9073f1c Measure all three styles on Haiku, and correct what a four-cell probe claimed

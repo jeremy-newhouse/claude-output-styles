@@ -42,7 +42,7 @@ runs belong in the optimizer table below.
 | `21-12-58` | 40 | $4.28 | same, Sonnet, 2 repeats, corrected judge | Reproduced the split on the fixed instrument. Intermediate candidate −3.0 net with judge −12.3. Both candidates rejected. |
 | `23-36-59` | 32 | $4.93 | advanced and intermediate, in-use vs cross-model candidate, both models, 4 **never-seen** cases | The decisive reversal. Advanced candidate 6.8 points worse out of sample despite winning both in-loop splits. Basis for the out-of-sample ADR. |
 | `12-44-03` | 60 | $7.52 | all three styles, both models, 5 cases, 2 repeats | The per-model baseline. Filled the beginner-on-Opus gap, which had never been measured in a saved run. |
-| `22-18-53` | 8 | $0.18 | beginner 20-word vs 12-word cap, Haiku, 4 cases | A tighter stated cap appeared to change Haiku: mean sentence 16.7 → 12.4 words, share over 20 words 30.0% → 13.5%, reply length flat. Read alone it argues for tightening. It replicates on neither the target models (row below) nor Haiku itself (`22-59-53`) — **superseded, see "A cheap-model probe can point the wrong way"**. Figures here are re-derived from the saved rows; the row previously read 16.6 → 12.3 and "over-cap 30% → 11%", and the 11% did not reproduce. |
+| `22-18-53` | 8 | $0.18 | beginner 20-word vs 12-word cap, Haiku, 4 cases | A tighter stated cap appeared to change Haiku: mean sentence 16.6 → 12.3 words, over-cap 30.0% → 10.8%, reply length flat. Read alone it argues for tightening. Both arms re-derive exactly from the saved rows. What does not survive is reading the 16.6 arm as *Haiku's baseline* — see "A cheap-model probe can point the wrong way". |
 | `22-27-15` | 24 | $2.24 | beginner 20-word vs 12-word cap, both models, 6 cases across all three splits, paired | **The change was rejected.** Mean sentence length moved +0.26 words, 95% CI [−0.77, +1.29], six of twelve pairs shorter. Judge 0.557 → 0.532, reply length 105 → 114 words. Basis for keeping one sentence cap for all three levels. |
 | `22-59-53` | 78 | $1.88 | all three styles, Haiku, **full 13-case pool**, 2 repeats | The Haiku baseline, and the first run on the whole pool. Rule compliance holds at the third tier (90.9–96.0 on the five shared cases, never more than 1.8 points behind the better of Opus and Sonnet); the judge does not (37.5–62.2, last on all three styles). **Six cells returned no reply at all** — the 12-turn limit, only on cases that edit a file then run tests. Also refuted the 16.6-word sentence claim below. |
 
@@ -57,10 +57,12 @@ on the subcommand) ran for about two minutes at concurrency 4 before being
 killed. It wrote no `rows.json`, so its spend is real but unquantified and is not
 in the total above.
 
-The last two rows are a matched pair and belong together. `22-18-53` was a cheap
-Haiku probe run to decide whether a tighter cap was worth validating; `22-27-15`
-is the validation, and it reversed the probe's answer. Quoting either alone
-misrepresents what was measured.
+`22-18-53`, `22-27-15` and `22-59-53` are one story and belong together.
+`22-18-53` was a cheap Haiku probe run to decide whether a tighter sentence cap
+was worth validating; `22-27-15` is the validation, and it reversed the probe's
+answer on Opus and Sonnet; `22-59-53` then measured Haiku's own baseline at six
+times the probe's sample and removed the reason the probe had been believed.
+Quoting any one of the three alone misrepresents what was measured.
 
 ### Optimizer runs
 
@@ -112,40 +114,53 @@ $2.24 answer is the right one, and `22-59-53` later explained why more simply
 than the original account did.
 
 That original account said the cap bound on Haiku because Haiku writes 16.6-word
-sentences while Opus and Sonnet write 11–12. **The 16.6 does not reproduce.**
-Same style file, same model, same variant, same four case ids, measured with the
-same `sentences()`:
+sentences while Opus and Sonnet write 11–12. The probe's own arms are sound — both
+re-derive exactly from its saved rows. What fails is treating its 16.6 arm as
+*Haiku's baseline*. `22-59-53` measured the same unchanged 20-word file, same
+model, same variant, first over the probe's own four cases and then over all
+thirteen. All figures below use `checks.mjs`'s `words()`, the tokenizer
+`sentence_length` actually scores with:
 
 | sample of the untightened 20-word file | cells | sentences | mean words | over 12 words |
 |---|---|---|---|---|
-| `22-18-53` (the probe's baseline) | 4 | 30 | 16.7 | 60.0% |
-| `22-59-53`, same 4 cases | 8 | 79 | 12.2 | 43.0% |
-| `22-59-53`, beginner, all 13 cases | 25 | 268 | 12.4 | 38.4% |
+| `22-18-53` — the probe's baseline arm | 4 | 30 | 16.6 | 60.0% |
+| `22-59-53`, same 4 cases | 8 | 79 | 12.1 | 43.0% |
+| `22-59-53`, beginner, all 13 cases | 25 | 268 | 12.2 | 38.4% |
 
-The cell is the unit — sentences inside one reply are not independent — and on
-cell means the gap is +4.10 words, 95% CI [−0.40, 8.61]; paired by case, +4.10
-with 95% CI [−0.11, 8.32] at df=3. Both intervals cross zero. Four cells was
-simply too few.
+The cell is the unit — sentences inside one reply are not independent. On cell
+means the gap is +4.06 words, unpaired 95% CI [−0.43, 8.56], which includes zero;
+paired by case, +4.06 with 95% CI [0.06, 8.07] at df=3, which excludes it by
+0.06. Read together that is weak evidence at n=4, which is the point: two samples
+of an identical configuration should not be this far apart, and the probe's arm
+is the unstable one.
 
-The last column is the one that settles it. The probe's whole case was that the
+The last column carries more weight than the means. The probe's case was that the
 tightened file cut Haiku's over-12 share from 60.0% to **40.5%**. Haiku's
-*untightened* share is 38.4–43.0%. **The cap did nothing on Haiku either**; the
-60.0% was a high draw and the "improvement" was regression to its own mean.
+*untightened* share, at two and six times the sample, is 43.0% and 38.4% — the
+40.5% sits inside that range. So the probe's headline movement is fully explained
+without the cap doing anything.
 
-So the corrected reading is simpler than the one it replaces: Haiku writes
-~12.2-word sentences, Opus ~11.4, Sonnet ~13.7, and **no model in the matrix had
-headroom for a 12-word cap to exploit**. That is exactly why the paired
-validation measured nothing on Opus and Sonnet — there was never a Haiku
-exception to explain. The decision to revert stands and is strengthened; only its
-explanation was wrong.
+Be precise about what that does and does not establish. The tightened arm is
+itself only 4 cells, so this is not proof that a 12-word cap has no effect on
+Haiku; nobody has re-measured the tightened file at larger n. What it does
+establish is that **the evidence for an effect has gone**: the gap the probe
+reported is the distance between one small sample and the configuration's own
+range, not a distance the cap created.
+
+That leaves a simpler reading of the whole episode. Haiku writes ~12.0-word
+sentences, Opus ~11.3, Sonnet ~13.5, so **no model in the matrix sat far enough
+above a 12-word cap for one to have obvious room to work**, which is why the
+paired validation measured nothing on Opus and Sonnet. There was probably never a
+Haiku exception to explain. The decision to revert stands and is strengthened;
+only its stated mechanism was doing work the data did not support.
 
 The lesson survives, restated more usefully. The original version — probe the
 cheap model to learn whether an instruction *can* bind, measure the target models
-before believing it *does* — was drawn from a difference that was not real. The
-durable version: **a probe small enough to be cheap is small enough to hand you a
-baseline that will not reproduce.** Before explaining why a probe shows an effect,
-re-measure the probe's own baseline at a larger n. Here that check was available
-for free, in saved rows, and would have cost nothing at the time.
+before believing it *does* — was built on a gap that a larger sample dissolved.
+The durable version: **a probe small enough to be cheap is small enough that its
+baseline arm may not reproduce.** Before explaining why a probe shows an effect,
+re-measure its own baseline at a larger n. Here that check was available for free
+in saved rows and would have cost nothing at the time.
 
 **A cell that never answered is not a badly-styled cell.** `22-59-53` is the
 first run where this mattered: six of 78 Haiku cells hit the 12-turn limit and

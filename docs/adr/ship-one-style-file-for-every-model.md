@@ -66,6 +66,16 @@ The style files carry rules that a given model may already satisfy by
 disposition. That redundancy is accepted: it costs a few tokens and protects
 against model updates that change which rules get dropped.
 
-Cheap models are untested. Haiku is listed as a target but has never been
-measured, so the claim that one file serves every model is verified for Opus and
-Sonnet only.
+The cheap end is now tested and the decision held. COS-5 measured all three
+styles on Haiku (`22-59-53`): rule compliance came in at 90.9–96.0 on the shared
+five cases, never more than 1.8 points behind the better of Opus and Sonnet, and
+ahead of Opus on intermediate. One file does serve the third tier.
+
+What Haiku loses is prose quality, not rule-following — judge 37.5–62.2, last on
+all three styles — and per-model files would not address that, since the ranking
+of styles is identical on every model. It also exposed one failure no style file
+can reach: Haiku exhausts the 12-turn limit on fix-then-test work and returns
+nothing at all, on all three styles alike.
+
+The top of the range is still untested. Fable is not in the matrix, so "every
+model" remains verified for three tiers of four; COS-7 closes it.

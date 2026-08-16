@@ -273,9 +273,16 @@ editing a file and then running the tests:
 | `reserve-agentic-write` | add a test, then run the suite | 1 of 6 |
 | `agentic-read-report` | read the code and report (no writes) | 0 of 6 |
 
-Opus has never hit the turn limit in 21 saved agentic cells, and Sonnet never in
-28. Haiku hit it on all three styles, which makes it a property of the model and
-not of any style file — no rewording of a style can fix it.
+The like-for-like comparison is `agentic-fix-verify`, the one write-then-verify
+case all three models have run: **Haiku 5 aborts in 6 cells, Opus 0 in 6, Sonnet
+0 in 6.** Widening to every saved agentic cell does not change the picture but
+does pad the denominator with work that does not discriminate — Opus is 0 of 21
+and Sonnet 0 of 28, but 15 and 22 of those are the read-only case, where Haiku is
+also clean at 0 of 8. Neither larger model has ever been run on
+`reserve-agentic-write`, so that row is Haiku-only evidence.
+
+Haiku hit the limit on all three styles, which makes it a property of the model
+and not of any style file — no rewording of a style can fix it.
 
 This forces a distinction the two-model data never needed. **A cell that answered
 badly and a cell that never answered are different failures, and averaging them
@@ -296,12 +303,14 @@ which one it is.
 
 Two rules where the cheap model was expected to fail, and did not:
 
-- **Sentence length.** Haiku writes 12.2-word sentences across the full pool
-  (732 sentences), against Sonnet's 13.7 and Opus's 11.4 on the shared five.
-  Haiku is not the long-sentence model — Sonnet is, and by a wider margin
-  (21.1% of Sonnet's sentences run over the 20-word cap, against Haiku's 12.7%).
-  This **reverses** the reading taken from a four-cell probe during the sentence
-  cap work; see the experiment ledger for the arithmetic.
+- **Sentence length.** On the shared five, Haiku averages 11.8-word sentences
+  against Sonnet's 13.5 and Opus's 11.3, and runs over the 20-word cap on 11.3%
+  of sentences against Sonnet's 19.1% and Opus's 10.6%. Haiku is not the
+  long-sentence model — Sonnet is. Across the full 13-case pool Haiku holds at
+  12.0 words and 12.3% over cap, so this is not an artifact of the easier
+  subset. All figures use `checks.mjs`'s own `words()`, the tokenizer
+  `sentence_length` scores with. This **reverses** the reading taken from a
+  four-cell probe during the sentence cap work; see the experiment ledger.
 - **Code blocks and filler.** `code_block_size` and `no_filler` score 100.0 on
   every model including Haiku.
 
