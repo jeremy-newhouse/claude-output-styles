@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-16 14:55'
+updated_date: '2026-08-16 15:01'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -63,6 +63,12 @@ AC #2 — summary.json totalCostUsd 0.6097 equals the sum of costUsd over the 18
 AC #3 — 'node src/cli.mjs score --rows=results/2026-08-16T14-48-09-866Z/rows.json' re-graded the run and reproduced all four of the live loop's own numbers to three decimals: v0 train 65.4% / v0 holdout 71.6% / v1 train 62.5% / v1 holdout 52.3% against the loop's logged 0.654 / 0.716 / 0.625 / 0.523. 'node src/cli.mjs score' with no arguments now discovers the improve run unaided. Zero spend proved by re-running the same command with ANTHROPIC_BASE_URL=http://127.0.0.1:1 and ANTHROPIC_API_KEY=invalid-on-purpose: identical output, exit 0, so no API call was made; no new results directory was created (13 before and after).
 
 Gates: npm --prefix harness test 18/18 pass (11 pre-existing + 7 new in harness/test/improve.test.mjs). checks.mjs is unchanged, so no new case was required there. The npm test script now globs test/*.test.mjs — it named checks.test.mjs explicitly and would have silently skipped the new file.
+
+SELF-REVIEW FINDING (fixed before the PR): the first implementation accumulated rows inside improveStyle and returned them, so a style that threw mid-loop lost every cell it had already paid for — cli.mjs's catch pushed nothing into rows.json. That silently re-created part of the failure this task exists to fix, and it is not hypothetical: this loop has already crashed a paid multi-style run on an unwrapped judge call. improveStyle now takes a shared rows sink from the caller and reports only its own slice of it, so a crashed style's measured cells still reach rows.json. Two tests cover it: the sink retains the baseline cells when the third measurement throws, and a style reports only its own rows out of a sink that already holds another style's.
+
+RE-VERIFIED on the final code, results/2026-08-16T14-59-17-192Z/ (beginner, Haiku, 2 cases, 1 iteration, 4 cells, $0.0956) — the earlier run predated the sink change, so the evidence was re-taken rather than carried over. Groups { v0 train: 1, v0 holdout: 1, v1 train: 1, v1 holdout: 1 }; all four candidates/*.v<N>.<split>.json present including the reverted v1; rows sum = summary.totalCostUsd = improve.json spentUsd = 0.0956, with rows stripped from improve.json; and score --rows re-grading against a dead socket reproduced the loop's logged 0.835 / 0.700 / 0.725 / 0.770 exactly, exit 0. npm --prefix harness test 20/20.
+
+No scoring drift: re-scoring results/2026-08-16T12-44-03-883Z still gives OVERALL 81.0% at $7.517 with beginner 45.9 on Opus and 48.4 on Sonnet — the figures docs/reference/experiment-ledger.md and the campaign tracker already quote. harness/config/ and the style files are untouched by this branch.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
