@@ -1,0 +1,38 @@
+{
+  "skill_name": "backlog-handover",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "restore-cycle",
+      "prompt": "Continue the backlog-burndown campaign in this repo. There is an active handover in .claude/handovers/ and a campaign tracker (a Backlog.md doc). Resolve the next queued backlog issue and prepare everything so a fresh session can continue the campaign afterward.",
+      "expected_output": "task-1 resolved Done with AC evidence; work done on feature/task-1 then ff-merged to main, pushed, branch pruned local+remote; tracker cursor advanced to task-2 with a session-log entry; old handover archived, fresh handover written pointing at task-2.",
+      "files": ["sandbox: git repo + bare origin + backlog project with task-1/task-2, tracker doc-1 (cursor task-1), active handover"],
+      "assertions": [
+        "task-1 is Done with its acceptance criterion checked",
+        "README typo actually fixed (no 'sandbex' remains)",
+        "work is merged to main and the working tree is clean",
+        "a feature branch was used (reflog shows checkout to feature/*)",
+        "main is pushed (local main == origin/main)",
+        "feature branches pruned locally and remotely",
+        "tracker cursor advanced to task-2",
+        "session log entry appended to tracker",
+        "old handover archived and a fresh handover exists mentioning task-2"
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "init-campaign",
+      "prompt": "Set up a backlog-burndown campaign in this repo so that future sessions can each resolve one backlog issue and hand over to the next session. The open issues are task-1 and task-2; queue order task-1 then task-2 — I confirm that order now. Set up whatever durable tracking the campaign needs and prepare the first session handoff. Do NOT resolve any issue yet — setup only.",
+      "expected_output": "Tracker doc created (cursor task-1, queue in confirmed order, confirmation recorded); .claude/handovers/ gitignored + archive/handovers/ created; tracker committed; first handover written pointing at task-1; no issue actually resolved.",
+      "files": ["sandbox: git repo + bare origin + backlog project with task-1/task-2, no tracker, no handover"],
+      "assertions": [
+        "a campaign tracker doc exists with cursor at task-1",
+        "queue records both issues in the confirmed order",
+        "no issue was resolved (both To Do, typo intact, no LICENSE)",
+        ".claude/handovers/ is gitignored and archive/handovers/ exists",
+        "a first handover exists pointing at task-1",
+        "tracker is committed and the working tree is clean"
+      ]
+    }
+  ]
+}
