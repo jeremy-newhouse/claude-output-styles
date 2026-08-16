@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-16 20:37'
+updated_date: '2026-08-16 20:47'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -52,3 +52,19 @@ The loop's holdout is a useful tuning signal but not a verdict. The harness need
 
 8. README (AC #4): document the three-way split, why two is not enough (cite the ADR's measured 6.8-point out-of-sample drop, do not re-derive), the rollback behaviour, the new knob, and the extra cost. Grep docs/, FINDINGS.md and reference/ for statements the case-count change (9 -> 13) makes false.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation landed on feature/COS-2 in two commits (781aebd, 5e49f2e).
+
+Design decisions worth recording:
+
+- The reserve pass runs ONLY when a rewrite was actually kept (best.iteration > 0). A run that reverts every candidate leaves the style unchanged, so there is no claim to validate and nothing is spent on the extra measurement. Past improve runs reverted everything more often than not, so this is the common case.
+- Both sides are measured in the same run on the same cases. Comparing the candidate against a reserve figure from an earlier run would fold in model drift and case edits, which is the confound the guard exists to remove.
+- A rejection is a ROLLBACK, not an annotation. harness/README.md documents <style>.best.md as the winner and tells the reader to diff and copy it, so on rejection best.md is rewritten with the incumbent and best reverts to the baseline record. The rejected candidate survives at <style>.v<N>.md and in history, and reserve.iteration names it.
+- Rollback goes to v0, never to an intermediate kept iteration. The reserve was measured for v0 and the winner only, so no other fallback is supported by evidence actually collected.
+- The verdict line was extracted from cli.mjs into report.mjs as renderVerdict(). AC #3 says a regressing candidate must be REPORTED as rejected; leaving that in a console.log would have made the criterion unverifiable except by eye. It is now three unit tests, including the dangerous case where a candidate was adopted and the reserve never ran — that renders as NOT MEASURED / unvalidated, deliberately not the same as a pass.
+
+Case-set decision: four NEW reserve cases rather than carving them out of the existing nine. The ADR says case-set size is load-bearing; moving the four historically-unseen cases into reserve would have cut train 5->3 and holdout 4->2, shrinking the training signal the loop depends on. Pool is now 13 (5 train / 4 holdout / 4 reserve). The new cases are shapes no existing split contains — a forward-looking scope question, a decision offering three options rather than two, a turn where the user overrides the recommendation, and an agentic case that writes new code — because the ADR's finding is that candidates overfit to case SHAPE, not wording.
+<!-- SECTION:NOTES:END -->

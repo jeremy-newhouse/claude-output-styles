@@ -93,9 +93,14 @@ incumbent and the winner on the `reserve` split — cases it never selects for
 train or holdout — and prints the verdict on the style's headline line:
 
 ```
-plain-english-advanced: v3 REJECTED on reserve — keeping v0  (train 0.914 holdout 0.957)
+plain-english-advanced: v3 REJECTED on reserve — keeping v0  (train 0.888 holdout 0.905)
   reserve: v3 0.840 vs v0 0.908 (-0.068) over 4 cases
 ```
+
+The train and holdout figures on a rejected line are **v0's**, not the rejected
+candidate's — the rollback has already happened by the time the line is printed.
+v3's own numbers, the ones that won it the loop, are in the by-iteration rows
+below it.
 
 A rejection is a rollback, not a warning label: `<style>.best.md` holds the
 incumbent, and the rejected rewrite stays at `<style>.v<N>.md`. So the file you
