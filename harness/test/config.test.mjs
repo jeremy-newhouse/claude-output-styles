@@ -26,9 +26,14 @@ test('matrix.json parses and carries the axes the CLI reads', () => {
   // The CLI does `matrix.variants.filter(v => variantIds.includes(v.id))`, so
   // duplicate ids would silently run the same variant twice.
   assert.equal(new Set(m.variants.map(v => v.id)).size, m.variants.length, 'variant ids must be unique')
-  for (const key of ['repeats', 'concurrency', 'maxTurns', 'maxBudgetUsd']) {
+  for (const key of ['repeats', 'concurrency', 'maxTurns', 'maxCellSeconds']) {
     assert.equal(typeof m.run[key], 'number', `matrix.run.${key} must be a number`)
   }
+  // The runaway guard is the one config value whose absence is silent rather
+  // than loud: `opts.maxCellSeconds * 1000` on undefined is NaN, setTimeout
+  // treats NaN as 0, and every cell would abort instantly. A positive number is
+  // the whole contract.
+  assert.ok(m.run.maxCellSeconds > 0, 'matrix.run.maxCellSeconds must be positive')
 })
 
 test('contracts.json parses, and every contract points at a style file that exists', () => {
