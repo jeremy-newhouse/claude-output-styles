@@ -82,16 +82,12 @@ The composite scores in the table above are not comparable across styles: each
 carries a different `judgeWeight`. The rules and judge columns are directly
 comparable, and they are what this story is scored on.
 
-**"On both models" in the criteria above needs a ruling before COS-1 or COS-4
-starts, and this story does not make it.** The criteria were written when two
-tiers were measured. Four are now, so "both models" can mean the original Opus
-and Sonnet, or every tier. The choice changes the bar materially: beginner's
-current judge scores are 45.9 / 48.4 / 37.5 / 53.9, so a 70% bar has to be
-cleared from 45.9 if it means Opus and Sonnet, and from 37.5 — a further 8.4
-points down — if it means every tier. Both tasks are already recorded as
-high-risk against the campaign's
-record-and-park policy. Left as written, deliberately — moving a bar is the
-user's call, not a measurement session's.
+**"On both models" above means Opus and Sonnet, and the tasks are where that
+binds.** COS-1's AC #4 and COS-4's AC #1 name the two models explicitly, so
+adding Haiku and Fable does not move either bar — beginner climbs to 70% from
+45.9 and 48.4, not from Haiku's 37.5. This story's looser phrasing predates the
+two extra tiers and is subordinate to the task text. Widening the bars to every
+tier would be a scope change, and nobody has asked for one.
 
 Beginner may need a different instrument rather than a different wording. Its
 rules pass while its prose does not, which is the signature of a style whose
