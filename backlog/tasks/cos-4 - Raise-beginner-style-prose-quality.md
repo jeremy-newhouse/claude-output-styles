@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 02:35'
+updated_date: '2026-08-17 02:39'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies: []
@@ -230,6 +230,8 @@ Over-cap share on the shared five: **40.0% (8/20) → 14.3% (10/70)**; mean repl
 **What a future attempt needs, priced.** At the measured per-cell judge SD of ~24 and $0.107 a cell, an arm that could place Sonnet's 58.1 above 70 with confidence needs about 151 cells per model — roughly $32 an arm for both models, against the ~$20 this whole task had. Every judge conclusion in this project rests on 10-cell arms, and this session is the first to measure how wide that makes the error bars: per-cell judge SD is 22 to 32, so a 10-cell arm carries a 95% interval about 30 points wide.
 
 Final spend: **$18.6813** across six arms ($2.1756, $1.8652, $2.1477, $1.9229, $3.9336, $6.6363) against a ~$20 budget. 128 cells, 0 errored.
+
+**Shipped text verified byte-identical to the measured text.** `diff -q` against the off-tree copy taken before the pass-2 edits returns no difference; sha256 of `plain-english-beginner.md` at merge is `96fdbea405081c4239390962b9d7724696c3b9c9c43a1bb8869be71359eaab66`. That is the file both pass-1 arms (`02-15-14`, `02-25-39`) and the reserve after-arm (`02-16-47`) measured, so the pooled n=35 figures describe what ships.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
