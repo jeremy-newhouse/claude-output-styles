@@ -63,6 +63,7 @@
 - 2026-08-17T11:32:23-05:00 9a8bfd23778996dbb8c69be703317c508678b984 Settle the published figures by model instead of by provenance
 - 2026-08-17T11:32:23-05:00 f442aa6579bbc0720f70f2d23caf5b72f4a72f50 Correct the re-score denominator, and record why the connectives went
 - 2026-08-17T13:02:26-05:00 e7d23c8b066a94886429138c303d98d8844d31b4 Record what 720 judge calls established about the judge
+- 2026-08-17T13:07:26-05:00 79070436b5d83c3851eb24383aed68fa37391623 Say which style the sample sizes are for, in all four places that quote them
 
 ## docs/adr
 
@@ -121,6 +122,7 @@
 - 2026-08-17T11:32:23-05:00 c2365142cb71ce797b73959a4ba1fe3096206220 Quote the moved reply verbatim, and record the review round
 - 2026-08-17T11:32:23-05:00 f442aa6579bbc0720f70f2d23caf5b72f4a72f50 Correct the re-score denominator, and record why the connectives went
 - 2026-08-17T13:02:26-05:00 e7d23c8b066a94886429138c303d98d8844d31b4 Record what 720 judge calls established about the judge
+- 2026-08-17T13:07:26-05:00 79070436b5d83c3851eb24383aed68fa37391623 Say which style the sample sizes are for, in all four places that quote them
 
 ## docs/runbooks
 
@@ -136,6 +138,7 @@
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 - 2026-08-17T13:02:26-05:00 e7d23c8b066a94886429138c303d98d8844d31b4 Record what 720 judge calls established about the judge
+- 2026-08-17T13:07:26-05:00 79070436b5d83c3851eb24383aed68fa37391623 Say which style the sample sizes are for, in all four places that quote them
 
 ## docs/specs
 
@@ -192,3 +195,4 @@
 - 2026-08-17T11:32:23-05:00 163d0b06cb9692f86e79026852370034bb094fac Record the third pass on two_options_max, and what re-scoring moved
 - 2026-08-17T11:32:23-05:00 35f053aef9e35ca773b793a1746383d0cfa33414 Record the COS-9 finalization in the generated docs
 - 2026-08-17T13:02:26-05:00 e7d23c8b066a94886429138c303d98d8844d31b4 Record what 720 judge calls established about the judge
+- 2026-08-17T13:07:26-05:00 79070436b5d83c3851eb24383aed68fa37391623 Say which style the sample sizes are for, in all four places that quote them

@@ -22,6 +22,23 @@ export const JUDGE_MANIFEST = 'judge.json'
 const bump = (m, k) => m.set(k, (m.get(k) ?? 0) + 1)
 
 /**
+ * Throw unless this really is a judgements array.
+ *
+ * The offline re-derive path rewrites `report.md` beside whatever file it is
+ * handed, and `--rows` and `--judgements` take paths of the same shape out of
+ * the same directory. Handed a run's `rows.json` it wrote an empty judge report
+ * over that run's adherence report and said only that every call had failed —
+ * rows carry no `ok`, so every record filtered out. Cells cost real money to
+ * replace; a wrong path must fail before the first write, not after it.
+ */
+export function assertJudgements (records, path) {
+  const shape = r => r && typeof r === 'object' && typeof r.judgeModel === 'string' && Number.isInteger(r.rowIndex) && typeof r.score === 'number'
+  if (!Array.isArray(records) || !records.length || !records.every(shape)) {
+    throw new Error(`${path} is not a judgements file — expected an array of records carrying judgeModel, rowIndex and score. A run's rows.json is not one, and this command would overwrite the report beside it.`)
+  }
+}
+
+/**
  * Which (reply, judge model, repeat) triples this run will grade.
  *
  * Ordered by sweep — every judge over every eligible reply once, then again —
@@ -287,11 +304,15 @@ export function analyzeJudgements (records, { reference = 'sonnet', halfWidths =
     // One pass over a set of replies still says what the judge scored; it just
     // cannot say how much of that is the judge. Reporting the mean with nulls
     // beside it is the honest shape — a zero SD would read as perfect agreement.
+    // No records at all is a different case and gets a null mean: perJudgeStyle
+    // is a full judge x style cross product and the report is re-rendered after
+    // every call, so a pair the sweep has not reached yet would otherwise render
+    // as a real score of 0.00 on every partial report.
     return {
       replies: new Set(rs.map(r => r.rowIndex)).size,
       calls: rs.length,
       k0: null,
-      mean: Number(mean(rs.map(r => r.score)).toFixed(2)),
+      mean: rs.length ? Number(mean(rs.map(r => r.score)).toFixed(2)) : null,
       sdJudge: null,
       sdReply: null,
       sdTotal: null,
@@ -328,7 +349,11 @@ export function analyzeJudgements (records, { reference = 'sonnet', halfWidths =
   // beginner's 22.58 on the measured run — and a sizing table built on that
   // asks for 208 cells where the arm needs 148. Pooling is only the basis when
   // no single style has enough repeats to decompose.
-  const ref = perJudge.find(j => j.judgeModel === reference) ?? perJudge[0] ?? null
+  // Only the reference judge, with no fall-back to whichever judge happens to be
+  // first. The table is titled "<reference> as judge", so a fall-back would put
+  // that title over numbers the reference did not produce — and the agreement
+  // table beside it would be empty at the same time, saying the opposite.
+  const ref = perJudge.find(j => j.judgeModel === reference) ?? null
   const perStyle = perJudgeStyle.filter(j => j.judgeModel === reference && j.sdReply !== null)
   const bases = perStyle.length
     ? perStyle.map(b => ({ basis: b.styleId, ...b }))
@@ -348,7 +373,13 @@ export function analyzeJudgements (records, { reference = 'sonnet', halfWidths =
 
   return {
     reference,
+    // False while a sweep has not reached the reference yet, and permanently if
+    // nothing judged with it. Every agreement figure and the whole sizing table
+    // are measured against it, so its absence has to be stated rather than
+    // shown as two empty tables.
+    referencePresent: judges.includes(reference),
     scale,
+    calls: records.length,
     dropped: records.length - records.filter(r => r.ok).length,
     legacyRecords: records.filter(r => r.legacy).length,
     perJudge,
@@ -371,13 +402,34 @@ function table (title, header, rows) {
 }
 
 /**
+ * What qualifies every figure below it. Printed above the tables and carried
+ * into the written report, because both are read on their own.
+ */
+export function judgeCaveats (analysis) {
+  const lines = []
+  const { dropped, legacyRecords, calls, reference, referencePresent, perJudge } = analysis
+  if (!referencePresent) {
+    lines.push(`NO RECORDS for reference judge "${reference}"${perJudge.length ? ` (present: ${perJudge.map(j => j.judgeModel).join(', ')})` : ''}. Agreement and arm sizing are both measured against it, so both tables below are empty.`)
+  }
+  if (dropped) lines.push(`${dropped} of ${calls} judge calls returned no parseable score and are excluded from every figure below.`)
+  if (legacyRecords) lines.push(`${legacyRecords} of ${calls} judgements grade a row saved before the COS-10 text-block fix; on an agentic case that string is the whole turn glued.`)
+  return lines
+}
+
+/** The written report, so the run directory carries what the console printed. */
+export function judgeReportDoc (analysis, source) {
+  return `# Judge validation\n\nsource: \`${source}\`\n\n\`\`\`\n${renderJudgeReport(analysis)}\`\`\`\n`
+}
+
+/**
  * Everything the judge run establishes, in the order the questions were asked:
  * how noisy one judge is, how the tiers compare with the reference judge, and
  * what the split does to the sample sizes the project quotes.
  */
 export function renderJudgeReport (analysis) {
-  const out = []
   const { reference, perJudge, perJudgeStyle, agreement, sizing } = analysis
+  const caveats = judgeCaveats(analysis)
+  const out = caveats.length ? [caveats.join('\n') + '\n'] : []
 
   out.push(table(
     'Judge-call variance vs reply variance (points, 0-100)',

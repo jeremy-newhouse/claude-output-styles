@@ -243,58 +243,57 @@ if (cmd === 'run') {
   console.log(describeManifest(manifest))
   console.log(renderConsole(summarize(rescored)))
 
-} else if (cmd === 'judge') {
-  // Re-judge saved replies with one or more judge models, several times each.
-  // This runs no cell: it reads a finished run's rows.json and spends judge
-  // calls only, which is what makes characterising the judge affordable.
-  const { createHash } = await import('node:crypto')
-  const { planJudgements, rejudge, analyzeJudgements, renderJudgeReport, JUDGE_MANIFEST } = await import('./rejudge.mjs')
-  const summaryOf = (analysis, records) => {
-    const lines = []
-    const failed = records.filter(r => !r.ok).length
-    if (failed) lines.push(`${failed} of ${records.length} judge calls returned no parseable score and are excluded from every figure below.`)
-    if (analysis.legacyRecords) lines.push(`${analysis.legacyRecords} of ${records.length} judgements grade a row saved before the COS-10 text-block fix; on an agentic case that string is the whole turn glued.`)
-    return lines
-  }
-  const reportOf = (analysis, source) => `# Judge validation\n\nsource: \`${source}\`\n\n\`\`\`\n${renderJudgeReport(analysis)}\`\`\`\n`
-
-  // Re-derive an existing judge run's figures with the current code, spending
+} else if (cmd === 'judge' && args.judgements) {
+  // Re-derive a finished judge run's figures with the current code, spending
   // nothing. This project's rule is that a published figure must be
   // re-derivable offline — `score` is that path for the checks, and without
   // this one a judge run's numbers could only be recomputed by paying for every
   // call again. Rewrites `analysis.json` and `report.md` beside the records so
   // the directory keeps describing itself; `judgements.json` is the measurement
-  // and is never touched.
-  if (args.judgements) {
-    const path = resolve(args.judgements)
-    const records = readJson(path)
-    const analysis = analyzeJudgements(records, { reference: args.reference ?? opts.judgeModel })
-    console.error(`re-deriving ${path}`)
-    writeAtomic(join(dirname(path), 'analysis.json'), JSON.stringify(analysis, null, 2))
-    writeAtomic(join(dirname(path), 'report.md'), reportOf(analysis, path))
-    for (const l of summaryOf(analysis, records)) console.log(l)
-    console.log(renderJudgeReport(analysis))
-    process.exit(0)
-  }
+  // and is never touched. Its own branch rather than an early return inside the
+  // one below, so nothing here needs a process.exit() that could truncate a
+  // piped report.
+  const { analyzeJudgements, renderJudgeReport, judgeReportDoc, assertJudgements, JUDGE_MANIFEST } = await import('./rejudge.mjs')
+  const path = resolve(args.judgements)
+  const records = readJson(path)
+  // Refuse anything that is not a judgements file, before writing a byte.
+  // `--rows` and `--judgements` sit next to each other in the usage text and
+  // both take a results/<stamp>/*.json path, and this command REWRITES
+  // report.md beside whatever it is given: pointing it at a run's rows.json
+  // replaced that run's adherence report with an empty judge report, and the
+  // only symptom was a line saying every call failed. A run's cells cannot be
+  // recovered without paying for them again.
+  assertJudgements(records, path)
+  const dir = dirname(path)
+  // The reference the run was measured against, not this machine's default
+  // judgeModel. Re-deriving a run judged with reference `opus` under a silent
+  // `sonnet` produces a different analysis, labels it with a judge that
+  // produced none of its numbers, and then overwrites the correct one.
+  const manifest = existsSync(join(dir, JUDGE_MANIFEST)) ? readJson(join(dir, JUDGE_MANIFEST)) : null
+  const reference = args.reference ?? manifest?.reference ?? records[0].judgeModel
+  const analysis = analyzeJudgements(records, { reference })
+  console.error(`re-deriving ${path} against reference ${reference}${args.reference ? '' : manifest ? ' (from judge.json)' : ' (first record)'}`)
+  writeAtomic(join(dir, 'analysis.json'), JSON.stringify(analysis, null, 2))
+  writeAtomic(join(dir, 'report.md'), judgeReportDoc(analysis, path))
+  console.log(renderJudgeReport(analysis))
 
+} else if (cmd === 'judge') {
+  // Re-judge saved replies with one or more judge models, several times each.
+  // This runs no cell: it reads a finished run's rows.json and spends judge
+  // calls only, which is what makes characterising the judge affordable.
+  const { createHash } = await import('node:crypto')
+  const { planJudgements, rejudge, analyzeJudgements, renderJudgeReport, judgeReportDoc, JUDGE_MANIFEST } = await import('./rejudge.mjs')
   const rowsPath = args.rows ? resolve(args.rows) : newestRows()
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   const rows = readJson(rowsPath)
   const judges = pick(args.judges, [opts.judgeModel])
   const judgeRepeats = Number(args['judge-repeats'] ?? 3)
   const reference = args.reference ?? judges[0]
-  // Bodies for every style with a contract, not just the ones matrix.styles
-  // names: the filter that matters here is which styles the saved rows use.
-  // The text is today's, exactly as `score` re-scores against today's checks —
-  // and the sha is recorded because a style file that has moved since the run
-  // makes this a different question from the one the run answered.
-  const styleBodies = {}
-  const styleShas = {}
-  for (const [id, c] of Object.entries(contracts)) {
-    const s = loadStyle(resolve(ROOT, c.styleFile))
-    styleBodies[id] = s.body ?? s.text
-    styleShas[id] = createHash('sha256').update(s.text).digest('hex').slice(0, 12)
-  }
+  // Up front, before a single call is paid for. Every agreement figure is
+  // measured against the reference, and a reference nobody judges leaves an
+  // empty agreement table and a sizing table labelled with a judge that
+  // produced none of its numbers.
+  if (!judges.includes(reference)) throw new Error(`--reference=${reference} is not among --judges=${judges.join(',')}; nothing would be compared against it`)
   const { tasks, eligible, skipped } = planJudgements({
     rows,
     cases: allCases,
@@ -309,6 +308,22 @@ if (cmd === 'run') {
   for (const [id, n] of skipped.noContract) console.error(`  skipped ${n} rows: style "${id}" has no contract`)
   for (const [id, n] of skipped.noCase) console.error(`  skipped ${n} rows: case "${id}" is not in the pool`)
   if (skipped.noReply) console.error(`  skipped ${skipped.noReply} rows that produced no reply`)
+  if (skipped.noRubric) console.error(`  skipped ${skipped.noRubric} rows whose case has no judge rubric`)
+  if (skipped.filtered) console.error(`  skipped ${skipped.filtered} rows excluded by --styles/--cases`)
+  // Style text for the styles the eligible rows actually name, loaded after the
+  // plan rather than for every contract. `audit` exists because a styleFile path
+  // drifts, and eagerly loading all of them made `judge` die with a bare ENOENT
+  // over a style these rows never mention. Today's text, exactly as `score`
+  // re-scores against today's checks; the sha is recorded because a style file
+  // that has moved since the run makes this a different question from the one
+  // the run answered.
+  const styleBodies = {}
+  const styleShas = {}
+  for (const id of new Set(eligible.map(i => rows[i].styleId))) {
+    const s = loadStyle(resolve(ROOT, contracts[id].styleFile))
+    styleBodies[id] = s.body ?? s.text
+    styleShas[id] = createHash('sha256').update(s.text).digest('hex').slice(0, 12)
+  }
   mkdirSync(outDir, { recursive: true })
   const flush = (records, complete = false) => {
     const analysis = analyzeJudgements(records, { reference })
@@ -329,7 +344,7 @@ if (cmd === 'run') {
     }
     writeAtomic(join(outDir, 'judgements.json'), JSON.stringify(records, null, 2))
     writeAtomic(join(outDir, 'analysis.json'), JSON.stringify(analysis, null, 2))
-    writeAtomic(join(outDir, 'report.md'), reportOf(analysis, rowsPath))
+    writeAtomic(join(outDir, 'report.md'), judgeReportDoc(analysis, rowsPath))
     // Manifest last, for the reason results.mjs writes its own last.
     writeAtomic(join(outDir, JUDGE_MANIFEST), JSON.stringify(manifest, null, 2))
     return analysis
@@ -347,7 +362,6 @@ if (cmd === 'run') {
   })
   process.stderr.write('\n')
   const analysis = flush(records, true)
-  for (const l of summaryOf(analysis, records)) console.log(l)
   console.log(renderJudgeReport(analysis))
   console.log(`wrote ${outDir}`)
 

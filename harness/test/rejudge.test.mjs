@@ -10,7 +10,8 @@ import {
   cellsForHalfWidth,
   halfWidthAt,
   analyzeJudgements,
-  renderJudgeReport
+  renderJudgeReport,
+  assertJudgements
 } from '../src/rejudge.mjs'
 
 const CASES = [
@@ -328,6 +329,52 @@ test('sizing falls back to a pooled basis, labelled, when no style can decompose
   ]
   const a = analyzeJudgements(records, { reference: 'sonnet' })
   assert.deepEqual([...new Set(a.sizing.map(s => s.basis))], ['all styles pooled'])
+})
+
+test('a rows.json is refused before the re-derive path overwrites anything', () => {
+  // The defect this guards: --rows and --judgements take paths of the same shape
+  // out of the same directory, and the re-derive path rewrites report.md beside
+  // whatever it is given. Handed a run's rows.json it wrote an empty judge report
+  // over that run's adherence report, and the only symptom was a line saying
+  // every call had failed — rows carry no `ok`, so every record filtered out.
+  const savedRow = { styleId: 's1', model: 'opus', caseId: 'c', judgeScore: 0.8, rulesScore: 0.9, total: 0.87 }
+  assert.throws(() => assertJudgements([savedRow], 'results/x/rows.json'), /not a judgements file/)
+  assert.throws(() => assertJudgements([], 'empty.json'), /not a judgements file/)
+  assert.throws(() => assertJudgements({ rows: [] }, 'object.json'), /not a judgements file/)
+  assert.doesNotThrow(() => assertJudgements([{ rowIndex: 0, judgeModel: 'sonnet', score: 0.8 }], 'ok.json'))
+})
+
+test('a reference judge with no records is named, not papered over', () => {
+  // Two ways in: --reference naming a judge outside --judges (the CLI throws on
+  // that before spending a call), and the incremental flush before the sweep has
+  // reached it. Falling back to whichever judge came first would title the
+  // sizing table "sonnet as judge" over numbers opus produced.
+  const rec = (rowIndex, score) => ({ rowIndex, judgeModel: 'opus', score, ok: true, styleId: 's1', caseId: 'c', model: 'opus', legacy: false })
+  const a = analyzeJudgements([rec(0, 0.2), rec(0, 0.3), rec(1, 0.8), rec(1, 0.9)], { reference: 'sonnet' })
+  assert.equal(a.referencePresent, false)
+  assert.deepEqual(a.sizing, [], 'no basis, rather than opus relabelled as sonnet')
+  assert.deepEqual(a.agreement, [])
+  assert.match(renderJudgeReport(a), /NO RECORDS for reference judge "sonnet".*present: opus/s)
+
+  const present = analyzeJudgements([rec(0, 0.2), rec(0, 0.3), rec(1, 0.8), rec(1, 0.9)], { reference: 'opus' })
+  assert.equal(present.referencePresent, true)
+  assert.ok(present.sizing.length)
+  assert.doesNotMatch(renderJudgeReport(present), /NO RECORDS/)
+})
+
+test('a judge x style pair the sweep has not reached scores nothing, not zero', () => {
+  // perJudgeStyle is a full cross product and report.md is re-rendered after
+  // every call, so a partial run used to show `opus s2 0 0.00` — a real score of
+  // zero on a style opus had not been asked about yet.
+  const rec = (rowIndex, judgeModel, score, styleId) => ({ rowIndex, judgeModel, score, ok: true, styleId, caseId: 'c', model: 'opus', legacy: false })
+  const a = analyzeJudgements([
+    rec(0, 'sonnet', 0.4, 's1'), rec(1, 'sonnet', 0.6, 's2'),
+    rec(0, 'opus', 0.5, 's1')
+  ], { reference: 'sonnet' })
+  const gap = a.perJudgeStyle.find(j => j.judgeModel === 'opus' && j.styleId === 's2')
+  assert.equal(gap.calls, 0)
+  assert.equal(gap.mean, null, 'null, not 0 — nothing was measured')
+  assert.match(renderJudgeReport(a), /opus\s+s2\s+0\s+—/)
 })
 
 test('the report renders when a judge ran a single pass', () => {
