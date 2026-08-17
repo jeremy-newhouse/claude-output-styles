@@ -295,6 +295,41 @@ test('the analysis reports per judge, per style, and against the reference', () 
   assert.match(renderJudgeReport(a), /Agreement with sonnet/)
 })
 
+test('arms are sized per style, not from the pooled decomposition', () => {
+  // Two styles whose replies sit at different levels. Pooling them pushes the
+  // gap BETWEEN the styles into the reply component, and an arm is one style on
+  // one model — so a pooled basis asks for cells the arm does not need.
+  const rec = (rowIndex, score, styleId) => ({
+    rowIndex, judgeModel: 'sonnet', score, ok: true, styleId, caseId: 'c', model: 'opus', legacy: false
+  })
+  const records = []
+  for (const [i, base] of [[0, 0.10], [1, 0.20], [2, 0.80], [3, 0.90]].entries()) {
+    const styleId = i < 2 ? 'low' : 'high'
+    records.push(rec(base[0], base[1], styleId), rec(base[0], base[1] + 0.02, styleId))
+  }
+  const a = analyzeJudgements(records, { reference: 'sonnet' })
+  assert.deepEqual([...new Set(a.sizing.map(s => s.basis))], ['high', 'low'], 'one basis per style, not one pooled row')
+  const pooled = varianceComponents(replyGroups(records.map(r => ({ ...r, score: r.score * 100 }))))
+  const perStyle = a.perJudgeStyle.find(j => j.styleId === 'low')
+  assert.ok(pooled.sdReply > perStyle.sdReply, 'pooling inflates the reply component')
+  assert.ok(a.sizing.find(s => s.basis === 'low' && s.halfWidth === 4).k1 <
+    cellsForHalfWidth({ sdReply: pooled.sdReply, sdJudge: pooled.sdJudge, halfWidth: 4 }),
+    'so the per-style arm is smaller than the pooled basis would demand')
+})
+
+test('sizing falls back to a pooled basis, labelled, when no style can decompose', () => {
+  const rec = (rowIndex, score, styleId) => ({
+    rowIndex, judgeModel: 'sonnet', score, ok: true, styleId, caseId: 'c', model: 'opus', legacy: false
+  })
+  // One reply per style: no style has two replies, so none decomposes alone.
+  const records = [
+    rec(0, 0.2, 'a'), rec(0, 0.3, 'a'),
+    rec(1, 0.8, 'b'), rec(1, 0.9, 'b')
+  ]
+  const a = analyzeJudgements(records, { reference: 'sonnet' })
+  assert.deepEqual([...new Set(a.sizing.map(s => s.basis))], ['all styles pooled'])
+})
+
 test('the report renders when a judge ran a single pass', () => {
   const records = [
     { rowIndex: 0, judgeModel: 'haiku', score: 0.3, ok: true, styleId: 's1', caseId: 'conv-status-auth', model: 'opus', legacy: false },

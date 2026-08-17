@@ -33,7 +33,13 @@ would change nothing. Quote the offending text in each violation. Max 4.`
  */
 export const JUDGE_VIEW_DEFAULT = 'final'
 
-export async function judge ({ views, caseDef, contract, model, styleBody }) {
+/**
+ * @param {object} [deps]  queryFn, injectable so the four substituted-score
+ *   paths can be tested without a model call. `runTurn` in run.mjs takes the
+ *   same seam for the same reason.
+ */
+export async function judge ({ views, caseDef, contract, model, styleBody, deps = {} }) {
+  const { queryFn = query } = deps
   const on = caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT
   // Throw rather than fall through. An unrecognised view would index `views` as
   // undefined, the empty-text guard below would return a free 1.0, and that is
@@ -70,7 +76,7 @@ export async function judge ({ views, caseDef, contract, model, styleBody }) {
 
   let out = ''
   try {
-    for await (const m of query({
+    for await (const m of queryFn({
       prompt: user,
       options: {
         systemPrompt: JUDGE_PROMPT,

@@ -319,6 +319,35 @@ test('judge defaults to the final message and honours an explicit trace', async 
   assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r', judgeOn: 'final' }, contract: C }), { score: 1, violations: [], ok: false })
 })
 
+test('every substituted judge score is marked as one, on all four paths', async () => {
+  // The four returns that do not come from a parsed model reply all land inside
+  // the range real scores occupy — 1.0 and 0.5 are both scores a judge gives —
+  // so nothing downstream can tell them apart by value. COS-20's decomposition
+  // reads `ok`; pooling a substituted 0.5 would read as the judge disagreeing
+  // with itself by tens of points on one reply.
+  const views = { final: 'Fixed it. Tests pass.', trace: 'Fixed it. Tests pass.' }
+  const caseDef = { id: 'a', judge: 'is the conclusion first' }
+  const said = text => async function * () { yield { type: 'assistant', message: { content: [{ type: 'text', text }] } } }
+  const call = queryFn => judge({ views, caseDef, contract: C, model: 'haiku', deps: { queryFn } })
+
+  const good = await call(said('{"score": 0.8, "violations": ["too long"]}'))
+  assert.deepEqual(good, { score: 0.8, violations: ['too long'], ok: true })
+
+  const threw = await call(() => { throw new Error('503 upstream') })
+  assert.equal(threw.ok, false)
+  assert.equal(threw.score, 0.5)
+  assert.match(threw.violations[0], /judge call failed/)
+
+  const unparseable = await call(said('I would rather explain my reasoning in prose.'))
+  assert.deepEqual(unparseable, { score: 0.5, violations: ['judge returned unparseable output'], ok: false })
+
+  const badJson = await call(said('{"score": 0.8, "violations": [oops}'))
+  assert.deepEqual(badJson, { score: 0.5, violations: ['judge returned invalid JSON'], ok: false })
+
+  // And the fourth: nothing to grade, so no call was made at all.
+  assert.equal((await judge({ views: { final: '', trace: '' }, caseDef, contract: C })).ok, false)
+})
+
 test('producedReply separates a cell that said something from one that did not', () => {
   // The flag is the common way a cell goes silent, not the only one.
   assert.equal(producedReply({ error: 'error_max_turns', text: '', trace: '' }), false)

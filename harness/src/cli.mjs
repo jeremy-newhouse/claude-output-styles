@@ -249,6 +249,34 @@ if (cmd === 'run') {
   // calls only, which is what makes characterising the judge affordable.
   const { createHash } = await import('node:crypto')
   const { planJudgements, rejudge, analyzeJudgements, renderJudgeReport, JUDGE_MANIFEST } = await import('./rejudge.mjs')
+  const summaryOf = (analysis, records) => {
+    const lines = []
+    const failed = records.filter(r => !r.ok).length
+    if (failed) lines.push(`${failed} of ${records.length} judge calls returned no parseable score and are excluded from every figure below.`)
+    if (analysis.legacyRecords) lines.push(`${analysis.legacyRecords} of ${records.length} judgements grade a row saved before the COS-10 text-block fix; on an agentic case that string is the whole turn glued.`)
+    return lines
+  }
+  const reportOf = (analysis, source) => `# Judge validation\n\nsource: \`${source}\`\n\n\`\`\`\n${renderJudgeReport(analysis)}\`\`\`\n`
+
+  // Re-derive an existing judge run's figures with the current code, spending
+  // nothing. This project's rule is that a published figure must be
+  // re-derivable offline — `score` is that path for the checks, and without
+  // this one a judge run's numbers could only be recomputed by paying for every
+  // call again. Rewrites `analysis.json` and `report.md` beside the records so
+  // the directory keeps describing itself; `judgements.json` is the measurement
+  // and is never touched.
+  if (args.judgements) {
+    const path = resolve(args.judgements)
+    const records = readJson(path)
+    const analysis = analyzeJudgements(records, { reference: args.reference ?? opts.judgeModel })
+    console.error(`re-deriving ${path}`)
+    writeAtomic(join(dirname(path), 'analysis.json'), JSON.stringify(analysis, null, 2))
+    writeAtomic(join(dirname(path), 'report.md'), reportOf(analysis, path))
+    for (const l of summaryOf(analysis, records)) console.log(l)
+    console.log(renderJudgeReport(analysis))
+    process.exit(0)
+  }
+
   const rowsPath = args.rows ? resolve(args.rows) : newestRows()
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   const rows = readJson(rowsPath)
@@ -301,7 +329,7 @@ if (cmd === 'run') {
     }
     writeAtomic(join(outDir, 'judgements.json'), JSON.stringify(records, null, 2))
     writeAtomic(join(outDir, 'analysis.json'), JSON.stringify(analysis, null, 2))
-    writeAtomic(join(outDir, 'report.md'), `# Judge validation ${stamp}\n\nsource: \`${rowsPath}\`\n\n\`\`\`\n${renderJudgeReport(analysis)}\`\`\`\n`)
+    writeAtomic(join(outDir, 'report.md'), reportOf(analysis, rowsPath))
     // Manifest last, for the reason results.mjs writes its own last.
     writeAtomic(join(outDir, JUDGE_MANIFEST), JSON.stringify(manifest, null, 2))
     return analysis
@@ -319,9 +347,7 @@ if (cmd === 'run') {
   })
   process.stderr.write('\n')
   const analysis = flush(records, true)
-  const failed = records.filter(r => !r.ok).length
-  if (failed) console.log(`${failed} of ${records.length} judge calls returned no parseable score and are excluded from every figure below.`)
-  if (analysis.legacyRecords) console.log(`${analysis.legacyRecords} of ${records.length} judgements grade a row saved before the COS-10 text-block fix; on an agentic case that string is the whole turn glued.`)
+  for (const l of summaryOf(analysis, records)) console.log(l)
   console.log(renderJudgeReport(analysis))
   console.log(`wrote ${outDir}`)
 
