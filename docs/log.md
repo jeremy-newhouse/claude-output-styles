@@ -41,10 +41,11 @@
 - 2026-08-17T01:42:11-05:00 2a354d3f07fec3782cac8a92642e69d22424728c chore(COS-10): record the review outcome in the campaign tracker
 - 2026-08-17T01:42:11-05:00 a00609741475a2a489b79cb6a1c933d8432cb371 chore(COS-10): record the out-of-scope score crash in the doc log
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
-- 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
-- 2026-08-17T08:27:33-05:00 58f6cff8b6d343cd3cb11bcbdd6e3d4ccdeca462 chore(COS-13): record the branch's commits in the doc log
-- 2026-08-17T08:30:19-05:00 115fe50b53d5baa29abb29d8afbf4c14ac0061b0 chore(COS-13): record the review-pass commits in the doc log
-- 2026-08-17T08:35:40-05:00 36337ec9ba7ce9efbc0393b45d3b5a1044247b25 chore(COS-13): record the review-fix commit in the doc log
+- 2026-08-17T08:37:10-05:00 1e50a79493105fae26cef4787c98ac2038de4971 chore(COS-13): record the review-fix commit in the doc log
+- 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
+- 2026-08-17T08:37:10-05:00 5f80341d6d23019a6cb28004f5ff80544eb798b7 chore(COS-13): record the review-pass commits in the doc log
+- 2026-08-17T08:37:10-05:00 8d503ba49552445fcd2d393dcdcd0ff3cf979b08 chore(COS-13): record the branch's commits in the doc log
+- 2026-08-17T08:37:10-05:00 aa60eb7a052b5411d5abb8958c364f043cc060fc chore(COS-13): record the tracker and summary updates in the doc log
 
 ## docs/adr
 
@@ -89,9 +90,9 @@
 - 2026-08-17T01:42:11-05:00 0d94ed90742e7da3b552847809d8b212adccfe6b Re-derive every published figure the scorer change moves, and label the rest
 - 2026-08-17T01:42:11-05:00 1fc7fb1ab6baf260ed9b2cb9e7c8e0e7cd2e8412 Correct the ledger's own claim about what the re-segmentation moved
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
-- 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
-- 2026-08-17T08:27:12-05:00 e71e38c35d765a4c0da8d3246b2256a2261dd5b4 Bound the fixture caveat by reach, not by check
-- 2026-08-17T08:35:24-05:00 3d2635a7eb878e955c000aa54641e4c42447c2e7 Apply the branch review: make npm test work, and stop the guard misfiring
+- 2026-08-17T08:37:10-05:00 170135bf9b5702b13f9e7c48ddf1286a47bcbe04 Apply the branch review: make npm test work, and stop the guard misfiring
+- 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
+- 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
 
 ## docs/runbooks
 
@@ -149,6 +150,6 @@
 - 2026-08-17T01:42:11-05:00 3a6df76953415b5b2ad6c66e91a3d7f6c19117cc Correct the two live docs the re-segmentation also moved
 - 2026-08-17T08:07:13-05:00 1c6a34ce05f0098c21ba2f1e372044dcd139ade6 Apply the branch review: pair the optimizer's verdict, and stop discarding scores
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
-- 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
-- 2026-08-17T08:27:12-05:00 e71e38c35d765a4c0da8d3246b2256a2261dd5b4 Bound the fixture caveat by reach, not by check
-- 2026-08-17T08:35:24-05:00 3d2635a7eb878e955c000aa54641e4c42447c2e7 Apply the branch review: make npm test work, and stop the guard misfiring
+- 2026-08-17T08:37:10-05:00 170135bf9b5702b13f9e7c48ddf1286a47bcbe04 Apply the branch review: make npm test work, and stop the guard misfiring
+- 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
+- 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
