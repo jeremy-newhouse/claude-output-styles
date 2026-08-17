@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-16 20:54'
-updated_date: '2026-08-17 16:19'
+updated_date: '2026-08-17 16:24'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -97,4 +97,24 @@ Suite 133 -> 134, all pass. audit exit 0. lore check exit 0.
 The per-row and aggregate re-scores were both re-run on the corrected code: identical results. Still exactly one moved row of 96 (22-59-53 / beginner / haiku / reserve-three-options, 1.00 -> 0.70), still 61 of 62 runs byte-identical, still the same three aggregate figures. Neither fix moved anything the first re-score had established.
 
 3. LEDGER QUOTE WAS NOT VERBATIM. The ledger had the reply saying 'you have three paths'; the text is 'You need it faster and have three paths.' Corrected to quote only the verbatim fragment. Same defect class the campaign has hit repeatedly — a claim in prose that reads as a quotation but is not one.
+
+REVIEW ROUND 2 (/code-review high, adversarial subagent) — six findings, all real, all addressed. Two duplicated defects I had already found and fixed by probing (stripCode, the 'three ways' benefit-list false positive). Four were new:
+
+4. THE PIVOT ESTIMATOR WAS NET-NEGATIVE AND HAD TO GO. The reviewer showed a compliant two-option reply scoring 0.70: 'Add the covering index today; it is reversible. Alternatively, raise the cache TTL, which is cheaper but goes stale. I recommend the index — or you could hand it to on-call.' Two connectives, one pair of options, and the check rebuilt the exact defect the label-blindness rewrite existed to remove — on the third attempt to fix this check. It also claimed the pivot regex never fires on real data. VERIFIED INDEPENDENTLY, and the corpus is blunter than the report: across the 96 re-scorable saved rows carrying the check, the connective set matches ZERO times, while the stated count matches exactly two rows, both reserve-three-options (20-41-22 row7 'three ways to', 22-59-53 row21 'three paths'). An estimator with no observed true positive and a live false-positive path is worse than no estimator.
+Fixed by splitting the pivots on whether they ASSERT a count or merely imply one. Kept: 'a/the/my second|third|fourth|fifth <option-noun>', which states its own ordinal, and 'another <option-noun>', where each occurrence claims one more than the reply already had (so one of them means two — the cap, not a breach). Dropped entirely: 'alternatively', 'or you could/can'. The reviewer's reply now scores 1.0 and has its own regression test.
+
+5. TWO SOURCES OF TRUTH -> A SILENT NaN. OPTION_WORDS and the count alternation were separate literals. A word added to the regex but not the map made the lookup undefined, Math.max NaN, and both 'counted <= 2' and 'counted > 2' false — the reply would lose the 0.3 cap point with NO evidence line saying why. Fixed: COUNT_WORDS and ORDINAL_WORDS are separate maps and every alternation is built from its own map's keys. A first attempt derived both from one map with an exclusion filter; that was worse — the same class of fragility the finding was about — and was replaced.
+
+6. THE LABEL PATTERN HAD NO TRAILING BOUNDARY. Pre-existing, but this change makes that line the floor of 'counted'. /option\s+([a-d1-4])/ matched ordinary prose: 'the obvious option adds latency, the cheap option burns a week, and the safe option costs nothing' reads as options a, b and c, tripping the cap and emitting the confidently wrong '3 labelled options (cap is 2)' on a reply with no labels. Fixed with \b. Confirmed against the corpus that the boundary changes the label count on 0 of 96 rows, so no saved figure moves.
+
+7. THE 96 DENOMINATOR DID NOT REPRODUCE. Correct and my error. 106 saved rows carry this check; 96 of them are re-scorable, the other 10 naming optimizer-candidate styles with no contract (plain-english-advanced-cand 4, plain-english-intermediate-cand 4, plain-english-advanced-optimized 2) — which is exactly what the score CLI already reports as orphan rows. Ledger now states both numbers and the rule.
+
+SABOTAGE VERIFICATION, ROUND 2
+- Connectives put back into the count: 134/135, failure on the new connective test.
+- \b removed from the label pattern: 134/135, failure on the boundary test at 0.7 vs 1.
+- The first attempt at that second sabotage passed 135/135 because my fixture produced only two pseudo-labels, under the cap. The fixture was wrong, not the fix — corrected to three clauses, and it reds properly.
+
+RE-VERIFICATION
+Suite 134 -> 135, all pass. audit exit 0. lore check exit 0.
+Per-row and aggregate re-scores re-run on the reworked check: IDENTICAL to the first round. Still exactly one moved row of 96, still 61 of 62 runs byte-identical, still the same three aggregate figures. The AC #3 evidence has now held across four independent versions of the check.
 <!-- SECTION:NOTES:END -->

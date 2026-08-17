@@ -136,20 +136,34 @@ transcripts.
 **And the first fix went one step too far, which took a third pass to see.**
 Dropping the label requirement left `two_options_max` with no option cap at all
 for a reply that never writes a label: three alternatives walked through in prose
-scored a clean 1.0. COS-9 restored the cap by counting the signals a sprawling
-reply carries anyway — a stated count ("three ways"), or the pivots that
-introduce each alternative past the first ("another option", "alternatively",
-"or you could") — and taking the largest of those and the literal label count.
-The reply the original fix protected is untouched, guarded by its own regression
-test. Re-scoring all 62 saved runs moved exactly one of the 96 rows that carry
-the check: `22-59-53`, beginner on Haiku, `reserve-three-options`, 1.00 → 0.70.
-That reply labels two options, tells the reader they "have three paths", then
-names the third in prose in its closing line — the exact blind spot, on the one
-case written to provoke it. No published figure moves; nothing outside that run
-changed at all.
-What the check still cannot see is sprawl with no stated count and no pivot,
-which is the judge's to catch. Counting alternatives semantically would re-break
-the reply the first fix was for, and that trade stays refused.
+scored a clean 1.0. COS-9 restored the cap from the signals that *assert* a count
+rather than merely imply one — a reply stating how many it has ("three ways
+to…"), and the phrases claiming an additional item ("another option", "a third
+approach") — taking the largest of those and the literal label count. The reply
+the original fix protected is untouched, guarded by its own regression test.
+
+Re-scoring all 62 saved runs moved exactly one row. 106 saved rows carry this
+check; 96 are re-scorable, the other 10 naming optimizer-candidate styles that no
+longer have a contract. The one that moved is `22-59-53`, beginner on Haiku,
+`reserve-three-options`, 1.00 → 0.70. That reply labels two options, tells the
+reader they "have three paths", then names the third in prose in its closing line
+— the exact blind spot, on the one case written to provoke it. No published
+figure moves; nothing outside that run changed at all.
+
+**The connectives were tried and taken back out, which is the more useful
+lesson.** "Alternatively" and "or you could" look like option markers and are
+not: they introduce *an* alternative, singular, and a compliant two-option reply
+reaches for both. Counting each as its own option scored the very reply the
+label-blindness rewrite existed to protect at 0.70 — the original defect,
+rebuilt, on the third attempt to fix it. The corpus said the same thing from the
+other direction: the connective set matches **zero** of those 96 rows, while the
+stated count matches the two `reserve-three-options` replies and nothing else. An
+estimator with no observed true positive and a live false-positive path is worse
+than no estimator, so counting alternatives now requires a claim, not a pivot.
+
+What the check still cannot see is sprawl that never asserts a count. That is the
+judge's to catch. Counting alternatives semantically would re-break the reply the
+first fix was for, and that trade stays refused.
 
 **Comparability has limits.** Deterministic scores are comparable across the
 whole history because rows can be re-graded. Judge scores are not: the judge was
