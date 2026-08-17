@@ -111,7 +111,9 @@ that failed on a clean checkout, because its `priceOrder` assertion expected 966
 where the code returns 965. Three of the four agentic cases ask the model to run
 the tests, so the runs behind this story were measured against a model meeting an
 unexplained failure it had not caused — and a second assertion broke the moment
-the model correctly fixed the bug it was sent to fix. Neither is anything the
+the model correctly fixed the bug it was sent to fix. `npm test` did not work at
+all, since the fixture shipped without a `package.json` and is copied to the
+workspace root. Neither is anything the
 style text governs, and both landed hardest on the models that did the most work.
 This one shapes what the model wrote rather than what the scorer read, so no
 re-score can undo it — and unlike the glued turn it cannot be narrowed to a set

@@ -8,8 +8,7 @@ export function lineTotal (unitPriceCents, qty) {
 }
 
 export function applyDiscount (subtotalCents, percentOff) {
-  // BUG: truncates instead of rounding, so a 15% discount on 999 cents
-  // keeps 850 where rounding to the nearest cent keeps 849.
+  // BUG: truncates instead of rounding, so an off-by-one appears at 15% on 999.
   return subtotalCents - Math.floor(subtotalCents * (percentOff / 100))
 }
 

@@ -291,9 +291,12 @@ Until COS-13 the suite was red on a clean checkout, because the `priceOrder`
 assertion expected 966 — the value you get taxing *before* discounting — where
 the code returns 965. A second assertion expected 850, the truncating value,
 while its own comment computed 849, the rounded one, so a model that correctly
-fixed the bug broke a passing test. Neither failure is anything the style file
-governs, and both landed hardest on the models that did the most work. COS-13
-made the suite green before and after a correct fix. This caveat is narrower than
+fixed the bug broke a passing test. A third sat one command earlier: the fixture
+had no `package.json`, and it is copied to the workspace root with nothing above
+it, so `npm test` died with `ENOENT` before any test ran and only `node --test`
+worked. None of the three is anything the style file governs, and all landed
+hardest on the models that did the most work. COS-13 made the suite green before
+and after a correct fix and gave the fixture a `package.json`. This caveat is narrower than
 the glued turn but must not be reasoned about the same way. The glued turn was a
 scoring artifact and could be traced to the checks that re-segment, leaving the
 others provably clear; this one changed what the model wrote, so on a cell that
