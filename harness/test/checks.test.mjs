@@ -212,6 +212,24 @@ test('no_jargon grades first use, so a term glossed once may be reused', () => {
   assert.deepEqual(CHECKS.no_jargon.run('The cache was stale. I cleared the cache (the saved copy).', c).evidence, ['cache'])
 })
 
+test('no_jargon forgives the plain-phrase-then-term ordering, and that is deliberate', () => {
+  // Beginner's file says "Best is to drop the word and use the plain one: say
+  // 'the saved copy,' not 'the cache'", so "the saved copy (cache)" is the
+  // better-written reply and must not lose to "the cache (the saved copy)".
+  const c = { ...C, bannedTerms: ['cache'] }
+  assert.deepEqual(CHECKS.no_jargon.run('The saved copy (cache) is rarely the one asked for.', c).evidence, [])
+})
+
+test('no_jargon forgives a bare bracketed term with any two words in front of it', () => {
+  // Pins the known looseness of the expansion form. The tight alternative —
+  // require the term to be the initials of the preceding words — fails the
+  // preferred ordering above, so this is the accepted trade, not a gap.
+  const c = { ...C, bannedTerms: ['CI'] }
+  assert.deepEqual(CHECKS.no_jargon.run('I turned on (CI).', c).evidence, [])
+  // Nothing in front of it in the clause is still a violation.
+  assert.deepEqual(CHECKS.no_jargon.run('Done. (CI) next.', c).evidence, ['CI'])
+})
+
 test('no_jargon does not accept an em-dash appositive as a gloss', () => {
   // Deliberate: "the cache — the saved copy" is indistinguishable from "the
   // cache — tests pass", and a gloss detector that guesses wrong turns a real

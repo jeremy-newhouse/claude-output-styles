@@ -100,6 +100,18 @@ const hit = (text, list) => {
 // dropped the cache — tests pass", and a gloss detector that guesses wrong
 // turns a real violation into a clean score. Same strictness the contract audit
 // applies to unrecognised phrasing: fail loud rather than pass quiet.
+//
+// The expansion form is the looser of the two and its looseness is a decision,
+// not an oversight. It reads the words immediately before the bracket and does
+// not verify they define the term, so "and turned on (CI)" is forgiven. The
+// tight alternative — require the term to be the initials of the words in front
+// of it — was rejected because it forgives "the cache (the saved copy)" and
+// fails "the saved copy (cache)", which is the better-written reply and the one
+// beginner's file actually asks for: "Best is to drop the word and use the plain
+// one". Penalising the preferred ordering to catch a sentence a model does not
+// write is the wrong trade. The residual risk is that a banned term written in
+// bare brackets mid-sentence is forgiven; it is pinned by a test so the next
+// reader sees a decision rather than a gap.
 const MIN_GLOSS_WORDS = 3
 const MIN_EXPANSION_WORDS = 2
 
@@ -126,7 +138,9 @@ export function firstUseIsUnglossed (text, term) {
   // is the words in front of them.
   if (/^\s*\)/.test(after) && /\(\s*$/.test(before)) {
     const lead = before.replace(/\(\s*$/, '')
-    // Same sentence only — the expansion has to be adjacent to what it expands.
+    // Same sentence only. There is no further bound to add: requiring the gloss
+    // to sit within the last N words of the clause is vacuous, because the words
+    // immediately before the bracket are the last N by construction.
     const clause = lead.split(/[.!?\n]/).pop()
     if (words(clause).length >= MIN_EXPANSION_WORDS) return false
   }
