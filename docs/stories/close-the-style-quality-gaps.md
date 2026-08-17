@@ -145,7 +145,8 @@ beginner prose is still unidentified.
 
 COS-8 narrowed where to look. Sentence length is not the lever: tightening
 beginner's stated cap to 12 words changed nothing measurable on either model
-(+0.26 words, 95% CI [−0.77, +1.29]) and did not move the judge. Reply length is
+(+0.25 words, 95% CI [−0.83, +1.34], re-derived after COS-10 re-segmented the same
+rows; +0.26, [−0.77, +1.29] before) and did not move the judge. Reply length is
 the constraint that actually binds — beginner averaged 119 words against its
 stated 80, with half its replies over — and where the two can be told apart, the
 judge tracks reply length far more strongly than sentence length. Any attempt at

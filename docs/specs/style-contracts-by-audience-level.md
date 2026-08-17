@@ -101,37 +101,47 @@ advanced, an empty ban list and a 10-line cap make both free.
 They were tried and measured. Beginner was tightened to 12 words, validated on
 both models, and reverted.
 
+Every sentence-segmentation figure below was re-derived after COS-10 changed
+`sentences()` to split on a single newline; the pre-COS-10 value is given beside
+each one, because it is what earlier revisions published and because every one of
+them reproduced exactly before its replacement was quoted.
+
 **Sentence caps.** The premise — a non-technical reader needs shorter sentences
 than a technical leader — is reasonable, and the styles do not deliver it: at
-`12-44-03` all three levels write about the same length, beginner 12.3 words,
-intermediate 12.4, advanced 11.5. Stating a tighter cap does not close that gap.
-A paired run of the 20-word and 12-word beginner files across both models and six
-cases (`22-27-15`) moved mean sentence length by **+0.26 words, 95% CI [−0.77,
-+1.29]**, with six of twelve pairs shorter and six longer. Quality did not
-improve either: pooled judge 0.557 → 0.532, and mean reply length rose from 105
-words to 114 against an 80-word cap.
+`12-44-03` all three levels write about the same length, beginner 11.8 words,
+intermediate 11.8, advanced 11.0 (12.3 / 12.4 / 11.5 before re-segmentation — the
+levels converged rather than separated). Stating a tighter cap does not close that
+gap. A paired run of the 20-word and 12-word beginner files across both models and
+six cases (`22-27-15`) moved mean sentence length by **+0.25 words, 95% CI [−0.83,
++1.34]** (+0.26, [−0.77, +1.29] before), with six of twelve pairs shorter and six
+longer. Quality did not improve either: pooled judge 0.557 → 0.532, and mean reply
+length rose from 105 words to 114 against an 80-word cap. Neither of those last
+two depends on segmentation.
 
 Opus and Sonnet already write at 11–12 words unprompted, so a 12-word cap has
-little to pull against: the share of sentences over 12 words moved 42.2% → 38.9%
-on Opus and 42.2% → 42.9% on Sonnet, in opposite directions.
+little to pull against: the share of sentences over 12 words moved 40.3% → 36.8%
+on Opus and 40.4% → 41.2% on Sonnet, in opposite directions (42.2 → 38.9 and
+42.2 → 42.9 before).
 
 The original account of this section held that Haiku was the exception — that its
-baseline of 16.6 words sat well above the cap, so the same one-line change pulled
-its over-12 share from 60.0% down to 40.5% (`22-18-53`). **`22-59-53` removed the
+baseline of 15.5 words sat well above the cap, so the same one-line change pulled
+its over-12 share from 56.3% down to 38.5% (`22-18-53`). **`22-59-53` removed the
 grounds for that exception.** It measured the *unchanged* 20-word beginner file on
 Haiku at eight cells over the probe's own four cases, and again at twenty-five
 cells over all thirteen:
 
 | sample of the untightened file | cells | sentences | mean words | over 12 words |
 |---|---|---|---|---|
-| `22-18-53` — the probe's baseline arm | 4 | 30 | 16.6 | 60.0% |
-| `22-59-53`, same 4 cases | 8 | 79 | 12.1 | 43.0% |
-| `22-59-53`, all 13 cases | 25 | 268 | 12.2 | 38.4% |
+| `22-18-53` — the probe's baseline arm | 4 | 32 (was 30) | 15.5 (was 16.6) | 56.3% (was 60.0%) |
+| `22-59-53`, same 4 cases | 8 | 88 (was 79) | 10.8 (was 12.1) | 35.2% (was 43.0%) |
+| `22-59-53`, all 13 cases | 25 | 315 (was 268) | 10.4 (was 12.2) | 30.2% (was 38.4%) |
 
-The probe's tightened arm measured 40.5%. Haiku's untightened share, at two and
-six times that sample, is 43.0% and 38.4% — and 40.5% sits inside that range. The
-movement the probe reported is therefore fully accounted for by where its
-baseline arm happened to land, with no work left for the cap to do.
+The probe's tightened arm measured 38.5% (was 40.5%). Haiku's untightened share,
+at two and six times that sample, is 35.2% and 30.2% — so the tightened arm now
+sits slightly *above* its own configuration's larger-sample range rather than
+inside it. Either way the movement the probe reported is fully accounted for by
+where its baseline arm happened to land, with no work left for the cap to do; on
+the re-segmented numbers the cap looks, if anything, marginally worse than no cap.
 
 That is a statement about the *evidence*, not a proof of no effect. The tightened
 arm is also only four cells and has never been re-measured, so it is equally
@@ -140,20 +150,28 @@ there is no longer a measured gap to explain — and a mechanism was published t
 explain one.
 
 So the end-state reading holds and needs no Haiku exception. Every model lands in
-one band and none of them is far from the others: Opus 38.9% and Sonnet 42.9% of
-sentences over 12 words (`22-27-15`), Haiku 40.5% tightened (`22-18-53`) and
-38.4% untightened (`22-59-53`).
+one band and none of them is far from the others: Opus 36.8% and Sonnet 41.2% of
+sentences over 12 words (`22-27-15`), Haiku 38.5% tightened (`22-18-53`) and
+30.2% untightened (`22-59-53`).
 
-**Treat that as a band and not as a ranking**, because the movement between
-slices is nearly as large as the spread between models. Measured on one
-consistent slice — the beginner style, the untightened file, and only the cells
-where the model called no tool, since `sentences()` under-splits on the rest —
-the four models give Opus 37.6%, Fable 40.7%, Sonnet 41.8% and Haiku 44.6%. That
-is a 7.0-point spread across four models, and a single model moves by nearly as
-much just by changing which cells are counted: Sonnet reads 41.8% here and 47.4%
-if the tool-using cells are pooled back in. With those two numbers so close the
-ordering carries no weight — only the observation that all four sit in one broad
-band does. Adding the top tier changed nothing: Fable lands in the middle.
+**Treat that as a band and not as a ranking.** Measured on one consistent slice —
+the beginner style, the untightened file, the five shared cases, and only the
+cells where the model called no tool, since every saved tool-using reply is
+glued — the four models give Opus 36.8%, Haiku
+36.1%, Fable 38.6% and Sonnet 40.4%: a **4.3-point spread** across four models.
+Before re-segmentation the same slice read Opus 37.6%, Fable 40.7%, Sonnet 41.8%
+and Haiku 44.6%, a 7.0-point spread with Haiku on top. Re-segmenting tightened the
+band and moved Haiku from highest to second-lowest, which is the clearest possible
+argument that the ordering never carried weight — only the observation that all
+four sit in one narrow band does, and that observation survived intact. Adding the
+top tier changed nothing either time: Fable lands in the middle.
+
+The slice-sensitivity argument this section used to make has largely gone with the
+re-segmentation, and it is worth saying so rather than quietly dropping it. Sonnet
+read 41.8% on this slice and 47.4% with the tool-using cells pooled back in — a
+5.6-point swing that rivalled the whole between-model spread. It now reads 40.4%
+and 41.0%, a 0.6-point swing. Most of that gap was the harness under-splitting
+tool-using replies, not a property of the cells.
 
 **A cheap-model probe measures whether an instruction can bind, not whether it
 binds** — and a probe small enough to be cheap is small enough that its baseline
