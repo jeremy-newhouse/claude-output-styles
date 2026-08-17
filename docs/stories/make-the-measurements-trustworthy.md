@@ -29,14 +29,28 @@ them, and eight sessions have accumulated four known defects in that instrument
 plus one measured reason to doubt the sample sizes behind almost every published
 judge figure.
 
-**The scorer reads the wrong string on agentic cells.** `run.mjs` accumulates
-every assistant text block in a turn with no separator, so pre-tool narration is
-glued to the answer that follows. `sentence_length` and `paragraph_length` are
-unquotable on those cells for every model, and — found later and worse — the
-judge reads the same concatenated text, so every agentic judge score in the
-project measures the whole turn rather than the final message its rubric asks
-about. In 16 of 18 `agentic-fix-verify` cells the reply carries pre-update
-narration and in all 16 a judge violation quotes it.
+**The scorer read the wrong string on agentic cells — fixed under COS-10.**
+`run.mjs` accumulated every assistant text block in a turn with no separator, so
+pre-tool narration was glued to the answer that followed. `sentence_length` and
+`paragraph_length` were unquotable on those cells for every model, and — found
+later and worse — the judge read the same concatenated text, so every agentic
+judge score in the project measures the whole turn rather than the final message
+its rubric asks about. In 16 of 18 `agentic-fix-verify` cells the reply carries
+pre-update narration and in all 16 a judge violation quotes it.
+
+`run.mjs` now keeps the blocks in order and saves each turn twice: the full trace
+and the final message after the last tool call. Every check declares which of the
+two it grades and every agentic case declares which one its judge rubric asks
+about — three say "the final message", `agentic-read-report` grades narration and
+so reads the whole turn. `sentences()` also splits on a single newline now, so a
+list header is no longer merged into its first item.
+
+What the fix cannot do is reach backwards. Gluing is lossy, so every saved
+agentic figure still describes the whole turn and is labelled as such in
+`FINDINGS.md` and the ledger; replacing one costs a re-run. The newline half *is*
+re-derivable, was re-derived across all 61 saved runs, and moves rule totals by at
+most 1.07 points — but it moves published sentence-segmentation figures by more
+than that, and those were corrected in place.
 
 **Errored cells bias both halves of the score, in opposite directions.** An
 empty reply scores 0.0 on every deterministic check and, because `evaluate.mjs`
@@ -104,7 +118,7 @@ expensive and worthless.
 <!-- lore:tasks:begin -->
 | Task | Title | Status |
 |---|---|---|
-| [COS-10](../../backlog/tasks/cos-10%20-%20Score-the-final-assistant-message-not-the-whole-turn.md) | Score the final assistant message, not the whole turn | To Do |
+| [COS-10](../../backlog/tasks/cos-10%20-%20Score-the-final-assistant-message-not-the-whole-turn.md) | Score the final assistant message, not the whole turn | Done |
 | [COS-11](../../backlog/tasks/cos-11%20-%20Stop-errored-cells-from-biasing-every-score-the-project-quotes.md) | Stop errored cells from biasing every score the project quotes | To Do |
 | [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | Done |
 | [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | To Do |
