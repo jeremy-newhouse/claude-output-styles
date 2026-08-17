@@ -43,10 +43,12 @@ same rules Sonnet does and drops a different two, both landing on the first line
 of a reply, which is what made it feel like disregard. A silent configuration
 failure accounted for the rest.
 
-Rule compliance is high across every style and both models — 91.5% to 97.8%.
-Prose quality is not, and beginner sits twenty points below advanced on both
-models while following its own rules at over 90%. That gap is the shape of the
-remaining work.
+Rule compliance is high across every style and **all four model tiers** — 90.9%
+to 97.9%, holding across a tenfold cost range. Prose quality is not: beginner
+sits 15 to 28 points below advanced depending on the model, on every tier, while
+following its own rules at over 90%. That gap is the shape of the remaining work,
+and no model tier closes it — the best beginner judge score any of them reaches
+is 53.9%, against a 70% bar.
 
 Three decisions came out of it, each measured rather than argued: styles are
 scored by [deterministic checks plus a style-aware judge](adr/score-styles-with-deterministic-checks-plus-a-style-aware-judge.md);

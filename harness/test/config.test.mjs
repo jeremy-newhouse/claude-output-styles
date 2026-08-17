@@ -1,0 +1,57 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync, existsSync } from 'node:fs'
+import { resolve, dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// `src/cli.mjs` reads these two files at startup, before any subcommand runs, so
+// a malformed one breaks `run`, `improve`, `score` and `audit` alike. Nothing
+// else in the suite loads them: the other files import modules, and cli.mjs is
+// never imported. That gap let a comment block be added to matrix.json under
+// COS-7 with `npm test` green and no assertion that the file still parses.
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const readConfig = name => JSON.parse(readFileSync(join(ROOT, 'config', name), 'utf8'))
+
+test('matrix.json parses and carries the axes the CLI reads', () => {
+  const m = readConfig('matrix.json')
+  for (const axis of ['models', 'styles', 'variants']) {
+    assert.ok(Array.isArray(m[axis]) && m[axis].length, `matrix.${axis} must be a non-empty array`)
+  }
+  assert.ok(m.variants.every(v => typeof v.id === 'string' && v.id), 'every variant needs an id')
+  // The CLI does `matrix.variants.filter(v => variantIds.includes(v.id))`, so
+  // duplicate ids would silently run the same variant twice.
+  assert.equal(new Set(m.variants.map(v => v.id)).size, m.variants.length, 'variant ids must be unique')
+  for (const key of ['repeats', 'concurrency', 'maxTurns', 'maxBudgetUsd']) {
+    assert.equal(typeof m.run[key], 'number', `matrix.run.${key} must be a number`)
+  }
+})
+
+test('contracts.json parses, and every contract points at a style file that exists', () => {
+  const contracts = readConfig('contracts.json')
+  const ids = Object.keys(contracts)
+  assert.ok(ids.length, 'contracts.json must define at least one style')
+  for (const [id, c] of Object.entries(contracts)) {
+    assert.ok(existsSync(resolve(ROOT, c.styleFile)), `${id}: styleFile does not resolve — ${c.styleFile}`)
+    assert.ok(Array.isArray(c.defaultChecks) && c.defaultChecks.length, `${id}: defaultChecks must be a non-empty array`)
+  }
+})
+
+test('every style the matrix runs by default has a contract', () => {
+  const m = readConfig('matrix.json')
+  const contracts = readConfig('contracts.json')
+  // cli.mjs throws `no contract for style "X"` on a mismatch, which is a crash
+  // at startup rather than a skipped style.
+  for (const id of m.styles) assert.ok(contracts[id], `matrix lists style "${id}" with no contract`)
+})
+
+test('a comment key is a string array, so it can never be read as an axis', () => {
+  const m = readConfig('matrix.json')
+  // Keys are prefixed `//` by convention here. They sit alongside real keys, so
+  // the only thing protecting them is that nothing reads by prefix — assert the
+  // shape anyway, since a `//models` that was accidentally a bare string would
+  // read as a valid-looking value to a future change.
+  for (const [k, v] of Object.entries(m)) {
+    if (!k.startsWith('//')) continue
+    assert.ok(Array.isArray(v) && v.every(line => typeof line === 'string'), `${k} must be an array of strings`)
+  }
+})

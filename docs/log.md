@@ -20,6 +20,7 @@
 - 2026-08-16T19:12:39-05:00 8546012ae659bd460c18e08c79314fe7d09ac637 Correct the campaign spend total, which never matched its own parts
 - 2026-08-16T19:14:32-05:00 f07302c891d70a95c4a9b7c166c296fa000c64b7 Replace two unbounded superlatives with the measurements that back them
 - 2026-08-16T19:15:57-05:00 3f939b7e3719cf2002719c5e94e2d26331f133e0 Carry the fourth tier into the audience-level spec
+- 2026-08-16T19:19:04-05:00 979a5549394fa68c0bb162f5dcf197bb2bfb736c Say what the seam counts actually counted
 
 ## docs/adr
 
@@ -48,6 +49,7 @@
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
+- 2026-08-16T19:19:04-05:00 979a5549394fa68c0bb162f5dcf197bb2bfb736c Say what the seam counts actually counted
 
 ## docs/runbooks
 
@@ -82,3 +84,4 @@
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
+- 2026-08-16T19:19:04-05:00 979a5549394fa68c0bb162f5dcf197bb2bfb736c Say what the seam counts actually counted
