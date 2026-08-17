@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, readdirSync, rmSyn
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { writeResults, writeAtomic, readManifest, describeManifest, MANIFEST } from '../src/results.mjs'
-import { renderMarkdown } from '../src/report.mjs'
+import { renderMarkdown, renderConsole } from '../src/report.mjs'
 import { evaluate, summarize } from '../src/evaluate.mjs'
 
 const dir = () => mkdtempSync(join(tmpdir(), 'harness-results-'))
@@ -238,4 +238,135 @@ test('a flushed partial file re-reads as the cells that survived', async () => {
   } finally {
     rmSync(out, { recursive: true, force: true })
   }
+})
+
+// ---------- COS-11: a cell that said nothing must not move any figure ----------
+
+// The two halves of the score fail in opposite directions on a silent cell, so
+// they never cancel: every deterministic check is a "no X found" search that an
+// empty string wins or loses wholesale, and the judge is skipped and handed a
+// neutral 1.0. These fixtures are built so a pooled mean would visibly move —
+// good cells score high on rules and LOW on the judge, which is the real shape
+// (measured: agentic-fix-verify on haiku, rules 10.3% judge 85.8% at 5 aborts
+// in 6 cells) and the shape in which the two biases are easiest to confuse for
+// noise.
+const good = over => row({ rulesScore: 0.9, judgeScore: 0.4, total: 0.75, ...over })
+const aborted = over => row({
+  text: '', trace: '', error: 'error_max_turns',
+  rulesScore: 0, checks: [], judgeScore: 1, total: 0.3, ...over
+})
+// No error flag, no text. evaluate.mjs's guard used to read `error && !text`, so
+// this cell was scored: every ban check finds no banned thing in an empty string
+// and the judge early-returns 1.0, which put it near 0.95 for saying nothing.
+const silent = over => row({
+  text: '', trace: '', error: null,
+  rulesScore: 0.931, checks: [], judgeScore: 1, total: 0.951, ...over
+})
+
+test('an aborted cell raises no judge mean and lowers no rules mean, in one run', () => {
+  const clean = summarize([good(), good({ caseId: 'conv-badnews' })])
+  const withAbort = summarize([good(), good({ caseId: 'conv-badnews' }), aborted({ caseId: 'agentic-fix-verify' })])
+
+  // Both halves, from the same run. Pooled, the abort would drag rules to 0.600
+  // and lift judge to 0.600 — the two errors are the same size and opposite, so
+  // checking only one of them would pass while the other stayed broken.
+  assert.equal(withAbort.byModel[0].rules, clean.byModel[0].rules, 'rules mean unmoved')
+  assert.equal(withAbort.byModel[0].judge, clean.byModel[0].judge, 'judge mean unmoved')
+  assert.equal(withAbort.byModel[0].rules, 0.9)
+  assert.equal(withAbort.byModel[0].judge, 0.4)
+  assert.equal(withAbort.overall, clean.overall)
+
+  // And the reader is told the arm is short, at the same place as the figures.
+  assert.equal(withAbort.byModel[0].n, 2)
+  assert.equal(withAbort.byModel[0].noReply, 1)
+  assert.equal(withAbort.byModel[0].cells, 3)
+  assert.equal(withAbort.n, 2)
+  assert.equal(withAbort.noReply, 1)
+  assert.equal(withAbort.cells, 3)
+})
+
+test('a cell that goes silent without an error flag is excluded on the same terms', () => {
+  const clean = summarize([good(), good({ caseId: 'conv-badnews' })])
+  const withSilent = summarize([good(), good({ caseId: 'conv-badnews' }), silent({ caseId: 'agentic-fix-verify' })])
+  assert.equal(withSilent.byModel[0].rules, clean.byModel[0].rules)
+  assert.equal(withSilent.byModel[0].judge, clean.byModel[0].judge)
+  assert.equal(withSilent.byModel[0].noReply, 1, 'counted as no reply, not as a scored cell')
+})
+
+test('the cost of a cell that said nothing still counts against its arm', () => {
+  // The one figure that must keep pooling them: an aborted cell burned real
+  // tokens, and dropping its spend would understate what an arm cost to buy.
+  const s = summarize([good({ costUsd: 0.02 }), aborted({ caseId: 'agentic-fix-verify', costUsd: 0.05 })])
+  assert.equal(s.totalCostUsd, 0.07)
+  assert.equal(s.byModel[0].costUsd, 0.07)
+})
+
+test('an arm where nothing replied reports as unmeasured, not as a score', () => {
+  const s = summarize([
+    aborted({ caseId: 'agentic-fix-verify' }),
+    aborted({ caseId: 'reserve-agentic-write' })
+  ])
+  // null, not 0. Zero is a score — the worst one — and would publish "we could
+  // not measure this" as "the style failed every rule".
+  assert.equal(s.overall, null)
+  assert.equal(s.byModel[0].score, null)
+  assert.equal(s.byModel[0].rules, null)
+  assert.equal(s.byModel[0].judge, null)
+  assert.equal(s.byModel[0].n, 0)
+  assert.equal(s.byModel[0].cells, 2)
+  assert.equal(s.totalCostUsd > 0, true, 'it still cost money')
+})
+
+test('neither renderer prints an unmeasured arm as 0.0%', () => {
+  const s = summarize([aborted({ caseId: 'agentic-fix-verify' })])
+  const console_ = renderConsole(s)
+  const md = renderMarkdown(s, { when: 's' })
+  for (const [name, out] of [['console', console_], ['markdown', md]]) {
+    assert.doesNotMatch(out, /0\.0%/, `${name} must not render null as a zero score`)
+    assert.match(out, /n\/a/, `${name} must say the figure is missing`)
+  }
+  assert.match(console_, /no cell produced a reply/)
+  assert.match(md, /no cell produced a reply/)
+})
+
+test('report.md and summary.json separate cells that replied from cells that did not', () => {
+  const out = dir()
+  try {
+    const rows = [good(), good({ caseId: 'conv-badnews' }), aborted({ caseId: 'agentic-fix-verify' })]
+    const { summary } = writeResults({ outDir: out, rows, stamp: 's', expected: 3, complete: true })
+
+    // summary.json: the three counts on every level it aggregates, not just the top.
+    const saved = readJson(join(out, 'summary.json'))
+    assert.deepEqual(
+      [saved.n, saved.noReply, saved.cells], [2, 1, 3],
+      'the headline states its own sample'
+    )
+    for (const level of ['byModel', 'byVariant', 'byStyle', 'byStyleModel', 'byCase', 'bySplit']) {
+      for (const g of saved[level]) {
+        assert.equal(typeof g.n, 'number', `${level}.${g.key} states its sample`)
+        assert.equal(typeof g.noReply, 'number', `${level}.${g.key} states what it dropped`)
+        assert.equal(g.n + g.noReply, g.cells, `${level}.${g.key} counts add up`)
+      }
+    }
+    assert.equal(saved.byCase.find(g => g.key === 'agentic-fix-verify').score, null)
+
+    // report.md: the same split, in the table a reader quotes figures off.
+    const md = readFileSync(join(out, 'report.md'), 'utf8')
+    assert.match(md, /\| n \| cells \| no reply \|/)
+    assert.match(md, /\*\*Measured over:\*\* 2 of 3 cells scored — 1 produced no reply/)
+    assert.equal(summary.overall, 0.75)
+  } finally {
+    rmSync(out, { recursive: true, force: true })
+  }
+})
+
+test('a cell that said nothing briefs the optimizer on nothing', () => {
+  // summary.failures drives the rewrite prompt. A silent cell graded against
+  // every check files failures whose evidence quotes an empty string, and the
+  // author model would rewrite the style to fix rules no reply ever broke.
+  const s = summarize([
+    good({ checks: [{ id: 'total_length', score: 0.5, weight: 1, evidence: ['178 words vs cap 80'], describe: 'cap' }] }),
+    silent({ caseId: 'agentic-fix-verify', checks: [{ id: 'no_emoji', score: 0, weight: 1, evidence: [''], describe: 'no emoji' }] })
+  ])
+  assert.deepEqual(s.failures.map(f => f.checkId), ['total_length'])
 })

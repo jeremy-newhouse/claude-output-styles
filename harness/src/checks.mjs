@@ -81,6 +81,32 @@ export function viewsOf (row) {
   return { final: text, trace: row.trace ?? text, legacy: row.trace === undefined }
 }
 
+/**
+ * Did this cell say anything at all?
+ *
+ * The one predicate that decides whether a row may be scored and whether it may
+ * be pooled into a mean. Both halves of the score go wrong on a silent cell and
+ * they go wrong in opposite directions, so they do not cancel: every
+ * deterministic check is a "no X found" search that a empty string passes or
+ * fails wholesale, and the judge is skipped and substituted with a neutral 1.0.
+ * Pooled, one aborted cell drags a rules mean down and pushes a judge mean up.
+ *
+ * Keyed on the turn rather than on `row.error` deliberately. An SDK error flag
+ * is the common way a cell goes silent, not the only one: a turn that ends
+ * without producing any text and without setting the flag scores ~0.93 on rules
+ * for beginner on `agentic-fix-verify` — verified — because every ban check
+ * finds no banned thing in an empty string, and the judge hands it a free 1.0
+ * on top. A predicate reading only the flag would leave that case biasing
+ * everything, and it is the same defect.
+ *
+ * `trace` is the whole turn, so a cell that narrated and then ended on a tool
+ * call still counts as having replied. That cell produced measurable behaviour
+ * and belongs in the mean; it is an empty FINAL message, which is a different
+ * question from an empty turn and is not this predicate's business.
+ */
+export const producedReply = row =>
+  !row.error && String(row.trace ?? row.text ?? '').trim() !== ''
+
 // ---------- checks ----------
 // Each: (text, contract, caseDef) => { score: 0..1, evidence: string[] }
 // score is a continuous rate so the optimizer can see partial progress.

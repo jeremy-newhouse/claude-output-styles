@@ -15,6 +15,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { evaluate } from './evaluate.mjs'
+import { producedReply } from './checks.mjs'
 import { parseStyle, renderStyle } from './style.mjs'
 
 // Sourced from Anthropic's "Prompting Claude Opus 5" guide. These are the
@@ -43,19 +44,31 @@ Rewrite the body to fix those failures. Rules for the rewrite:
 
 Return ONLY the new body in Markdown. No frontmatter. No commentary.`
 
-/** Mean `total` over a set of rows; 0 for an empty set, matching summarize(). */
+/**
+ * Mean `total` over a set of rows; 0 for an empty set.
+ *
+ * Deliberately not summarize()'s null-for-nothing: the only caller is the
+ * reserve gate, which tests `usable.a.length > 0` before it reads either mean,
+ * so an empty set never reaches a published figure from here. A null would
+ * instead have to be threaded through the delta and the verdict for a case that
+ * is already rejected.
+ */
 export const meanTotal = rows =>
   rows.length ? Number((rows.reduce((a, r) => a + r.total, 0) / rows.length).toFixed(3)) : 0
 
 /**
- * The rows the reserve gate may compare. A cell that errored on either side is
- * dropped from BOTH, so the two means are always taken over the same case set.
+ * The rows the reserve gate may compare. A cell that said nothing on either side
+ * is dropped from BOTH, so the two means are always taken over the same case set.
  * Pairing is by caseId rather than by index: `pool` preserves order today, but a
  * comparison that silently depends on that would be wrong the moment it does not.
+ *
+ * The test is producedReply, not `r.error`: a cell that goes silent without the
+ * SDK flagging it biases this comparison exactly as an aborted one does, and
+ * scoring it against the case would compare a reply with nothing.
  * @returns {{a: object[], b: object[]}} baseline rows and candidate rows
  */
 export function comparableRows (baselineRows, candidateRows) {
-  const bad = new Set([...baselineRows, ...candidateRows].filter(r => r.error).map(r => r.caseId))
+  const bad = new Set([...baselineRows, ...candidateRows].filter(r => !producedReply(r)).map(r => r.caseId))
   return {
     a: baselineRows.filter(r => !bad.has(r.caseId)),
     b: candidateRows.filter(r => !bad.has(r.caseId))
@@ -65,6 +78,14 @@ export function comparableRows (baselineRows, candidateRows) {
 // Matches config/matrix.json. Only a fallback for a config that names a reserve
 // split but omits the threshold — see where it is used.
 const DEFAULT_MIN_RESERVE_DELTA = -0.02
+
+// summarize() reports an arm where nothing replied as null rather than as a
+// score. These three keep that null intact through the loop's arithmetic and
+// its log lines instead of letting `null - 0.7` quietly become -0.7.
+const UNMEASURED = 'unmeasured'
+const fmt = v => v == null ? UNMEASURED : v
+const delta = (a, b) => (a == null || b == null) ? null : Number((a - b).toFixed(3))
+const signed = d => d == null ? UNMEASURED : `${d >= 0 ? '+' : ''}${d.toFixed(3)}`
 
 function failureBrief (summary, styleId, transcripts) {
   const fails = summary.failures.filter(f => f.styleId === styleId).slice(0, 10)
@@ -167,7 +188,15 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   best.train = incumbent.train = b0.summary.overall
   best.holdout = incumbent.holdout = h0.summary.overall
   history.push({ iteration: 0, train: best.train, holdout: best.holdout, kept: true, note: 'baseline' })
-  log(`[${style.id}] baseline train=${best.train} holdout=${best.holdout}`)
+  log(`[${style.id}] baseline train=${fmt(best.train)} holdout=${fmt(best.holdout)}`)
+  // An unmeasured baseline is the one state this loop cannot recover from: every
+  // later iteration is scored as a delta against it, and there is nothing to
+  // subtract from. Say so once, here, rather than letting each iteration report
+  // an incomparable delta.
+  if (best.train == null || best.holdout == null) {
+    log(`[${style.id}] WARNING: no baseline cell produced a reply on ${best.train == null ? cfg.trainSplit : cfg.holdoutSplit} — ` +
+        'every iteration below is incomparable and nothing can be kept')
+  }
 
   let lastRun = b0
   let sinceKeep = 0
@@ -196,14 +225,18 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
 
     const t = await measure(candidateText, train, cfg.trainSplit, i)
     const h = await measure(candidateText, holdout, cfg.holdoutSplit, i)
-    const dTrain = t.summary.overall - best.train
-    const dHold = h.summary.overall - best.holdout
-    const keep = dTrain > 0 && dHold >= cfg.minHoldoutDelta
+    const dTrain = delta(t.summary.overall, best.train)
+    const dHold = delta(h.summary.overall, best.holdout)
+    // An incomparable side is a REVERT, never a KEEP. Both deltas are null when
+    // either arm went entirely silent, and the alternative is arithmetic on
+    // null, which JS reads as 0: an arm that measured nothing would then show a
+    // delta equal to the other side's score and could be adopted on it.
+    const keep = dTrain != null && dHold != null && dTrain > 0 && dHold >= cfg.minHoldoutDelta
 
-    log(`[${style.id}] iter ${i}: train ${t.summary.overall} (${dTrain >= 0 ? '+' : ''}${dTrain.toFixed(3)}) ` +
-        `holdout ${h.summary.overall} (${dHold >= 0 ? '+' : ''}${dHold.toFixed(3)}) -> ${keep ? 'KEEP' : 'REVERT'}`)
+    log(`[${style.id}] iter ${i}: train ${fmt(t.summary.overall)} (${signed(dTrain)}) ` +
+        `holdout ${fmt(h.summary.overall)} (${signed(dHold)}) -> ${keep ? 'KEEP' : 'REVERT'}`)
 
-    history.push({ iteration: i, train: t.summary.overall, holdout: h.summary.overall, dTrain: Number(dTrain.toFixed(3)), dHold: Number(dHold.toFixed(3)), kept: keep })
+    history.push({ iteration: i, train: t.summary.overall, holdout: h.summary.overall, dTrain, dHold, kept: keep })
 
     if (keep) {
       best = { text: candidateText, body: newBody, train: t.summary.overall, holdout: h.summary.overall, iteration: i }
@@ -248,16 +281,16 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     // BOTH sides count, so an abort removes a case from the comparison rather
     // than scoring it.
     const usable = comparableRows(r0.rows, rN.rows)
-    const dropped = new Set([...r0.rows, ...rN.rows].filter(x => x.error).map(x => x.caseId))
+    const dropped = new Set([...r0.rows, ...rN.rows].filter(x => !producedReply(x)).map(x => x.caseId))
     const baseline = meanTotal(usable.a)
     const candidate = meanTotal(usable.b)
     const delta = Number((candidate - baseline).toFixed(3))
     if (dropped.size) {
-      log(`[${style.id}] WARNING: ${dropped.size} reserve case(s) errored on one or both sides and are excluded ` +
+      log(`[${style.id}] WARNING: ${dropped.size} reserve case(s) produced no reply on one or both sides and are excluded ` +
           `from the comparison: ${[...dropped].join(', ')}`)
     }
     if (!usable.a.length) {
-      log(`[${style.id}] WARNING: every reserve cell errored — v${best.iteration} cannot be validated`)
+      log(`[${style.id}] WARNING: no reserve cell produced a reply on both sides — v${best.iteration} cannot be validated`)
     }
     // Without a fallback a missing threshold means `delta >= undefined`, which
     // is false for every candidate: every run would roll back to v0 while
