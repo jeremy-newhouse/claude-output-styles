@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-16 20:54'
-updated_date: '2026-08-17 16:24'
+updated_date: '2026-08-17 16:27'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -117,4 +117,12 @@ SABOTAGE VERIFICATION, ROUND 2
 RE-VERIFICATION
 Suite 134 -> 135, all pass. audit exit 0. lore check exit 0.
 Per-row and aggregate re-scores re-run on the reworked check: IDENTICAL to the first round. Still exactly one moved row of 96, still 61 of 62 runs byte-identical, still the same three aggregate figures. The AC #3 evidence has now held across four independent versions of the check.
+
+AC #3, STRENGTHENED (found while re-verifying rather than by a review).
+
+Chasing the ADR's published 'two_options_max | Opus 1.00 | Sonnet 0.85' row to its source run was the wrong approach — 12-44-03, the obvious candidate, does not carry this check at all (none of its five cases use it), and no saved run reproduces sonnet 0.85 exactly, so the row may rest on a run that is not in results/.
+
+Settled it a stronger way instead. Splitting the old-vs-new per-row diff by model: 0 of 34 Opus rows move, 0 of 32 Sonnet rows move, and the single moved row is one of the 30 Haiku rows. Both published two_options_max figures are Opus/Sonnet numbers — the ADR row, and FINDINGS.md:205's account of the Sonnet regression — so neither can move whichever run backs it. That is a fact about the whole corpus rather than an argument about which claim rests on which case, and it does not depend on provenance I could not establish.
+
+One near-miss worth recording. A saved-score-versus-current-code comparison flagged 20-10-29 sonnet at 0.80 -> 0.90 and looked like an unreported move. It is not mine: re-running the same comparison against dev's checks.mjs reproduces it exactly, so the gap is the historical label-blindness fix, which FINDINGS.md:205 already documents. The lesson is that 'saved score vs current code' and 'old code vs new code' answer different questions, and only the second one is evidence about this change.
 <!-- SECTION:NOTES:END -->
