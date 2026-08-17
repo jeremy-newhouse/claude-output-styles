@@ -113,9 +113,12 @@ the tests, so the runs behind this story were measured against a model meeting a
 unexplained failure it had not caused — and a second assertion broke the moment
 the model correctly fixed the bug it was sent to fix. Neither is anything the
 style text governs, and both landed hardest on the models that did the most work.
-This one shapes what the model met rather than what the scorer read, so no
-re-score can undo it; `agentic-read-report`, which never needs the tests, and
-every conversational case are untouched.
+This one shapes what the model wrote rather than what the scorer read, so no
+re-score can undo it — and unlike the glued turn it cannot be narrowed to a set
+of checks, because a cell that met the failure can move on any of them. Every
+conversational case is untouched, since those prompts never involve the repo;
+`agentic-read-report` is the least exposed of the four, asking for a reading
+rather than a test run, but a model that ran the suite anyway still met it.
 
 COS-10 also changed `sentences()` to split on a single newline, and that half
 *does* apply to saved rows. It moved this story's per-model sentence figures —
