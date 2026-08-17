@@ -22,7 +22,18 @@ The STYLE GUIDE is the standard. It outranks your own taste.
 Be strict within those bounds: 1.0 means a careful editor holding this guide
 would change nothing. Quote the offending text in each violation. Max 4.`
 
-export async function judge ({ text, caseDef, contract, model, styleBody }) {
+/**
+ * `caseDef.judgeOn` names which view of the turn this case's rubric asks about.
+ * Most rubrics here say "the final message ... in style", so 'final' is the
+ * default; `agentic-read-report` asks about narration of the search and so must
+ * see the whole turn. On a conversational cell the two views are the same
+ * string, which is why only the agentic cases declare it — and a test asserts
+ * that every one of them does.
+ */
+export const JUDGE_VIEW_DEFAULT = 'final'
+
+export async function judge ({ views, caseDef, contract, model, styleBody }) {
+  const text = views?.[caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT] ?? ''
   if (!caseDef.judge || !text) return { score: 1, violations: [] }
 
   const user = [
@@ -57,6 +68,9 @@ export async function judge ({ text, caseDef, contract, model, styleBody }) {
         permissionMode: 'dontAsk'
       }
     })) {
+      // Bare concatenation is correct here, unlike run.mjs: allowedTools is
+      // empty, so the judge's reply is one JSON object with no tool calls to
+      // split it around, and a separator would break the parse below.
       if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
     }
   } catch (err) {

@@ -165,13 +165,29 @@ if (cmd === 'run') {
   console.error(`re-scoring ${rowsPath}`)
   const manifest = readManifest(rowsPath)
   const rows = readJson(rowsPath)
-  const { scoreDeterministic } = await import('./checks.mjs')
+  const { scoreDeterministic, viewsOf } = await import('./checks.mjs')
+  let legacy = 0
   const rescored = rows.map(r => {
     const caseDef = allCases.find(c => c.id === r.caseId)
-    const s = r.text ? scoreDeterministic(r.text, contracts[r.styleId], caseDef) : { total: 0, checks: [] }
+    const views = viewsOf(r)
+    if (views.legacy) legacy++
+    const s = r.text ? scoreDeterministic(views, contracts[r.styleId], caseDef) : { total: 0, checks: [] }
     const wJudge = contracts[r.styleId]?.judgeWeight ?? 0.3
     return { ...r, rulesScore: s.total, checks: s.checks, total: Number((s.total * (1 - wJudge) + (r.judgeScore ?? 1) * wJudge).toFixed(3)) }
   })
+  // Re-scoring is the project's cheap way to re-derive a published figure, and
+  // the one thing it cannot re-derive is the text-block seam: a row saved before
+  // COS-10 holds the turn already glued, so its agentic cells are re-scored on a
+  // string the fix would never have produced. Conversational cells are unaffected
+  // — they were always one block — so the qualification is per-row, not per-run.
+  if (legacy) {
+    const agentic = new Set(allCases.filter(c => c.agentic).map(c => c.id))
+    const stale = rescored.filter((r, i) => viewsOf(rows[i]).legacy && agentic.has(r.caseId)).length
+    console.log(`${legacy} of ${rows.length} rows predate the COS-10 text-block fix and carry the whole turn glued into one string. ` +
+      (stale
+        ? `${stale} of them are agentic cells: their figures below are measured on the old scorer and are not comparable with a post-fix run. Re-run those cells to replace them.`
+        : 'None are agentic cells, so the seam does not affect these figures.'))
+  }
   // On stdout, with the tables, not on stderr beside the progress chatter:
   // `npm run score > figures.txt` has to carry the completeness line with the
   // numbers it qualifies. A bare `score` now resolves to the newest run of any

@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { CHECKS, scoreDeterministic, sentences, codeBlocks } from '../src/checks.mjs'
+import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf } from '../src/checks.mjs'
+import { splitTurn } from '../src/run.mjs'
 
 const C = { maxSentenceWords: 20, maxParagraphSentences: 4, maxUpdateWords: 120, maxCodeLines: 10, level: 'advanced', bannedTerms: [], defaultChecks: ['no_emoji'] }
 
@@ -73,9 +74,107 @@ test('leads_with_conclusion flags hedged openers', () => {
 
 test('scoreDeterministic applies weights', () => {
   const contract = { ...C, defaultChecks: ['no_emoji', 'active_voice'], weights: { no_emoji: 3 } }
-  const s = scoreDeterministic('The index was dropped ✅', contract, {})
+  const s = scoreDeterministic(viewsOf({ text: 'The index was dropped ✅' }), contract, {})
   // no_emoji 0 (w3), active_voice 0 (w1) -> 0
   assert.equal(s.total, 0)
-  const s2 = scoreDeterministic('I dropped the index.', contract, {})
+  const s2 = scoreDeterministic(viewsOf({ text: 'I dropped the index.' }), contract, {})
   assert.equal(s2.total, 1)
+})
+
+// ---------- COS-10: the text-block seam ----------
+
+test('splitTurn separates pre-tool narration from the answer', () => {
+  const { final, trace } = splitTurn([
+    { type: 'text', text: "I'll look at the file first." },
+    { type: 'tool_use', name: 'Read' },
+    { type: 'text', text: 'The bug is in the rounding.' }
+  ])
+  assert.equal(final, 'The bug is in the rounding.')
+  assert.equal(trace, "I'll look at the file first.\n\nThe bug is in the rounding.")
+  // The old `text += b.text` produced this, and it is what every agentic figure
+  // in the ledger was measured on: no separator, so one run-on sentence.
+  assert.equal(sentences("I'll look at the file first.The bug is in the rounding.").length, 1)
+  assert.equal(sentences(trace).length, 2)
+})
+
+test('splitTurn keeps only the blocks after the LAST tool call', () => {
+  const { final } = splitTurn([
+    { type: 'text', text: 'Let me search.' },
+    { type: 'tool_use', name: 'Grep' },
+    { type: 'text', text: 'Now let me read it.' },
+    { type: 'tool_use', name: 'Read' },
+    { type: 'text', text: 'Fixed. 3/3 tests pass.' }
+  ])
+  assert.equal(final, 'Fixed. 3/3 tests pass.')
+})
+
+test('splitTurn falls back to the last thing said when the turn ends on a tool call', () => {
+  // maxTurns cuts a session here. '' would score 1.0 on every "no X found"
+  // check, and the whole trace would re-glue what this function exists to split.
+  const { final, trace } = splitTurn([
+    { type: 'text', text: 'Let me search.' },
+    { type: 'tool_use', name: 'Grep' },
+    { type: 'text', text: 'Now let me read it.' },
+    { type: 'tool_use', name: 'Read' }
+  ])
+  assert.equal(final, 'Now let me read it.')
+  assert.equal(trace, 'Let me search.\n\nNow let me read it.')
+})
+
+test('splitTurn gives a no-tool turn identical views', () => {
+  const { final, trace } = splitTurn([{ type: 'text', text: 'Fixed the 401s. 14/14 pass.' }])
+  assert.equal(final, trace)
+  assert.equal(final, 'Fixed the 401s. 14/14 pass.')
+  assert.deepEqual(splitTurn([]), { final: '', trace: '' })
+})
+
+test('every check declares which view it reads', () => {
+  for (const [id, chk] of Object.entries(CHECKS)) {
+    assert.ok(VIEWS.includes(chk.reads), `check "${id}" must declare reads: 'final' | 'trace'`)
+  }
+})
+
+test('a check scores the view it declares, and says which on its row', () => {
+  const views = { final: 'Fixed the rounding. 3/3 tests pass.', trace: 'Let me read the file 🚀\n\nFixed the rounding. 3/3 tests pass.' }
+  const contract = { ...C, defaultChecks: ['no_emoji', 'no_process_narration', 'leads_with_conclusion'] }
+  const s = scoreDeterministic(views, contract, {})
+  const by = Object.fromEntries(s.checks.map(c => [c.id, c]))
+  // Banned outright, so they read the trace and see the narration block.
+  assert.equal(by.no_emoji.reads, 'trace')
+  assert.equal(by.no_emoji.score, 0)
+  assert.ok(by.no_process_narration.score < 1)
+  // Answer shape, so it reads the final message and is not dragged down by an
+  // opener the rubrics do not ask about.
+  assert.equal(by.leads_with_conclusion.reads, 'final')
+  assert.equal(by.leads_with_conclusion.score, 1)
+})
+
+test('scoreDeterministic refuses a bare string', () => {
+  // Every caller was migrated to viewsOf(); a missed one must fail loudly rather
+  // than index a string and score every check on undefined.
+  assert.throws(() => scoreDeterministic('Fixed it.', { ...C, defaultChecks: ['no_emoji'] }, {}), TypeError)
+})
+
+test('viewsOf flags a pre-COS-10 row and serves its glued text as both views', () => {
+  const legacy = { text: "I'll look first.The bug is in the rounding." }
+  assert.deepEqual(viewsOf(legacy), { final: legacy.text, trace: legacy.text, legacy: true })
+  const fresh = { text: 'The bug is in the rounding.', trace: "I'll look first.\n\nThe bug is in the rounding." }
+  assert.equal(viewsOf(fresh).legacy, false)
+  assert.equal(viewsOf(fresh).final, 'The bug is in the rounding.')
+})
+
+test('sentences splits a list header from its first item', () => {
+  // No terminal punctuation after the colon, so splitting on [.!?] or a blank
+  // line alone merged these into one 12-word sentence the reader never wrote.
+  const t = "Here's why:\nYou're paying twice."
+  assert.deepEqual(sentences(t), ["Here's why:", "You're paying twice."])
+  const list = 'Two things:\n- The index is missing.\n- The job runs late.'
+  assert.equal(sentences(list).length, 3)
+})
+
+test('the list-header split changes what sentence_length measures', () => {
+  const tight = { ...C, maxSentenceWords: 8 }
+  // One header plus one short item: two short sentences, not one long one.
+  const t = 'The cause is the nightly job:\nIt writes after the report reads.'
+  assert.equal(CHECKS.sentence_length.run(t, tight).score, 1)
 })
