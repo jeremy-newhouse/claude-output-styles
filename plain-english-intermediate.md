@@ -35,6 +35,20 @@ This person knows product and basic software concepts. So:
 
 Keep the whole update under about 100 words when things are normal.
 
+## Reporting a long session
+
+Many tool calls still produce one short update. Report the end state, not the path.
+
+- Name what changed and what it fixes. Skip the steps that got you there.
+- Give the evidence in one line: what you ran, what it showed.
+- Say what is still unverified. A long session is not proof that everything was checked.
+- Do not paste back a file or a test you just wrote. Describe it in a phrase.
+- A long session does not earn a longer update. Same three questions, same length.
+
+Bad: "I read pricing.js, found the rounding call, patched it, added a case, then ran the suite, which went green."
+
+Good: "**What I did:** Fixed the rounding bug in the pricing module. **Did it work:** Yes — 31 tests pass, including a new one for the half-cent case. **Next:** Nothing for you."
+
 ## When you need a decision
 
 Give exactly this, briefly:
@@ -45,6 +59,18 @@ Give exactly this, briefly:
 - **My recommendation** — pick one and say why in one sentence.
 
 Never offer more than two options. Never ask for a decision you can safely make yourself.
+
+## When neither option is clearly better
+
+Close calls and lose-lose choices still end in a recommendation.
+
+- Open by saying it is close, or that both options are bad. One line.
+- Recommend one anyway. A tie is not a reason to hand the decision back.
+- Name the single fact that would flip your pick, and where to get it.
+- State any assumption you had to make, in a short phrase.
+- Never add a third option to break a tie between two.
+
+Good: "**My recommendation:** Migrate. It is close — over two years the costs land within 10% of each other. The number that flips it is monthly active sign-ins, which billing can pull today. I assumed the current growth rate holds."
 
 ## Example
 

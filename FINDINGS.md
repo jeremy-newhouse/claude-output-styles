@@ -230,10 +230,23 @@ dropped holdout ~8. That is overfitting to three training cases, and the keep
 rule caught it both times.
 
 Where the remaining headroom actually is: `agentic-fix-verify` and
-`conv-decision-holdout` score ~48% on the judge across *every* style, old and
-new. Multi-tool sessions and open-ended decisions are handled poorly by all
-three styles. That is a content gap, not a wording gap — rewriting the same
-rules will not close it.
+`conv-decision-holdout`. Multi-tool sessions and open-ended decisions are handled
+poorly by all three styles. That is a content gap, not a wording gap — rewriting
+the same rules will not close it.
+
+Both cases now have a current-text baseline, from run `00-44-03` — judge pooled
+across the three styles, 3 cells per figure:
+
+| case | opus | sonnet |
+|---|---|---|
+| `agentic-fix-verify` | 50.0 | 40.0 |
+| `conv-decision-holdout` | 48.3 | 46.7 |
+
+Earlier drafts of this page put both at "~48% across every style, old and new".
+The number was close but its provenance was not: it pooled runs `20-10-29` and
+`23-36-59`, which measured advanced style text that no longer ships. Writing the
+new rules did not close the gap either — see *A content gap that new content did
+not close* below.
 
 ## Per-model baseline, all four tiers
 
@@ -501,6 +514,59 @@ bites — `paragraph_length` there reads 16.7, which is the harness, not the sty
 So the numbers quoted in this section are `leads_with_conclusion`, `total_length`
 and the abort count, all of which the seam cannot touch. Fixing it would move
 agentic figures already published here, so it is tracked as its own change.
+
+## A content gap that new content did not close
+
+COS-1 acted on the diagnosis above: it hand-wrote the two missing rules into all
+three style files — how to report a multi-tool session in one final message, and
+how to handle a decision where neither option is clearly better — rather than
+running the optimizer, which had already failed at this six times because it can
+only re-express rules that exist.
+
+The rules ship and the instrument enforces them. The judge is given each style's
+body at grading time, and it quotes the new sections back while marking replies
+down: *"the 'When neither option wins' section"*, *"State the assumption you
+resolved the tie on"*, *"Report the end state, not the path"*. Thirteen
+violations cite them. What did not happen is the score moving.
+
+| case | model | baseline `00-44-03` | with the new rules `00-48-49` | bar |
+|---|---|---|---|---|
+| `agentic-fix-verify` | opus | 50.0 | 46.2 | 65 |
+| `agentic-fix-verify` | sonnet | 40.0 | 42.0 | 65 |
+| `conv-decision-holdout` | opus | 48.3 | 51.2 | 65 |
+| `conv-decision-holdout` | sonnet | 46.7 | 54.7 | 65 |
+
+Arm mean judge 46.2 → 48.5, inside the noise floor, and the baseline is n=3 per
+cell against the new text's n=6. The honest statement is that the gap did not
+close, not that anything moved by a stated amount.
+
+**A second, more aggressive pass was measured and rejected.** It restated each
+style's own word cap inside the new section, banned narration between tool calls,
+and ruled that a threshold-conditional recommendation ("absorb if the bill is
+under $75k") is not a recommendation. Arm mean judge fell to **43.6 — below the
+original text.** It was reverted in full; no part of it was kept, because the
+bullets were never measured separately. Run `01-03-21`.
+
+**Why the rules did not help, from the judge's own violations.** Two failure
+modes dominate, and neither is the missing content the task was written about.
+The first is length: between 75% and 83% of cells overrun their style's word cap
+in *every* arm, before and after, with beginner replies at 101–256 words against
+a cap of 80. The second is that replies hedge the recommendation into a
+threshold, or close by asking the reader for figures. Length is the binding
+constraint, which is what COS-8 concluded from the opposite direction and what
+COS-4 owns.
+
+**A harness artifact contaminates the agentic half of this measurement.** The
+judge is handed the whole turn, not the final message — see the ledger entry
+"The seam reaches the judge". In 16 of 16 agentic cells that carry pre-update
+narration, a judge violation quotes that narration. It is not an excuse for the
+scores: 10 of 18 final updates are over the word cap on their own. But
+`agentic-fix-verify`'s judge score cannot be read as a clean measure of the style
+file until `run.mjs` separates the final message from the trace.
+
+No regression came with the change. Run `01-13-15` re-measured the five shared
+cases on Haiku against `22-59-53`; every delta is inside the three-point noise
+floor.
 
 ## Sources
 

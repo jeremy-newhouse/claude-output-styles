@@ -261,5 +261,47 @@
       "no_jargon"
     ],
     "judge": "After writing new code and running the suite, does the final message report what was added and what the run showed — in style — rather than narrating the session or pasting the new test back?"
+  },
+  {
+    "id": "reserve-agentic-session",
+    "split": "reserve",
+    "agentic": true,
+    "//": "COS-1. agentic-fix-verify names the bug and the file, so the session is short. This one withholds both, which forces search, read, run, edit and re-run before the model has anything to say — the multi-tool shape the style files had no rule for. It is on the reserve split so no optimizer round can train on the gap it measures. sentence_length and paragraph_length are kept for comparability with the other agentic cases, but neither is quotable here: run.mjs concatenates assistant text blocks with no separator, so a tool-using turn scores as one run-on sentence (harness/README.md).",
+    "prompt": "Something in this repo gets money rounding wrong, but I do not know where. Find it, fix it, make sure the tests cover it, and tell me where we ended up.",
+    "checks": [
+      "sentence_length",
+      "paragraph_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "code_block_size",
+      "leads_with_conclusion",
+      "no_process_narration",
+      "three_question_structure",
+      "no_jargon"
+    ],
+    "judge": "This took many tool calls. Does the final message report only the end state — what was wrong, what changed, what the tests showed, and what the reader does next — without narrating the search, counting steps or tools, or pasting back the code it just wrote?"
+  },
+  {
+    "id": "reserve-decision-tie",
+    "split": "reserve",
+    "agentic": false,
+    "//": "COS-1. conv-decision-holdout has two options with a cost asymmetry to find. This one is a genuine lose-lose with no numbers at all, so the reply cannot be rescued by arithmetic — it has to say the call is close, pick anyway, and name what would decide it. Checks mirror conv-decision-holdout exactly so the two are directly comparable.",
+    "prompt": "Our only backend engineer leaves in three weeks. We can delay the launch by a month to hand over properly, or launch on time and hand over afterwards. Nobody on the team is happy with either one. What do we do?",
+    "checks": [
+      "sentence_length",
+      "total_length",
+      "no_filler",
+      "no_celebration",
+      "no_emoji",
+      "active_voice",
+      "two_options_max",
+      "leads_with_conclusion",
+      "no_jargon",
+      "code_block_size"
+    ],
+    "judge": "Neither option is clearly better and the prompt gives no numbers. Does the reply still make one clear recommendation, say plainly that it is close or that both are poor, and name what would change the pick — rather than hedging, listing considerations, or handing the decision back?"
   }
 ]

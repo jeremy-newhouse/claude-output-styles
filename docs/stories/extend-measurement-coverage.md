@@ -40,7 +40,9 @@ way to tell which of them the style file is actually enforcing.
 
 **Fable** is the most capable tier and the one used for the longest-running
 agentic work, which is where the styles are weakest: `agentic-fix-verify` scores
-around 48% on the judge across every style and both measured models. It also
+50.0 on Opus and 40.0 on Sonnet, judge, pooled across the three styles on the
+text that ships today (run `00-44-03`; the "around 48%" this paragraph used to
+quote came from runs measuring advanced style text that no longer ships). It also
 tested a suspicion the two-model data raised but could not settle. Opus overruns
 word caps more often than Sonnet, which may be a property of that model or a
 property of the tier. Four points on the curve tell them apart — see below.
