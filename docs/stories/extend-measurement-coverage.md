@@ -87,9 +87,9 @@ Two results from that wider run shaped how COS-7 was run:
 One limit of the instrument surfaced under COS-7 and is not yet fixed. `run.mjs`
 concatenates assistant text blocks with no separator, so on agentic turns the
 pre-tool narration is glued to the post-tool answer and `sentences()` and
-`paragraphs()` both under-split. It affects 0 of 131 conversational cells and
-most agentic ones, so `sentence_length` and `paragraph_length` are not quotable
-on agentic cells for any tier. The four-tier table above is unaffected in
+`paragraphs()` both under-split. It affects 0 of the 131 cells that made no tool
+call and most of those that did, so `sentence_length` and `paragraph_length` are
+not quotable on agentic cells for any tier. The four-tier table above is unaffected in
 practice — one of its five cases is agentic, `paragraph_length` still scores
 95.8–100.0 there on every model, and the artifact is identical in all four
 columns.

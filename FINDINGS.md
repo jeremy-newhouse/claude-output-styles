@@ -444,9 +444,11 @@ answer: the saved transcript literally reads `"I'll look at the file first.The
 bug is in ..."`. `sentences()` needs whitespace after the full stop to split, and
 `paragraphs()` needs a blank line, so the run-on counts as one very long sentence
 in one paragraph. Checked by searching for a no-whitespace seam after
-sentence-ending punctuation, it appears in **0 of 131 conversational cells** and
-in most agentic ones — 3 of 6 Opus, 1 of 7 Sonnet, 10 of 12 Haiku, 5 of 6 Fable,
-and 6 of 6 on Fable's `agentic-fix-verify`.
+sentence-ending punctuation, and splitting cells by whether the model actually
+called a tool — that is what produces multiple text blocks — it appears in **0 of
+131 cells that made no tool call** and in most of those that did: 3 of 6 Opus,
+1 of 7 Sonnet, 10 of 12 Haiku, 5 of 6 Fable, and 6 of 6 on Fable's
+`agentic-fix-verify`.
 
 The four-tier table above is essentially unaffected: only one of its five cases
 is agentic, `paragraph_length` still scores 95.8–100.0 on it for every model, and

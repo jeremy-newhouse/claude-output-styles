@@ -282,7 +282,7 @@ separator — a saved transcript reads `"I'll look at the file first.The bug is 
 ..."`. `sentences()` requires whitespace after the full stop to split and
 `paragraphs()` requires a blank line, so the run-on scores as one long sentence
 in one paragraph. Measured across four models, a no-whitespace seam appears in 0
-of 131 conversational cells and in most agentic ones; on Fable's
+of the 131 cells that made no tool call and in most of those that did; on Fable's
 `agentic-fix-verify`, where the model made ten tool calls per cell,
 `paragraph_length` reads 16.7 and is measuring this, not the style.
 

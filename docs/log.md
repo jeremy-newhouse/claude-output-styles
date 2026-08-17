@@ -19,6 +19,7 @@
 - 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
 - 2026-08-16T19:12:39-05:00 8546012ae659bd460c18e08c79314fe7d09ac637 Correct the campaign spend total, which never matched its own parts
 - 2026-08-16T19:14:32-05:00 f07302c891d70a95c4a9b7c166c296fa000c64b7 Replace two unbounded superlatives with the measurements that back them
+- 2026-08-16T19:15:57-05:00 3f939b7e3719cf2002719c5e94e2d26331f133e0 Carry the fourth tier into the audience-level spec
 
 ## docs/adr
 
@@ -66,6 +67,7 @@
 - 2026-08-16T17:45:40-05:00 bb8c6fdcf742090f9dcde0e3e6a808f819c5eb2d Guard style files against their contracts, and settle the caps question
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
+- 2026-08-16T19:15:57-05:00 3f939b7e3719cf2002719c5e94e2d26331f133e0 Carry the fourth tier into the audience-level spec
 
 ## docs/stories
 
