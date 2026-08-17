@@ -1,12 +1,8 @@
 {
   "//models": [
     "`run`'s list only. `improve` has its own (improve.models) and never reads",
-    "this one, so a model added here costs one pass of the matrix, not one pass",
-    "per optimizer iteration — that coupling was COS-14.",
-    "Measured cost per baseline cell on the five shared cases: haiku $0.0232,",
-    "sonnet $0.1013, opus $0.1493, fable $0.2345 — and a mean $0.9681 on a",
-    "write-then-verify agentic case, where the worst single cell ran $1.1315.",
-    "Budget off the worst cell, not the mean: these are the priciest cells here.",
+    "this one, so a model added here is one extra pass of the matrix, not one",
+    "pass per optimizer iteration — that coupling was COS-14.",
     "Fable has no bare alias. Measure the top tier by passing its full SDK id:",
     "  node src/cli.mjs run --models='claude-fable-5[1m]' --variants=baseline",
     "Quote the id: the [1m] is a glob pattern in zsh. And name --variants —",
@@ -55,28 +51,39 @@
       "claudeMd": "# Response style\n\nThe active output style is binding. Every reply must obey it:\n\n- Lead with the outcome in the first sentence.\n- Sentences under 20 words. No filler, no emoji, no celebration.\n- Do not narrate process. Report findings and results only.\n- Status updates answer: what I did / did it work / what you do next.\n"
     }
   ],
+  "//run": [
+    "maxCellSeconds is the runaway guard: a wall-clock ceiling on one cell,",
+    "enforced by an AbortController in run.mjs. It is the only hard stop the",
+    "SDK offers — maxTurns bounds tool rounds but not the time spent inside",
+    "one, and taskBudget only tells the model its remaining tokens and asks it",
+    "to pace itself, which a wedged loop will not do. A cell that trips it",
+    "comes back with error 'error_timeout' and is excluded from every mean,",
+    "the same as any other errored cell.",
+    "600 is a backstop sized well above any cell observed here, not a tuned",
+    "figure. Lower it only against measured cell durations."
+  ],
   "run": {
     "repeats": 2,
     "concurrency": 4,
     "maxTurns": 12,
-    "maxBudgetUsd": 2,
+    "maxCellSeconds": 600,
     "judge": true,
     "judgeModel": "sonnet"
   },
   "//improve": [
-    "models is this loop's own list and is not the matrix's. Every arm is billed",
+    "models is this loop's own list and is not the matrix's. Every arm runs",
     "across the whole of it, and an arm is one split measured once: two for the",
     "baseline, two per iteration (train and holdout), two more at the reserve",
     "gate. At maxIterations 6 that is 16 arms, 14 of them before the gate, so",
     "adding a tier here is a much larger commitment than adding one to the",
-    "top-level models. Omitting the key warns and falls back to the cheapest",
+    "top-level models. Omitting the key warns and falls back to the smallest",
     "tier alone; --models overrides it, and --models with nothing in it is an",
     "error rather than a silent fall-back to this list.",
     "trainSplit and holdoutSplit are the loop's own signals. reserveSplit is not:",
     "the loop never selects it, and it is measured once at the end to validate the",
     "candidate the loop wants to adopt. minReserveDelta is deliberately as tight as",
     "minHoldoutDelta even though it sits inside the noise floor — rejecting a sound",
-    "rewrite costs a re-run, adopting a bad one ships a regression."
+    "rewrite means a re-run, adopting a bad one ships a regression."
   ],
   "improve": {
     "models": [

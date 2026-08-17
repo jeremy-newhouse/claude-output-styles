@@ -5,7 +5,7 @@ import { buildWorkspace } from './workspace.mjs'
  * Split one turn's assistant blocks into the two strings a scorer can ask for.
  *
  * A conversational turn is one text block, so both views are the same string and
- * the distinction costs nothing. An agentic turn is text, tool, text, tool, text:
+ * the distinction is free. An agentic turn is text, tool, text, tool, text:
  * pre-tool narration and the answer are separate messages the user reads as
  * separate messages, and gluing them with `+=` produced "I'll look first.The bug
  * is ..." — a run-on that `sentences()` and `paragraphs()` cannot split and that
@@ -36,13 +36,13 @@ export function splitTurn (blocks) {
 }
 
 /** Collect the assistant's visible text for one turn, plus telemetry. */
-async function runTurn ({ prompt, ws, env, model, opts, resume }) {
+async function runTurn ({ prompt, ws, env, model, opts, resume, controller, queryFn = query }) {
   const blocks = []
   let sessionId = null
   let result = null
   const toolCalls = []
 
-  for await (const m of query({
+  for await (const m of queryFn({
     prompt,
     options: {
       cwd: ws,
@@ -56,7 +56,7 @@ async function runTurn ({ prompt, ws, env, model, opts, resume }) {
       permissionMode: 'bypassPermissions',
       env: { ...process.env, ...env },
       maxTurns: opts.maxTurns,
-      maxBudgetUsd: opts.maxBudgetUsd,
+      abortController: controller,
       ...(resume ? { resume } : {})
     }
   })) {
@@ -79,7 +79,6 @@ async function runTurn ({ prompt, ws, env, model, opts, resume }) {
     ...splitTurn(blocks),
     sessionId,
     toolCalls,
-    costUsd: result?.total_cost_usd ?? 0,
     numTurns: result?.num_turns ?? 0,
     error: result?.is_error ? (result.subtype ?? 'error') : null
   }
@@ -88,19 +87,46 @@ async function runTurn ({ prompt, ws, env, model, opts, resume }) {
 /**
  * Run one cell of the matrix: (style x variant x model x case x repeat).
  * Returns the transcript entry that the scorer consumes.
+ *
+ * A wall-clock timeout bounds the cell. It is the only hard stop the SDK
+ * offers: `maxTurns` bounds tool rounds but not the time spent inside one, and
+ * `taskBudget` is advisory — the model is told its remaining tokens and asked
+ * to pace itself, which is exactly what a wedged loop will not do. The timer
+ * covers the whole cell rather than each turn, so a multi-turn case cannot
+ * quietly run for N times the configured limit.
+ *
+ * `timedOut` is the authority on why the cell ended, not the thrown error:
+ * aborting mid-stream can either throw or end the iterator quietly, and the
+ * quiet path would otherwise return a scoreable row with no reply in it.
+ *
+ * @param {object} [deps]  query, injectable so the timeout can be observed
+ *   actually firing. A guard nobody has watched fail is not evidence.
  */
-export async function runCell ({ styleId, styleText, variant, model, caseDef, repeat, opts }) {
+export async function runCell ({ styleId, styleText, variant, model, caseDef, repeat, opts, deps = {} }) {
+  const { query: queryFn = query } = deps
+  // Validated rather than defaulted, and before the workspace is built. A
+  // missing key would otherwise reach setTimeout as NaN, which fires on the
+  // next tick — turning the guard into a machine that aborts every cell in the
+  // matrix instantly and calls each one a timeout. Failing loudly on the first
+  // cell is the only reading of that state anyone can act on.
+  const limitMs = Number(opts.maxCellSeconds) * 1000
+  if (!Number.isFinite(limitMs) || limitMs <= 0) {
+    throw new Error(`maxCellSeconds must be a positive number — got ${opts.maxCellSeconds}`)
+  }
   const wsp = buildWorkspace({ styleText, variant })
+  const controller = new AbortController()
+  let timedOut = false
+  const timer = setTimeout(() => { timedOut = true; controller.abort() }, limitMs)
   try {
     const prompts = caseDef.multiTurn ?? [caseDef.prompt]
     const turns = []
     let resume
 
     for (const p of prompts) {
-      const t = await runTurn({ prompt: p, ws: wsp.dir, env: wsp.env, model, opts, resume })
+      const t = await runTurn({ prompt: p, ws: wsp.dir, env: wsp.env, model, opts, resume, controller, queryFn })
       turns.push(t)
       resume = t.sessionId ?? resume
-      if (t.error) break
+      if (t.error || timedOut) break
     }
 
     return {
@@ -120,12 +146,12 @@ export async function runCell ({ styleId, styleText, variant, model, caseDef, re
       allTurns: turns.map(t => t.trace),
       allFinals: turns.map(t => t.final),
       toolCalls: turns.flatMap(t => t.toolCalls),
-      costUsd: turns.reduce((a, t) => a + t.costUsd, 0),
-      error: turns.find(t => t.error)?.error ?? null
+      error: timedOut ? 'error_timeout' : (turns.find(t => t.error)?.error ?? null)
     }
   } catch (err) {
-    return { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat, text: '', trace: '', allTurns: [], allFinals: [], toolCalls: [], costUsd: 0, error: String(err.message ?? err) }
+    return { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat, text: '', trace: '', allTurns: [], allFinals: [], toolCalls: [], error: timedOut ? 'error_timeout' : String(err.message ?? err) }
   } finally {
+    clearTimeout(timer)
     wsp.cleanup()
   }
 }
