@@ -337,7 +337,11 @@ the suite is now green before *and* after a correct fix, and no assertion pins
 the fractional-cent behaviour, so the bug stays discoverable only by reading the
 code. This does not reach backwards either — the fixture shapes what the model
 did, not how it was scored, so no re-score can undo it. Replacing an affected
-figure means re-running the cells.
+figure means re-running the cells. Note the difference from the paragraph above:
+the seam was a scoring artifact, so it could be pinned to the checks that
+re-segment and the rest declared clear. This one changed the session the model
+had, so on a cell that met it any check can move, the judge included. It is
+bounded by reach instead — conversational cases never touch the repo.
 
 **A cell that said nothing is excluded from every mean, automatically.** This
 used to be a discipline — *filter `!row.error` before quoting anything* — and

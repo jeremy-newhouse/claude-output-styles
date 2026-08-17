@@ -293,11 +293,16 @@ the code returns 965. A second assertion expected 850, the truncating value,
 while its own comment computed 849, the rounded one, so a model that correctly
 fixed the bug broke a passing test. Neither failure is anything the style file
 governs, and both landed hardest on the models that did the most work. COS-13
-made the suite green before and after a correct fix. This caveat is weaker than
-the glued turn — it changes what the model met, not what the scorer read, so
-figures the fixture cannot reach (`agentic-read-report`, which never needs the
-tests, and every conversational case) are unaffected. But it is equally
-irreversible: no re-score can undo it, only a re-run.
+made the suite green before and after a correct fix. This caveat is narrower than
+the glued turn but must not be reasoned about the same way. The glued turn was a
+scoring artifact and could be traced to the checks that re-segment, leaving the
+others provably clear; this one changed what the model wrote, so on a cell that
+met it any check can move, the judge included. What bounds it is reach, not
+check: every conversational case is untouched, since those prompts never involve
+the repo, and `agentic-read-report` is the least exposed of the four because it
+asks for a reading rather than a test run — though a model that ran the suite
+anyway would still have met the failure. It is as irreversible as the glue: no
+re-score can undo it, only a re-run.
 
 Re-scoring the saved rows on the post-COS-10 scorer does isolate the *other* half
 of that change — `sentences()` now splitting on a single newline — and that half

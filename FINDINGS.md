@@ -595,9 +595,19 @@ and `reserve-agentic-session` — the more thoroughly a model worked, the more o
 this it met. COS-13 made the suite green both before and after a correct fix, so
 figures measured after it are not comparable to the ones above on this axis.
 Like the glued turn, it cannot be applied backwards: replacing one of these
-figures costs a re-run, not a re-score. `leads_with_conclusion`, `total_length`
-and the conversational figures are unaffected — the fixture only reaches cells
-that called a tool.
+figures costs a re-run, not a re-score.
+
+Its scope is narrower than the glued turn's but its reach inside that scope is
+wider, and the two must not be reasoned about the same way. The glued turn was a
+scoring artifact, so it could be traced to the checks that re-segment and ruled
+out for the rest. This one changes what the model *wrote*, so on an affected cell
+it can move any check, the judge included — no figure on an agentic cell can be
+ruled out the way `leads_with_conclusion` and `total_length` were ruled out
+above. What does bound it is which cells the fixture reaches at all: every
+conversational case is untouched, because those prompts never involve the repo.
+`agentic-read-report` is the least exposed of the four — it asks for a reading of
+`src/pricing.js` and never for a test run — but a model that ran the suite
+unprompted would still have met the failure, so it is not exempt either.
 
 ## A content gap that new content did not close
 
