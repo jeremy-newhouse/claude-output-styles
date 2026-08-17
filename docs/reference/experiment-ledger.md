@@ -133,6 +133,23 @@ so survived a structural collapse the judge caught. Both were fixed and the save
 transcripts re-graded offline without re-running a cell — which is the argument for persisting
 transcripts.
 
+**And the first fix went one step too far, which took a third pass to see.**
+Dropping the label requirement left `two_options_max` with no option cap at all
+for a reply that never writes a label: three alternatives walked through in prose
+scored a clean 1.0. COS-9 restored the cap by counting the signals a sprawling
+reply carries anyway — a stated count ("three ways"), or the pivots that
+introduce each alternative past the first ("another option", "alternatively",
+"or you could") — and taking the largest of those and the literal label count.
+The reply the original fix protected is untouched, guarded by its own regression
+test. Re-scoring all 62 saved runs moved exactly one of the 96 rows that carry
+the check: `22-59-53`, beginner on Haiku, `reserve-three-options`, 1.00 → 0.70.
+That reply labels two options, says "you have three paths", then names the third
+in prose in its closing line — the exact blind spot, on the one case written to
+provoke it. No published figure moves; nothing outside that run changed at all.
+What the check still cannot see is sprawl with no stated count and no pivot,
+which is the judge's to catch. Counting alternatives semantically would re-break
+the reply the first fix was for, and that trade stays refused.
+
 **Comparability has limits.** Deterministic scores are comparable across the
 whole history because rows can be re-graded. Judge scores are not: the judge was
 revised twice, once to receive the style body and once to raise `maxTurns`. Case

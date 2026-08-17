@@ -50,13 +50,14 @@
 - 2026-08-17T09:06:31-05:00 cb638d41a6dd6ec800bab9ae13420a867cb4ea68 chore(COS-14): record the branch's first commit in the doc log
 - 2026-08-17T09:06:31-05:00 e0bb46e530cf665bfc77b1d06222a6f11227abb3 Give improve its own model list instead of run's
 - 2026-08-17T09:17:26-05:00 e1119c96b5eaed892e15ae81d016523e2d079249 Open COS-24 from a sweep of the CLI's argument surface
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
-- 2026-08-17T10:08:52-05:00 ae6db0f46b0ca69bc4319b4145aaa8ff6c2a82f7 Record the docs commit in the generated log
-- 2026-08-17T10:17:37-05:00 d05367346a885c5ece20a028422385575dc25839 Record the archive commit in the generated log
-- 2026-08-17T10:30:40-05:00 8cb72e6101ccbce348e7aba60fb4a24e0e72b308 Say that the guard bounds a cell, not a run
-- 2026-08-17T10:41:31-05:00 876a0c68d27f2de5d55059161c5d6a453aa16ae9 Close the guard's high end, and keep the reply a wedged turn had started
-- 2026-08-17T10:51:40-05:00 25a58da9ab8079716c028a9e0feec719c1e34759 Correct the cost-to-token claim everywhere it lives, not just where it was found
-- 2026-08-17T11:00:59-05:00 f438d82f1929cac7c2a0c00369949eb0d231fd94 Repair the table the cost-column removal broke, and three more sweep defects
+- 2026-08-17T11:02:10-05:00 0c6d53652ab9c30f31dca8153d0860449b71f0d5 Record the docs commit in the generated log
+- 2026-08-17T11:02:10-05:00 20304a08379470cc0cb7ac544f02a49b9b81ac16 Record the archive commit in the generated log
+- 2026-08-17T11:02:10-05:00 68d47d418080f1639e2744d070f8f1c2b5575c96 Correct the cost-to-token claim everywhere it lives, not just where it was found
+- 2026-08-17T11:02:10-05:00 a1fc197d27f2af465ae4b0ee64076bd2d02c41f7 Close the guard's high end, and keep the reply a wedged turn had started
+- 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
+- 2026-08-17T11:02:10-05:00 b83bb2079ad02396c81d23cb8d983f6bb4070c1d Say that the guard bounds a cell, not a run
+- 2026-08-17T11:02:10-05:00 c37049d16fdd7b5376ddc10c537f760d8579ca99 Record the COS-25 finalization in the generated log
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 
 ## docs/adr
 
@@ -66,7 +67,7 @@
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T19:26:40-05:00 946c630b7e6192a89e7b3e4b4a63bebfbc52abcb Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:26:40-05:00 e13835266201d02fce61c139482100af7e1ba80e Correct four figures found by re-deriving them from the saved rows
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 
 ## docs/epics
 
@@ -78,7 +79,7 @@
 - 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 - 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 
 ## docs/reference
 
@@ -106,10 +107,10 @@
 - 2026-08-17T08:37:10-05:00 170135bf9b5702b13f9e7c48ddf1286a47bcbe04 Apply the branch review: make npm test work, and stop the guard misfiring
 - 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
-- 2026-08-17T10:30:40-05:00 8cb72e6101ccbce348e7aba60fb4a24e0e72b308 Say that the guard bounds a cell, not a run
-- 2026-08-17T10:41:31-05:00 876a0c68d27f2de5d55059161c5d6a453aa16ae9 Close the guard's high end, and keep the reply a wedged turn had started
-- 2026-08-17T11:00:59-05:00 f438d82f1929cac7c2a0c00369949eb0d231fd94 Repair the table the cost-column removal broke, and three more sweep defects
+- 2026-08-17T11:02:10-05:00 a1fc197d27f2af465ae4b0ee64076bd2d02c41f7 Close the guard's high end, and keep the reply a wedged turn had started
+- 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
+- 2026-08-17T11:02:10-05:00 b83bb2079ad02396c81d23cb8d983f6bb4070c1d Say that the guard bounds a cell, not a run
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 
 ## docs/runbooks
 
@@ -123,7 +124,7 @@
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
 - 2026-08-17T08:07:13-05:00 1c6a34ce05f0098c21ba2f1e372044dcd139ade6 Apply the branch review: pair the optimizer's verdict, and stop discarding scores
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 
 ## docs/specs
 
@@ -138,7 +139,7 @@
 - 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 - 2026-08-17T01:42:11-05:00 3a6df76953415b5b2ad6c66e91a3d7f6c19117cc Correct the two live docs the re-segmentation also moved
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 
 ## docs/stories
 
@@ -174,6 +175,6 @@
 - 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
 - 2026-08-17T09:06:31-05:00 e0bb46e530cf665bfc77b1d06222a6f11227abb3 Give improve its own model list instead of run's
 - 2026-08-17T09:17:26-05:00 e1119c96b5eaed892e15ae81d016523e2d079249 Open COS-24 from a sweep of the CLI's argument surface
-- 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
-- 2026-08-17T10:51:40-05:00 25a58da9ab8079716c028a9e0feec719c1e34759 Correct the cost-to-token claim everywhere it lives, not just where it was found
-- 2026-08-17T11:00:59-05:00 f438d82f1929cac7c2a0c00369949eb0d231fd94 Repair the table the cost-column removal broke, and three more sweep defects
+- 2026-08-17T11:02:10-05:00 68d47d418080f1639e2744d070f8f1c2b5575c96 Correct the cost-to-token claim everywhere it lives, not just where it was found
+- 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
+- 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
