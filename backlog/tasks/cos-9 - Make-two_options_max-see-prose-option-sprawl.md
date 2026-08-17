@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-16 20:54'
-updated_date: '2026-08-17 16:13'
+updated_date: '2026-08-17 16:19'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -83,4 +83,18 @@ Captured a baseline before touching the check, then re-scored on the new code an
 DOCS
 
 docs/reference/experiment-ledger.md: the 'Instruments needed fixing mid-project, twice' lesson read as the final word on two_options_max and no longer was. Added the third pass — what the first fix over-corrected, what COS-9 restored, the one row that moved, that no published figure moved, and what the check still cannot see. results/ is gitignored, so the ledger is the durable record of this re-score.
+
+SELF-REVIEW ROUND (step 6) — two defects the fix introduced, both found by probing the new detection rather than reading the diff.
+
+1. FALSE POSITIVE on benefit lists. 'It helps in three ways: fewer retries, lower cost, and no drift' scored 0.3 — the cap fired on a status reply offering no choice at all. 'ways' is the one noun in the stated-count set that is routinely a manner adverbial. Fixed: 'ways' must now point at a course of action ('three ways to cut the p95', 'three ways forward'); options/approaches/choices/alternatives/paths/routes stay unconditional, since those already mean 'things to pick between'. Verified against 9 strings — kills 4 false positives, keeps every true positive including 'You have three paths', which is the row-21 reply.
+
+2. THE CHECK READ RAW TEXT. two_options_max ran on text.toLowerCase(), never stripCode(text), while every other prose-shape check in the file strips code first. Pre-existing for the label count; the pivot detection widened it badly, because 'or you can', 'another option' and 'alternatively' are ordinary English in a code comment. Fixed by stripping code for the whole check.
+
+Both got their own tests, and both tests are sabotage-verified: reverting the 'ways to' tightening reds the new test (133/134); reverting stripCode reds it at 0.7 vs 1 (133/134). Note that the first attempt at the stripCode sabotage silently failed to apply and the suite came back green — a green sabotage run is evidence of nothing until the substitution is confirmed on disk, which is how it was caught.
+
+RE-VERIFICATION AFTER THE FIXES
+Suite 133 -> 134, all pass. audit exit 0. lore check exit 0.
+The per-row and aggregate re-scores were both re-run on the corrected code: identical results. Still exactly one moved row of 96 (22-59-53 / beginner / haiku / reserve-three-options, 1.00 -> 0.70), still 61 of 62 runs byte-identical, still the same three aggregate figures. Neither fix moved anything the first re-score had established.
+
+3. LEDGER QUOTE WAS NOT VERBATIM. The ledger had the reply saying 'you have three paths'; the text is 'You need it faster and have three paths.' Corrected to quote only the verbatim fragment. Same defect class the campaign has hit repeatedly — a claim in prose that reads as a quotation but is not one.
 <!-- SECTION:NOTES:END -->

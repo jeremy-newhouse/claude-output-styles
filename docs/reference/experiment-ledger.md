@@ -143,9 +143,10 @@ introduce each alternative past the first ("another option", "alternatively",
 The reply the original fix protected is untouched, guarded by its own regression
 test. Re-scoring all 62 saved runs moved exactly one of the 96 rows that carry
 the check: `22-59-53`, beginner on Haiku, `reserve-three-options`, 1.00 → 0.70.
-That reply labels two options, says "you have three paths", then names the third
-in prose in its closing line — the exact blind spot, on the one case written to
-provoke it. No published figure moves; nothing outside that run changed at all.
+That reply labels two options, tells the reader they "have three paths", then
+names the third in prose in its closing line — the exact blind spot, on the one
+case written to provoke it. No published figure moves; nothing outside that run
+changed at all.
 What the check still cannot see is sprawl with no stated count and no pivot,
 which is the judge's to catch. Counting alternatives semantically would re-break
 the reply the first fix was for, and that trade stays refused.
