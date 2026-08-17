@@ -40,6 +40,15 @@ Writes `results/<stamp>/rows.json`, `summary.json`, `report.md`, and `run.json`.
 Read the `WORST RULES` block first — it names the broken rule, the model, and
 quotes the offending text.
 
+**Check the `no reply` count before quoting any figure.** Every table states `n`
+(the cells behind the score) separately from `cells` (the arm you asked for). A
+cell that returned nothing is excluded from the means automatically, so the two
+differ whenever a case aborted — usually the agentic ones on the cheaper models,
+where the 12-turn limit bites. A wide gap does not invalidate the score; it
+narrows what the score is about, from "how the style performs" to "how it
+performs on the cells that finished". An arm where nothing replied prints `n/a`,
+not `0.0%`.
+
 Useful flags: `--variants`, `--cases`, `--repeats`, `--concurrency`,
 `--no-judge`.
 

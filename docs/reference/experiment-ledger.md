@@ -109,7 +109,7 @@ Five `improve` invocations, eight candidate rewrites, one survivor.
 | first | advanced, Opus only, 2 iterations | v1 reverted, **v2 kept** and adopted. The only rewrite that ever survived. |
 | second | intermediate then beginner, both models, patience 2 | Intermediate converged at v2 and was later rejected out of sample. Crashed into beginner on an unwrapped judge call at `maxTurns: 1`. |
 | third | beginner and advanced, both models, after the crash fix | Beginner converged at **v0** — both rewrites raised train ~6 and dropped holdout ~8, rejected twice. Advanced kept a v2 that was later rejected out of sample. |
-| `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells, $0.61. v1 reverted (train −0.029, holdout −0.193). On holdout the rewrite showed the usual signature — rules 70.8 → 83.3, judge 72.5 → **21.2** — while on train both halves fell. Scope too small to conclude anything about Haiku; the run existed to prove persistence. First improve run whose transcripts survive, and re-scoring them offline reproduced all four in-loop numbers exactly. |
+| `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells, $0.61. v1 reverted. **Restated under COS-11**, which found one of the four v0 holdout cells was an `agentic-fix-verify` abort scored 0 on rules and 1.0 on the judge. The in-loop verdict used the pooled figures and read the *usual* signature on holdout — rules 70.8 → 83.3, judge 72.5 → **21.2**, deltas train −0.029 holdout −0.193. Excluding the silent cell, v0 holdout is rules **94.3** and judge **63.3**, so the rewrite dropped rules 94.3 → 83.3 as well: **both halves fell on both splits**, and the holdout delta is −0.265, not −0.193. The reverted verdict is unchanged and was never in doubt; the "rules up, judge down" reading of this run was an artifact of one aborted cell. Scope was always too small to conclude anything about Haiku — the run existed to prove persistence. First improve run whose transcripts survive; re-scoring reproduced all four in-loop numbers exactly at the time, and no longer does, because `score` now reports the error-excluded reading and the in-loop numbers were pooled. |
 | `05-46-38` | beginner, Haiku only, `--iterations=0`, 1 train + 1 holdout case — under COS-12 | 4 cells, $0.09. Not a measurement and not an optimization: the loop measured its baseline and adopted v0. It exists because nothing else exercises `improve`'s persistence path, and COS-12 moved that path onto a shared writer. `run.json` reads `kind: "improve", complete: true, expected: null` — an improve loop's cell count is not known until it stops — and `report.md` still opens with the optimizer-trace warning. |
 
 ### What the sequence taught
@@ -215,8 +215,15 @@ rule. Left pooled, that reads as a ten-point collapse in Haiku's rule compliance
 (94.2 → 83.4 on advanced) when what actually happened is that Haiku could not
 finish a fix-then-test task at all. Both numbers are worth having and they answer
 different questions — how well the style is followed when the model speaks, and
-what a user experiences. Report them in separate columns, and never quote the
-pooled figure as a style score.
+what a user experiences.
+
+**Since COS-11 the tool reports them separately and there is nothing to
+remember.** Every mean is taken over the cells that replied, and every figure
+states its own `n`, `noReply` and `cells` beside it, so the two questions can no
+longer be confused for one. This paragraph stood for three sessions as a
+discipline instead — *filter `!row.error` before quoting anything* — and a
+discipline that must be remembered is a defect that has not been fixed yet: one
+session forgot it and published four wrong figures.
 
 That distinction was carried into COS-7 in advance rather than rediscovered, and
 in the event Fable did not need it: `23-48-45` and `23-53-02` errored on 0 of 36
@@ -352,8 +359,13 @@ recorded above under COS-5. The judge half is the opposite bias and was not:
 every judge mean it lands in. Found in `01-03-21`, where one advanced/Opus cell
 hit the 12-turn limit: `agentic-fix-verify` on Opus reads **44.2 with it and 33.0
 without**. Pooling errors therefore inflates the judge while deflating rules, in
-the same run, and the two do not cancel. Filter on `!row.error` before quoting
-either.
+the same run, and the two do not cancel.
+
+**Fixed in COS-11**, at the one place every figure comes from: `summarize()`
+averages only the cells that produced a reply. The row still carries its
+substituted 1.0 — `total` is computed from it — but no mean pools it, and
+`judgeReads: null` marks it as a call that never happened. The 44.2 above is now
+what the tool refuses to print, and 33.0 is what it reports.
 
 One consumer of this bias is now fixed, because COS-1 made it worse before it
 made it better. Adding a second agentic case to the `reserve` split put the most
@@ -364,8 +376,9 @@ cells a side, each one-sided abort moved the delta by roughly 0.01 against a
 rather than on the rewrite. The gate now compares only cases that produced a
 reply on **both** sides, logs which cases it dropped, and rejects rather than
 adopts when nothing is comparable. `01-33-41` measured why this mattered: the new
-case aborts 3 of 6 on Haiku. The wider bias in `summarize()` is untouched and
-still raised.
+case aborts 3 of 6 on Haiku. COS-11 then closed the wider bias in `summarize()`
+and widened this gate's own test from `row.error` to `producedReply(row)`, so a
+cell that goes silent without the flag drops its case here too.
 
 **Noise floor.** At one repeat and five cases, a single case moves the mean by
 about 0.03. Differences under three points are not real. `22-59-53` puts a

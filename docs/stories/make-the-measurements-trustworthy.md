@@ -52,12 +52,22 @@ re-derivable, was re-derived across all 61 saved runs, and moves rule totals by 
 most 1.50 points — but it moves published sentence-segmentation figures by more
 than that, and those were corrected in place.
 
-**Errored cells bias both halves of the score, in opposite directions.** An
-empty reply scores 0.0 on every deterministic check and, because `evaluate.mjs`
-substitutes `{ score: 1 }` when it skips the judge, a free 100% on the judge. The
-two do not cancel. One turn-limit abort moved a published figure from 33.0 to
-44.2. `improve`'s adoption gate was fixed under COS-1; `summarize()`, which every
-quoted arm mean comes from, was not.
+**Errored cells biased both halves of the score, in opposite directions — fixed
+under COS-11.** An empty reply scores 0.0 on every deterministic check and,
+because `evaluate.mjs` substitutes `{ score: 1 }` when it skips the judge, a free
+100% on the judge. The two did not cancel. One turn-limit abort moved a published
+figure from 33.0 to 44.2, and six aborts in `22-59-53` understated Haiku's
+advanced rule compliance by 10.8 points. `improve`'s adoption gate was fixed
+under COS-1; `summarize()`, which every quoted arm mean comes from, now excludes
+them too, and every figure states the sample it was taken over.
+
+The exclusion is keyed on whether the cell produced a turn, not on the SDK's
+error flag, which closes a second and wider version of the same bias: a cell that
+went silent *without* the flag was scored, and scored well — 0.931 on rules for
+beginner on `agentic-fix-verify`, because every "no X found" check finds no X,
+plus the free judge 1.0. Re-deriving the fix across every saved run corrected one
+published conclusion: `14-48-09`'s holdout arm read "rules up, judge down" only
+because one of its four v0 cells had aborted.
 
 **The fixture the agentic cases run against contradicts itself.** It asserts that
 `applyDiscount(999, 15)` is 850 while its own comment computes 849, so a model
@@ -119,7 +129,7 @@ expensive and worthless.
 | Task | Title | Status |
 |---|---|---|
 | [COS-10](../../backlog/tasks/cos-10%20-%20Score-the-final-assistant-message-not-the-whole-turn.md) | Score the final assistant message, not the whole turn | Done |
-| [COS-11](../../backlog/tasks/cos-11%20-%20Stop-errored-cells-from-biasing-every-score-the-project-quotes.md) | Stop errored cells from biasing every score the project quotes | To Do |
+| [COS-11](../../backlog/tasks/cos-11%20-%20Stop-errored-cells-from-biasing-every-score-the-project-quotes.md) | Stop errored cells from biasing every score the project quotes | Done |
 | [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | Done |
 | [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | To Do |
 | [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | To Do |
