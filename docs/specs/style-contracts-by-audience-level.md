@@ -146,13 +146,14 @@ sentences over 12 words (`22-27-15`), Haiku 40.5% tightened (`22-18-53`) and
 
 **Treat that as a band and not as a ranking**, because the movement between
 slices is nearly as large as the spread between models. Measured on one
-consistent slice — the beginner style, the five shared cases, the untightened
-file — the same four models give Opus 39.1%, Haiku 45.5%, Fable 45.9% and Sonnet
-47.4%. That is an 8.3-point spread across four models; the same *single* model
-moves by up to 7.1 points just by changing slice (Haiku 38.4% on the full pool,
-45.5% on the shared five). With those two numbers so close, the ordering carries
-no weight — only the observation that all four sit in one broad band does. Adding
-the top tier changed nothing: Fable lands in the middle of the four.
+consistent slice — the beginner style, the untightened file, and only the cells
+where the model called no tool, since `sentences()` under-splits on the rest —
+the four models give Opus 37.6%, Fable 40.7%, Sonnet 41.8% and Haiku 44.6%. That
+is a 7.0-point spread across four models, and a single model moves by nearly as
+much just by changing which cells are counted: Sonnet reads 41.8% here and 47.4%
+if the tool-using cells are pooled back in. With those two numbers so close the
+ordering carries no weight — only the observation that all four sit in one broad
+band does. Adding the top tier changed nothing: Fable lands in the middle.
 
 **A cheap-model probe measures whether an instruction can bind, not whether it
 binds** — and a probe small enough to be cheap is small enough that its baseline

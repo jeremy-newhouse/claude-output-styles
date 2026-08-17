@@ -65,8 +65,8 @@ central result. The style files carry their rules everywhere; what a tier change
 is how well it writes, not how well it complies.
 
 The top tier is not a clean win. Fable leads the judge on advanced and beginner
-but is last of four on intermediate rules, and Sonnet — three tiers down and a
-fifth of the price — still writes the best intermediate. Nor does paying more buy
+but is last of four on intermediate rules, and Sonnet — two tiers down and 2.3×
+cheaper per cell — still writes the best intermediate. Nor does paying more buy
 cap adherence: word-cap overrun does not track tier, and the model that keeps
 best to the cap is Sonnet.
 

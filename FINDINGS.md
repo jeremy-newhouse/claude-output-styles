@@ -244,6 +244,13 @@ Sonnet come from run `12-44-03`, Haiku from `22-59-53`, Fable from `23-48-45`;
 the three runs are separate invocations on the same day, which is the only
 difference between the columns. No cell in any column errored.
 
+**Reproducing these figures requires re-scoring, not reading `rows.json`.**
+`contracts.json` changed at `3370e4d`, after `12-44-03` ran, so that run's stored
+`rulesScore` values are graded against the older contract and give 93.8 / 90.2 /
+95.0 / 91.7 where this table says 94.2 / 91.5 / 95.6 / 92.3. The table is on
+today's scorer throughout. Regrade with `node src/cli.mjs score --rows=…`, which
+is free, before concluding that a number here is wrong.
+
 | style | rules haiku | rules sonnet | rules opus | rules fable | judge haiku | judge sonnet | judge opus | judge fable |
 |---|---|---|---|---|---|---|---|---|
 | advanced | 96.0 | 96.8 | 97.8 | 97.9 | 52.9 | 66.0 | 73.9 | **78.3** |
@@ -266,7 +273,7 @@ of rule score against the best of the other three, and Fable is last on
 Whatever a tier gives up, it is not rule-following.
 
 The judge column is *not* a tier ranking. Fable leads on advanced and beginner,
-but Sonnet — three tiers down and a fifth of the price — beats it on intermediate,
+but Sonnet — two tiers down and 2.3× cheaper per cell — beats it on intermediate,
 72.6 to 67.7. The only stable fact is at the bottom: Haiku is last every time.
 
 There is one clean split, and it is not a gradient. **Haiku and Sonnet both rank
@@ -302,22 +309,44 @@ levels pool onto one scale. Reply length is counted with `checks.mjs`'s own
 | opus | 0.1493 | **1.300** | 43.3% | 71.7 |
 | fable | 0.2345 | 1.229 | 40.0% | 75.0 |
 
-In tier order the sequence is 1.088, 0.961, 1.300, 1.229 — it turns twice. Paired
-over the 15 (style × case) cells, which removes case and style as confounds:
+**The answer is in the point estimates, before any inference.** A tier gradient
+predicts that each step up the range overruns more than the step below it. In
+tier order the sequence is 1.088, 0.961, 1.300, 1.229, so two of the three
+adjacent steps go the *wrong way*: Haiku overruns more than Sonnet above it, and
+Opus overruns more than Fable above it. Only one step out of three has the sign
+a gradient needs.
 
-| comparison | mean difference | 95% CI |
-|---|---|---|
-| haiku − sonnet | **+0.127** | [+0.034, +0.219] |
-| sonnet − opus | **−0.339** | [−0.643, −0.034] |
-| sonnet − fable | **−0.268** | [−0.434, −0.103] |
-| opus − fable | +0.070 | [−0.118, +0.259] |
-| haiku − opus | −0.212 | [−0.557, +0.133] |
-| haiku − fable | −0.142 | [−0.350, +0.067] |
+The paired comparisons agree, and are weaker than they first look. Differences
+are paired on (style × case) so that case and style cancel:
 
-Both ends break the tier story. The **cheapest** model overruns significantly
-*more* than the second cheapest, and the **top two tiers are indistinguishable**.
-The only structure the data resolves is that Sonnet keeps to the cap and the
-other three do not — one model, not a gradient.
+| comparison | mean difference | 95% CI | corrected for six tests |
+|---|---|---|---|
+| haiku − sonnet | +0.127 | [+0.034, +0.219] | [−0.016, +0.270] |
+| sonnet − opus | −0.339 | [−0.643, −0.034] | [−0.811, +0.133] |
+| sonnet − fable | **−0.268** | [−0.434, −0.103] | **[−0.525, −0.012]** |
+| opus − fable | +0.070 | [−0.118, +0.259] | [−0.221, +0.362] |
+| haiku − opus | −0.212 | [−0.557, +0.133] | [−0.747, +0.323] |
+| haiku − fable | −0.142 | [−0.350, +0.067] | [−0.465, +0.182] |
+
+The right-hand column is the one to read. Six comparisons are drawn from the same
+15 units, so the uncorrected intervals understate the chance that one of them
+clears zero by luck; Bonferroni over exactly those six leaves **only sonnet −
+fable** excluding zero, and only barely. Two further cautions in the same
+direction: the 15 units are 3 styles × the *same* 5 cases, so differences repeat
+within a case and a paired *t* treating them as independent makes every interval
+too narrow — clustering to the 5 cases instead widens them again (sonnet − fable
+becomes [−0.494, −0.043], still clear of zero; nothing else changes status). And
+`total_length` counts every cell, tool-using or not, so the text-block seam
+described below does not touch these figures.
+
+So the honest reading is narrow and it is enough. **Nothing in this data resolves
+a tier gradient, and the point estimates run against one at two of three steps.**
+The one comparison that survives correction says the *second-cheapest* model
+keeps to the cap better than the *most expensive* one, which is the opposite of
+what a gradient predicts. What the data does not do is prove no gradient exists —
+the wide intervals on the other five comparisons are consistent with small
+effects in either direction. It rules out the effect being large enough to matter
+at this sample size, and it removes the reason to suspect one.
 
 This is where the summary's qualifier at the top of the document comes from. The
 "roughly twice as often" figure is run `20-10-29`'s, on an advanced style file
@@ -375,15 +404,30 @@ which one it is.
 
 Two rules where the cheap model was expected to fail, and did not:
 
-- **Sentence length.** On the shared five, Haiku averages 11.8-word sentences
-  against Sonnet's 13.5, Opus's 11.3 and Fable's 11.8, and runs over the 20-word
-  cap on 11.3% of sentences against Sonnet's 19.1%, Opus's 10.6% and Fable's
-  10.7%. Haiku is not the long-sentence model — Sonnet is, and it stays the
-  outlier with the top tier added. Across the full 13-case pool Haiku holds at
-  12.0 words and 12.3% over cap, so this is not an artifact of the easier
-  subset. All figures use `checks.mjs`'s own `words()`, the tokenizer
-  `sentence_length` scores with. This **reverses** the reading taken from a
-  four-cell probe during the sentence cap work; see the experiment ledger.
+- **Sentence length.** Measured on the **four conversational cases only** — the
+  agentic case is excluded on purpose, because the text-block seam described
+  below makes `sentence_length` unquotable there:
+
+  | model | mean sentence words | over the 20-word cap |
+  |---|---|---|
+  | opus | 10.6 | 7.9% |
+  | fable | 11.1 | 9.6% |
+  | haiku | 11.3 | 10.0% |
+  | sonnet | **13.4** | **20.3%** |
+
+  Haiku is not the long-sentence model — Sonnet is, by a clear margin, and it
+  stays the outlier with the top tier added. Across the full 13-case pool Haiku
+  holds at 11.5 words and 10.6% over cap on its 60 tool-free cells, so this is
+  not an artifact of the easier subset. All figures use `checks.mjs`'s own
+  `words()`, the tokenizer `sentence_length` scores with. This **reverses** the
+  reading taken from a four-cell probe during the sentence cap work; see the
+  experiment ledger.
+
+  These four numbers replace ones this document previously quoted over all five
+  cases (Haiku 11.8 / 11.3%, Sonnet 13.5 / 19.1%, Opus 11.3 / 10.6%, Fable 11.8 /
+  10.7%) and one over the full pool including its agentic cells (12.0 / 12.3%).
+  Every figure moved by 0.1 to 0.7 words. **The conclusion did not move at all**,
+  and Sonnet's lead over the field grew.
 - **Code blocks and filler.** `code_block_size` and `no_filler` score 100.0 on
   every model including Haiku.
 
@@ -406,10 +450,10 @@ Fable was run on the same case, three styles, two repeats (`23-53-02`):
 | opus | 0 of 6 |
 | fable | 0 of 6 |
 
-Those cells cost $0.9681 each — 4.8× a conversational Fable cell ($0.1998) and
-4.1× its five-case average. The top tier buys completion, and completion is the
-only thing it buys. Same model, same style files, same scorer, only the case
-changes:
+Those cells averaged $0.9681 and ranged $0.7970 to $1.1315 — 4.8× a conversational
+Fable cell ($0.1998), and the six most expensive cells in the project. The top
+tier buys completion, and completion is the only thing it buys. Same model, same
+style files, same scorer, only the case changes:
 
 | Fable on | rules | judge |
 |---|---|---|

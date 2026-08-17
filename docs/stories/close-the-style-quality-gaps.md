@@ -29,13 +29,13 @@ re-express rules that already exist, so six rewrites across two rounds left this
 untouched.
 
 **Beginner prose.** Beginner is the weakest style by a wide margin. Measured on
-the standard case set, both models, ten cells each:
+the standard case set, ten cells each, now across all four model tiers:
 
-| style | rules (opus / sonnet) | judge (opus / sonnet) |
+| style | rules (opus / sonnet / haiku / fable) | judge (opus / sonnet / haiku / fable) |
 |---|---|---|
-| advanced | 97.8 / 96.8 | 73.9 / 66.0 |
-| intermediate | 94.2 / 95.6 | 63.9 / 72.6 |
-| **beginner** | 91.5 / 92.3 | **45.9 / 48.4** |
+| advanced | 97.8 / 96.8 / 96.0 / 97.9 | 73.9 / 66.0 / 52.9 / 78.3 |
+| intermediate | 94.2 / 95.6 / 94.3 / 93.1 | 63.9 / 72.6 / 62.2 / 67.7 |
+| **beginner** | 91.5 / 92.3 / 90.9 / 91.4 | **45.9 / 48.4 / 37.5 / 53.9** |
 
 It follows its own rules at over 90% and still reads worst. Judge complaints
 centre on vague next-steps, restated ideas, and reverting to a helper-assistant
@@ -43,6 +43,18 @@ register on follow-up turns. Raising its `judgeWeight` to 0.5 did not let the
 optimizer fix it — both cross-model rewrites raised train by roughly 6 points and
 dropped holdout by roughly 8, so the keep rule rejected them and the loop
 converged having changed nothing.
+
+**Two tiers were added after this story was written, and neither rescued it.**
+Beginner is last on the judge on every one of the four, and the best score any
+model reaches is Fable's 53.9 — the most capable tier available, still 16 points
+under the bar. A more capable model does not write better beginner prose from
+this file, which is what would have to be true for the gap to be a model problem
+rather than a content one. COS-7 also measured the mechanism directly: on the
+five shared cases beginner averages 135 words on Opus, 132 on Fable, 113 on Haiku
+and 103 on Sonnet, against a stated cap of 80, while every tier writes
+comfortably *inside* the looser 120-word advanced cap. The caps are being read as
+an audience signal, and the signal points the wrong way — "explain this simply"
+is answered with more words, not fewer.
 
 ## Acceptance criteria
 
@@ -69,6 +81,17 @@ converged having changed nothing.
 The composite scores in the table above are not comparable across styles: each
 carries a different `judgeWeight`. The rules and judge columns are directly
 comparable, and they are what this story is scored on.
+
+**"On both models" in the criteria above needs a ruling before COS-1 or COS-4
+starts, and this story does not make it.** The criteria were written when two
+tiers were measured. Four are now, so "both models" can mean the original Opus
+and Sonnet, or every tier. The choice changes the bar materially: beginner's
+current judge scores are 45.9 / 48.4 / 37.5 / 53.9, so a 70% bar has to be
+cleared from 45.9 if it means Opus and Sonnet, and from 37.5 — a further 8.4
+points down — if it means every tier. Both tasks are already recorded as
+high-risk against the campaign's
+record-and-park policy. Left as written, deliberately — moving a bar is the
+user's call, not a measurement session's.
 
 Beginner may need a different instrument rather than a different wording. Its
 rules pass while its prose does not, which is the signature of a style whose
