@@ -332,6 +332,13 @@ export const CHECKS = {
     // would re-break the reply above, which is the trade the original comment
     // refused and this one keeps refusing.
     //
+    // The known cost of that refusal, in the other direction: a reply that names
+    // a count in order to REJECT it — quoting the reader's "three options here"
+    // and answering "there are two" — is read as claiming three. Telling those
+    // apart needs negation scope, which is the semantic path above. The shape is
+    // unobserved in the corpus: the stated count fires on two saved rows and
+    // both are real sprawl, so the estimator's measured precision is 2 of 2.
+    //
     // Reads the prose with code stripped, like every other shape check here.
     // "another option" is ordinary English in a code comment, and a fenced block
     // is not the reply offering the reader a choice.
@@ -353,7 +360,9 @@ export const CHECKS = {
       if (hasTradeoff) score += 0.3
       const ev = []
       if (labelled.size > 2) ev.push(`${labelled.size} labelled options (cap is 2)`)
-      else if (counted > 2) ev.push(`~${counted} options presented in prose (cap is 2)`)
+      // "claimed", not "presented": this branch fires on what the reply says it
+      // has, which is not always prose and is never a count of things counted.
+      else if (counted > 2) ev.push(`~${counted} options claimed (cap is 2)`)
       if (!hasReco) ev.push('no recommendation')
       if (!hasTradeoff) ev.push('no trade-off comparison')
       return { score: Math.min(1, score), evidence: ev }
