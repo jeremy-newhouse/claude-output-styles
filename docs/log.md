@@ -43,6 +43,7 @@
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
 - 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:27:33-05:00 58f6cff8b6d343cd3cb11bcbdd6e3d4ccdeca462 chore(COS-13): record the branch's commits in the doc log
+- 2026-08-17T08:30:19-05:00 115fe50b53d5baa29abb29d8afbf4c14ac0061b0 chore(COS-13): record the review-pass commits in the doc log
 
 ## docs/adr
 
@@ -89,6 +90,7 @@
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
 - 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:27:12-05:00 e71e38c35d765a4c0da8d3246b2256a2261dd5b4 Bound the fixture caveat by reach, not by check
+- 2026-08-17T08:35:24-05:00 3d2635a7eb878e955c000aa54641e4c42447c2e7 Apply the branch review: make npm test work, and stop the guard misfiring
 
 ## docs/runbooks
 
@@ -148,3 +150,4 @@
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
 - 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:27:12-05:00 e71e38c35d765a4c0da8d3246b2256a2261dd5b4 Bound the fixture caveat by reach, not by check
+- 2026-08-17T08:35:24-05:00 3d2635a7eb878e955c000aa54641e4c42447c2e7 Apply the branch review: make npm test work, and stop the guard misfiring
