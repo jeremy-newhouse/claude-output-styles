@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { improveStyle, spendOf, comparableRows, meanTotal } from '../src/improve.mjs'
+import { improveStyle, spendOf, comparableRows, meanTotal, resolveImproveModels, DEFAULT_IMPROVE_MODELS } from '../src/improve.mjs'
 import { summarize } from '../src/evaluate.mjs'
 import { renderConsole, renderMarkdown, renderVerdict } from '../src/report.mjs'
 
@@ -700,4 +700,54 @@ test('an unmeasured split is never printed as a null score', () => {
   // covers both places a reader meets an unmeasured arm.
   assert.match(out, /\(train n\/a holdout n\/a\)/, 'headline')
   assert.match(out, /v0: train n\/a holdout n\/a/, 'history line')
+})
+
+// improve's model list used to be run's: cli.mjs resolved one array before the
+// subcommand branch and passed it to both, so a model added for `run` was billed
+// on every iteration of every optimizer loop. These pin the replacement (COS-14).
+test('improve reads its own model list, not the matrix-wide one', () => {
+  const lines = []
+  const models = resolveImproveModels({ cfg: { ...CFG, models: ['haiku'] }, log: m => lines.push(m) })
+  assert.deepEqual(models, ['haiku'])
+  // The signature is the guarantee: run's list is not a parameter here, so there
+  // is nothing to inherit even if a caller wanted to.
+  assert.ok(!('fallback' in resolveImproveModels), 'no run-list fallback path exists')
+  assert.match(lines.join('\n'), /models: haiku \(matrix\.improve\.models\)/)
+})
+
+test('--models still overrides the configured improve list', () => {
+  const lines = []
+  const models = resolveImproveModels({
+    cliModels: ['sonnet'],
+    cfg: { ...CFG, models: ['opus', 'sonnet', 'haiku'] },
+    log: m => lines.push(m)
+  })
+  // Aiming one loop at one tier must not require editing a shared config file.
+  assert.deepEqual(models, ['sonnet'])
+  assert.match(lines.join('\n'), /models: sonnet \(--models\)/)
+})
+
+test('a config missing improve.models warns and uses the named default', () => {
+  const lines = []
+  const { models, ...noModels } = { ...CFG, models: ['opus', 'sonnet', 'haiku'] }
+  const resolved = resolveImproveModels({ cfg: noModels, log: m => lines.push(m) })
+  // Same shape as the missing-minReserveDelta fallback above: a named constant
+  // and a warning that names it, so the substitution is in the run's own output.
+  assert.deepEqual(resolved, DEFAULT_IMPROVE_MODELS)
+  assert.match(lines.join('\n'), /improve\.models is not set/)
+  // Failing cheap is the point. haiku is $0.0232 a baseline cell; opus is
+  // $0.1493 and fable $0.2345, and the loop pays per iteration per candidate.
+  assert.deepEqual(DEFAULT_IMPROVE_MODELS, ['haiku'])
+})
+
+test('an empty improve.models is treated as absent, not as zero models', () => {
+  const lines = []
+  // `models: []` would otherwise resolve to a loop that measures nothing and
+  // reports every arm as unmeasured — a silent no-op run that still pays the
+  // author model for its rewrites.
+  const resolved = resolveImproveModels({ cfg: { ...CFG, models: [] }, log: m => lines.push(m) })
+  assert.deepEqual(resolved, DEFAULT_IMPROVE_MODELS)
+  assert.match(lines.join('\n'), /improve\.models is not set/)
+  // Same for an empty --models=, which parses to [] after the filter in cli.mjs.
+  assert.deepEqual(resolveImproveModels({ cliModels: [], cfg: { ...CFG, models: ['opus'] } }), ['opus'])
 })

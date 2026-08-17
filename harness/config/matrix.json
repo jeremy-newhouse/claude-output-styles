@@ -1,12 +1,12 @@
 {
   "//models": [
-    "This list is the DEFAULT for both `run` and `improve`, so anything added",
-    "here is paid on every iteration of every optimizer loop that omits",
-    "--models. Fable is therefore deliberately not in it: measured cost per",
-    "baseline cell on the five shared cases is haiku $0.0232, sonnet $0.1013,",
-    "opus $0.1493, fable $0.2345 — and a mean $0.9681 on a write-then-verify",
-    "agentic case, where the worst single cell ran $1.1315. Budget off the worst",
-    "cell, not the mean: these are the priciest cells in the project.",
+    "`run`'s list only. `improve` has its own (improve.models) and never reads",
+    "this one, so a model added here costs one pass of the matrix, not one pass",
+    "per optimizer iteration — that coupling was COS-14.",
+    "Measured cost per baseline cell on the five shared cases: haiku $0.0232,",
+    "sonnet $0.1013, opus $0.1493, fable $0.2345 — and a mean $0.9681 on a",
+    "write-then-verify agentic case, where the worst single cell ran $1.1315.",
+    "Budget off the worst cell, not the mean: these are the priciest cells here.",
     "Fable has no bare alias. Measure the top tier by passing its full SDK id:",
     "  node src/cli.mjs run --models='claude-fable-5[1m]' --variants=baseline",
     "Quote the id: the [1m] is a glob pattern in zsh. And name --variants —",
@@ -64,6 +64,11 @@
     "judgeModel": "sonnet"
   },
   "//improve": [
+    "models is this loop's own list and is not the matrix's. It is billed once",
+    "per candidate per iteration, so it multiplies: 3 models x 6 iterations is",
+    "18 measured arms before the reserve gate. Adding a tier here is a much",
+    "larger commitment than adding one to the top-level models. Omitting the key",
+    "warns and falls back to the cheapest tier alone; --models overrides it.",
     "trainSplit and holdoutSplit are the loop's own signals. reserveSplit is not:",
     "the loop never selects it, and it is measured once at the end to validate the",
     "candidate the loop wants to adopt. minReserveDelta is deliberately as tight as",
@@ -71,6 +76,11 @@
     "rewrite costs a re-run, adopting a bad one ships a regression."
   ],
   "improve": {
+    "models": [
+      "opus",
+      "sonnet",
+      "haiku"
+    ],
     "targetScore": 0.9,
     "maxIterations": 6,
     "authorModel": "opus",

@@ -46,6 +46,7 @@
 - 2026-08-17T08:37:10-05:00 5f80341d6d23019a6cb28004f5ff80544eb798b7 chore(COS-13): record the review-pass commits in the doc log
 - 2026-08-17T08:37:10-05:00 8d503ba49552445fcd2d393dcdcd0ff3cf979b08 chore(COS-13): record the branch's commits in the doc log
 - 2026-08-17T08:37:10-05:00 aa60eb7a052b5411d5abb8958c364f043cc060fc chore(COS-13): record the tracker and summary updates in the doc log
+- 2026-08-17T08:43:43-05:00 a11018a170d738964283188c8f1248f7a955c520 Open two follow-ups from the COS-13 review, and record why they were appended
 
 ## docs/adr
 
