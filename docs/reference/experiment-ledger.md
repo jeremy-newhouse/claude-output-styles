@@ -26,8 +26,9 @@ Every `run` invocation writes `rows.json`, `summary.json`, and `report.md`.
 absent from the runs below; from `2026-08-16T14-48-09` onward an improve run
 persists the same three files, with an `iteration` on every row.
 
-From COS-12 onward both commands also write a fourth file, `run.json`, and
-re-write all four after every completed cell rather than once at the end. Read
+From COS-12 onward both commands also write a fourth file, `run.json`. `run`
+re-writes all four after every completed cell rather than once at the end;
+`improve` re-writes them once per measured split, as it has since COS-3. Read
 `run.json` before quoting anything from a run directory: `complete: false` means
 the process died partway and the rows beside it are the cells that survived, not
 the matrix that was requested. Runs recorded before COS-12 have no `run.json`,

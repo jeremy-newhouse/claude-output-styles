@@ -31,6 +31,13 @@ export function writeAtomic (path, text) {
  * other three are cheap to regenerate and are kept in step so the directory
  * describes itself at any moment it is interrupted.
  *
+ * Rewriting the whole file per cell is quadratic in bytes written, which is
+ * deliberate: the largest arm this project plans is 146 cells at a few KB each,
+ * so the cumulative write is tens of megabytes against cells that cost real
+ * money and take tens of seconds. Appending would be cheaper and would cost the
+ * property that makes this worth having — that the file on disk is always a
+ * valid, complete-in-itself JSON array.
+ *
  * @param {object[]} rows      every cell completed so far, in matrix order
  * @param {number|null} expected  cells the matrix will produce, if known
  * @param {boolean} complete   true only once the run has finished
