@@ -5,10 +5,12 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 02:49'
+updated_date: '2026-08-17 03:48'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
-dependencies: []
+dependencies:
+  - COS-16
+  - COS-20
 documentation:
   - FINDINGS.md
   - docs/stories/close-the-style-quality-gaps.md
@@ -260,6 +262,15 @@ Ranked by evidence, (2) is the only one with a quoted judge violation behind it.
 5. **The shape router omits two of the file's own six shapes** — 'Reporting a long session' and 'Answering a follow-up'. The second is the sharper miss: `conv-followup-drift` produced 4 of the 10 structure violations that motivated the router, and the router does not route it.
 
 And a correction to weakness (2) as I recorded it: the 'always give a proof number' rule is stated in **three** places, not one — the Beginner-level bullet, beat 2, and the long-session bullet 'One sentence, one number'. Replacing only the first, as I proposed, would leave the other two pushing a reply that has nothing to count.
+
+**Unblocked by follow-up issues opened 2026-08-17.** AC #1 was missed at 73.9 Opus / 58.1 Sonnet against a bar of 70. Two things have to happen before a retry means anything, and both now have owners:
+
+- **COS-16** fixes the five contradictions this task left in the file and, unlike this task, measures each edit on its own at 146 cells per model rather than as an unresolvable five-edit bundle.
+- **COS-20** tests the judge instrument itself. The 24.6 per-cell SD that makes this bar expensive is an upper bound containing both reply variance and judge-call variance, and nobody has separated them. If the judge is the larger share, re-judging saved replies is cheaper per point of precision than adding cells, and the 146-cell figure quoted throughout these notes is too large.
+
+Two further results bear on whether the bar is the right one. **COS-17** measures whether the rewrite's length effect reproduces on Haiku and Fable, and **COS-18** asks whether intermediate and advanced carry the same defects — if they do, beginner being last may be less about beginner than the four-tier table implies.
+
+Dependencies added: COS-16, COS-20.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

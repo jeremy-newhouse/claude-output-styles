@@ -5,10 +5,14 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 01:38'
+updated_date: '2026-08-17 03:48'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
-dependencies: []
+dependencies:
+  - COS-10
+  - COS-11
+  - COS-13
+  - COS-16
 references:
   - harness/rejected/README.md
 documentation:
@@ -165,4 +169,13 @@ Fixed narrowly, in the gate only: new `comparableRows()` pairs the two sides by 
 **Accepted, not fixed:** the fixture's `pricing.test.mjs` asserts 850 while its own comment computes 849, so a model that rounds correctly breaks a passing test and must decide unaided whether to edit it. Pre-existing, and changing it would move published agentic numbers, so it is raised rather than patched — the same handling as the seam.
 
 Session spend now **$13.6567**.
+
+**Unblocked by follow-up issues opened 2026-08-17 (session 8's close-out).** AC #4 was parked on two blockers and both now have owners:
+
+- The agentic half is unmeasurable while the judge is handed the whole turn instead of the final message — **COS-10**.
+- The conversational half was called a length problem. **COS-4 has since cut beginner's mean reply from 103 words to 61 and the judge did not move** (+1.3 [−15.0, +17.6]). So length was not the cause, or not the only one, and re-attempting AC #4 on that theory alone would repeat what COS-4 already paid for.
+
+Also relevant to the bar itself: per-cell judge SD is 24.6, so the arms behind AC #4's 46.2 / 42.0 / 51.2 / 54.7 carry intervals about 30 points wide. Whether those figures are really below 65 has never been established at a sample size that could tell. Any retry should size the arm first — **COS-19** sets the precedent at 146 cells per model — and **COS-20** may change that number by separating judge-call variance from reply variance.
+
+Dependencies added: COS-10, COS-11, COS-13, COS-16.
 <!-- SECTION:NOTES:END -->

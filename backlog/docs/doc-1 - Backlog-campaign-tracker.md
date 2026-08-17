@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 02:50'
+updated_date: '2026-08-17 03:49'
 ---
 # Backlog campaign tracker
 
@@ -15,22 +15,27 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Queue empty — the campaign is complete.** All eight issues COS-1 through COS-8
-have been taken, one per session, in the order the user confirmed on 2026-08-16:
-"COS-6 → COS-3 → COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4."
+**No cursor. The first campaign is complete and a second is not yet ordered.**
 
-Six resolved. Two — COS-1 and COS-4, the two hard style tasks the user
-deliberately sequenced last — met most of their criteria, shipped that work, and
-missed a measured judge bar. Both are parked under the risk policy below rather
-than closed, with the scores they actually reached recorded.
+All eight issues COS-1 through COS-8 were taken one per session in the order the
+user confirmed on 2026-08-16: "COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5 ->
+COS-7 -> COS-1 -> COS-4." Six resolved. Two — COS-1 and COS-4, the hard style
+tasks deliberately sequenced last — shipped most of their work and missed a
+measured judge bar, and are parked with the scores they reached.
 
-There is no next issue. Starting a new campaign means re-running
-`/backlog-handover init` against whatever the user wants queued next; the
-candidates already written down are in "Raised, not queued" below.
+**A second backlog now exists.** On 2026-08-17 the user asked for follow-up
+issues covering everything untested, with budget removed as a constraint. Twelve
+issues are open: COS-9 (raised in session 3) plus COS-10 through COS-21, and the
+two parked tasks COS-1 and COS-4 now carry dependencies on them. Nothing is
+queued, because queue order is the user's to confirm.
 
-## Queue (confirmed order)
+Starting the second campaign means running `/backlog-handover init`, which will
+inventory the twelve and propose an order. The dependency graph already implies
+most of one — see the note under Queue below.
 
-Empty. The confirmed order ran to completion.
+## Queue
+
+**Campaign 1: complete.** The confirmed order ran to completion.
 
 | # | Issue | Type | Outcome |
 |---|---|---|---|
@@ -38,13 +43,33 @@ Empty. The confirmed order ran to completion.
 | 7 | COS-1 | styles | ACs #1-#3 merged; AC #4 missed and parked |
 | 8 | COS-4 | styles | ACs #2-#3 met and merged; AC #1 missed and parked |
 
-Not queued: **COS-9** (raised session 3) and the harness defects raised in
-sessions 5, 6, 7 and 8 — see "Raised, not queued" below. Deliberately left out of
-the confirmed order, which is the user's to change.
+**Campaign 2: twelve issues open, no order confirmed.** The dependencies are
+already recorded on the tasks, and they imply a shape rather than an order:
 
-**Total campaign spend: $53.00** — COS-6 nothing, COS-3 $0.7500, COS-2 $1.1800,
-COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290, COS-1 $13.6567, COS-4 $18.6813
-against a ~$20 budget, the most expensive session of the eight.
+- **Instrument first, and nothing measured until it lands.** COS-10 (score the
+  final message, not the whole turn), COS-11 (errored cells bias every score),
+  COS-12 (flush rows so a killed run keeps what it paid for), COS-13 (the
+  fixture contradicts itself). Every measurement issue depends on some of these,
+  and re-measuring on the current scorer would buy precision on the wrong number.
+- **Cheap independents, any time.** COS-14 (`improve` inherits `run`'s models),
+  COS-15 (the audit cannot express "unless they ask"), COS-9 (`two_options_max`
+  is blind to prose option sprawl).
+- **Then the measurement.** COS-20 (validate the judge — do this before sizing
+  anything expensive, because it may cut the 146-cell figure), COS-16 (the five
+  contradictions the beginner rewrite left), COS-17 (beginner on Haiku and
+  Fable), COS-18 (do the other two styles carry the same defects), COS-19 (the
+  headline table at a sample size its claims need), COS-21 (the reinforcement
+  ADR rests on five cells per arm).
+- **Last, the two parked bars.** COS-4's AC #1 and COS-1's AC #4, both of which
+  now depend on the above.
+
+**Campaign 1 spend: $53.00** — COS-6 nothing, COS-3 $0.7500, COS-2 $1.1800,
+COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290, COS-1 $13.6567, COS-4 $18.6813.
+
+**Campaign 2 has no budget ceiling**, by the user's decision on 2026-08-17. For
+planning: an arm at the required 146 non-errored cells per model runs about $19
+at the measured $0.1297 a cell, and considerably more on Fable, whose worst
+single agentic cell has cost $1.1315. Budget off the worst cell, not the mean.
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -132,15 +157,20 @@ IS counted above.
   rule coverage and not missing content. Anyone reopening this should price the
   arm before agreeing to the bar.
 
-## Raised, not queued — needs the user's call
+## Raised — now tracked as issues
 
-- **COS-9** (session 3): `two_options_max` counts only literal option labels, so
+Every item below was raised across sessions 3 to 8 and deliberately left out of
+the confirmed order. On 2026-08-17 the user asked for follow-up issues covering
+everything untested, with no budget constraint, so each now has a task ID and
+acceptance criteria a future session can act on without this conversation.
+
+- **COS-9** — tracked (session 3): `two_options_max` counts only literal option labels, so
   it cannot see prose option sprawl.
-- **`run` does not flush rows incrementally** (session 5). `improve` persists
+- **COS-12** — `run` does not flush rows incrementally (session 5). `improve` persists
   after every style; `run` writes `rows.json` only after the entire matrix
   completes, so a killed or crashed run loses every cell it already paid for.
   Session 6 ran $12.84 of `run` invocations with this exposure live.
-- **Assistant text blocks are concatenated with no separator** (session 6, new,
+- **COS-10** — assistant text blocks are concatenated with no separator (session 6,
   and the largest of the three). `run.mjs` does `text += b.text`, so on an
   agentic turn the pre-tool narration is glued to the post-tool answer:
   `"I'll look at the file first.The bug is in ..."`. `sentences()` needs
@@ -159,7 +189,7 @@ IS counted above.
   all 16 a judge violation quotes it. This is now a blocker on COS-1's AC #4, not
   only a caveat on two checks — though it is not the whole story either, since 10
   of those 18 final updates are over the word cap on their own.
-- **An errored cell scores 0 on rules and 1.0 on the judge** (session 7, new).
+- **COS-11** — an errored cell scores 0 on rules and 1.0 on the judge (session 7).
   `evaluate.mjs` skips the judge on an errored row and substitutes
   `{ score: 1 }`, so a cell that returned no text contributes a free 100% to
   every judge mean. The rules half is documented from COS-5; the judge half is
@@ -173,40 +203,72 @@ IS counted above.
   rejects rather than adopting when nothing is comparable. The wider bias in
   `summarize()` — every judge mean anyone quotes — is untouched and still needs
   the user's call. Until then, filter on `!row.error` before quoting.
-- **The agentic fixture contradicts itself** (session 7, from the branch review).
+- **COS-13** — the agentic fixture contradicts itself (session 7, from the branch review).
   `harness/fixtures/repo/test/pricing.test.mjs` asserts `applyDiscount(999, 15)`
   is 850 while its own comment computes 849. A model that correctly replaces
   `Math.floor` with rounding breaks a currently-passing test and has to decide
   unaided whether to edit the assertion, which is scoring noise on every agentic
   case — including the two now on the reserve gate. Pre-existing; fixing it moves
   published agentic numbers, so it is raised rather than patched.
-- **`sentences()` merges a list header into its first item** (session 4). It does
+- **COS-10** (same task, same subsystem) — `sentences()` merges a list header into its first item (session 4). It does
   not split on a single newline, so "Here's why:\nYou're paying twice." scores as
   one long sentence. Measured at 12.2% of over-cap sentences. Fixing it also
   moves published numbers. Note this and the seam above are the same subsystem
   and would sensibly be one task.
-- **`improve` inherits `run`'s model list** (session 6, from the branch review).
+- **COS-14** — `improve` inherits `run`'s model list (session 6, from the branch review).
   `matrix.models` is the default for both, and `harness/README.md`'s own
   quick-start line is `improve --styles=… --iterations=4` with no `--models`, so
   any model added to that list is billed on every optimizer iteration of the
   documented invocation. COS-7 kept Fable out for exactly this reason, which
   documents the footgun rather than removing it. Giving `matrix.improve` its own
   `models` key would remove it. Small, and it makes the top tier safe to add.
-- **The audit compares numbers, not conditions** (session 4). Beginner's file
+- **COS-15** — the audit compares numbers, not conditions (session 4). Beginner's file
   says "never show code *unless they ask*"; `maxCodeLines: 0` cannot express the
   condition. Documented in `harness/README.md` as a limit of the instrument.
 
-- **A judge bar stated to the point is not affordable at this project's arm
-  sizes** (session 8, new, and it applies retroactively to two tasks). Per-cell
-  judge SD is 22 to 32 points, so the ten-cell arms every per-model judge figure
-  in this project rests on carry 95% intervals about 30 points wide. Beginner on
-  Sonnet, measured four times on the same five cases with only the repeat count
-  differing, read 70.7, 65.8, 74.1 and 55.0. Resolving 10 points needs ~25 cells
-  per model-arm (~$3), 7 points ~49 (~$5), 5 points ~97 (~$10), 4 points ~151
-  (~$16 per model-arm, ~$32 for both). COS-1's "> 65%" and COS-4's "> 70%" were
-  both written without this being known. Recorded in the ledger's noise-floor
-  section; whether to restate the two bars, or to score styles on rules and reply
-  length where the error bars are affordable, is the user's call.
+- **~~A judge bar stated to the point is not affordable~~ — SETTLED by the user
+  on 2026-08-17: "we have to get everything tested - no budget."** Budget is no
+  longer a constraint, so the bars stand and the arms get sized to support them.
+  Every measurement issue opened below requires **n >= 146 non-errored cells per
+  model**, which is what a 95% half-width of +/-4 points costs at the shipped
+  text's pooled judge SD of 24.6 (Opus 24.1, Sonnet 22.8) and the task's measured
+  $0.1297 a cell — about $19 a model-arm. Detecting a real difference between two
+  arms costs roughly double: 47 cells per arm for 10 points, 95 for 7, 187 for 5,
+  291 for 4. Note what this does not buy: sample size narrows an interval, it
+  does not move a point estimate above a bar.
+
+  The finding that produced the decision stands. Per-cell judge SD is 22 to 32,
+  so the ten-cell arms every per-model judge figure in this project rests on
+  carry 95% intervals about 30 points wide, and beginner on Sonnet read 70.7,
+  65.8, 74.1 and 55.0 across four arms of the same five cases. COS-1's "> 65%"
+  and COS-4's "> 70%" were both written without this being known. **COS-19** now
+  owns re-measuring the headline table at a sample size its claims need, and
+  **COS-20** owns finding out how much of that 24.6 is the judge rather than the
+  reply — if the judge dominates, re-judging saved replies is cheaper per point
+  of precision than buying cells, and the 146 figure comes down.
+
+- **COS-16** (session 8, new) — the beginner rewrite left five contradictions of
+  the same class it removed: the jargon rules disagree for a word the reader used
+  first, the proof-number rule demands a number that may not exist and is stated
+  three times, two router bullets both match a tool-using report, the router omits
+  two of the file's own six shapes, and the file's worked example of the gloss
+  rule uses a banned term. Recorded rather than fixed because the budget was gone
+  and shipping unmeasured style text is against COS-1's precedent.
+- **COS-17** (session 8, new) — beginner was rewritten and re-measured on Opus and
+  Sonnet only. Haiku and Fable sit in the middle of COS-7's overrun sequence and
+  are a direct test of whether the fix is a property of the file or of two models.
+- **COS-18** (session 8, new) — nobody has looked for beginner's four structural
+  defects in the other two files. Intermediate is the live suspect: COS-7 measured
+  it at 144 words against a 100-word cap on Opus.
+- **COS-19** (session 8, new) — the four-tier baseline is the project's headline
+  result and twelve of its judge cells are ten-cell arms.
+- **COS-20** (session 8, new) — the judge has never been validated as an
+  instrument. One model, one call per cell, no separation of judge-call variance
+  from reply variance, and no inter-judge agreement measured. Cheap, because saved
+  replies can be re-judged without re-running a cell.
+- **COS-21** (session 8, new) — the *Reject harness-level reinforcement* ADR is
+  Accepted on **five cells per arm**, one style, one model, and style text that no
+  longer ships.
 
 ## Risk policy (confirmed by the user on 2026-08-16)
 
@@ -512,3 +574,14 @@ Both remaining issues carry known risk against that policy:
   than applied. Five defects in the shipped style text are recorded in the task
   rather than fixed: the budget is spent and shipping unmeasured text is what
   COS-1's precedent forbids.
+- 2026-08-17 — after session 8, on the user's instruction "we have to get
+  everything tested - no budget": opened twelve follow-up issues (COS-10 through
+  COS-21) covering every defect and untested claim the campaign recorded but did
+  not act on, and wired COS-1 and COS-4 to them as dependencies. The budget
+  question the tracker had been holding for the user is settled — bars stand,
+  arms get sized to support them, and every measurement issue requires n >= 146
+  non-errored cells per model. Three of the twelve are new findings rather than
+  carried-forward ones: the judge has never been validated as an instrument
+  (COS-20), the *Reject harness-level reinforcement* ADR is Accepted on five
+  cells per arm (COS-21), and nobody has checked the other two style files for
+  the defects the beginner rewrite found (COS-18).
