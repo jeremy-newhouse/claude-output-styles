@@ -78,8 +78,9 @@ test('two_options_max leaves an unlabelled two-option reply at 1', () => {
   assert.equal(CHECKS.two_options_max.run(twoStated, C).score, 1)
 })
 
-// AC #1: sprawl with no labels at all. Both the stated count and the pivot
-// chain have to land, because replies signal the sprawl one way or the other.
+// AC #1: sprawl with no labels at all. All three estimators have to land — a
+// stated count, a run of "another option", and a claimed ordinal — because a
+// reply asserts its extra alternatives one of those ways or none of them.
 test('two_options_max sees prose option sprawl without labels', () => {
   const stated = 'Three ways to cut the p95. A covering index gets it to 40ms in an afternoon and is reversible. '
     + 'A read-through cache gets it to 5ms but adds an invalidation path. '
@@ -107,10 +108,10 @@ test('two_options_max sees prose option sprawl without labels', () => {
 
 // Connectives were in the sprawl detection and were taken back out. They cost
 // the exact reply the label-blindness rewrite existed to protect, and they
-// never caught anything: across the 96 saved rows carrying this check they
-// matched zero times, while the stated count matched the two real sprawl
-// replies. An estimator with no observed true positive and a live false-
-// positive path is worse than no estimator.
+// never caught anything: across the 96 re-scorable saved rows carrying this
+// check they matched zero times, while the stated count matched the two real
+// sprawl replies. An estimator with no observed true positive and a live
+// false-positive path is worse than no estimator.
 test('two_options_max does not count connectives as separate options', () => {
   const twoConnectives = 'Add the covering index today; it is reversible. '
     + 'Alternatively, raise the cache TTL, which is cheaper but goes stale. '
