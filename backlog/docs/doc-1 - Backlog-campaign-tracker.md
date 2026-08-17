@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 05:50'
+updated_date: '2026-08-17 06:26'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-10** — queue order for campaign 2 confirmed by the user on
+**Next issue: COS-11** — queue order for campaign 2 confirmed by the user on
 2026-08-17, who chose the "Fix tools first, then everything" option from a
 presented comparison over a shorter path that went straight to the two missed
 bars: "15 sessions. Repairs the measuring tools before spending on any test,
@@ -26,7 +26,8 @@ and cheaper, and COS-19 can reuse its data."
 
 Do not re-ask before taking the next item.
 
-Campaign 2 item 1 (COS-12) is resolved; the cursor has advanced to item 2.
+Campaign 2 items 1 and 2 (COS-12, COS-10) are resolved; the cursor has advanced
+to item 3.
 
 Campaign 1 is closed. Its cursor ran COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5
 -> COS-7 -> COS-1 -> COS-4; six resolved, two parked. Those two are now items 14
@@ -47,7 +48,7 @@ and 15 of campaign 2, because the blockers under them have owners.
 | # | Issue | Type | One-line note |
 |---|---|---|---|
 | 1 | COS-12 | harness | **Resolved, session 9.** Flush rows so a killed run keeps what it paid for. Insurance before any large arm. Cost $0.1812 to prove, not the $0 planned. |
-| 2 | COS-10 | harness | Score the final message, not the whole turn. Unblocks 6 of the 15. Moves published agentic figures. |
+| 2 | COS-10 | harness | **Resolved, session 10.** Score the final message, not the whole turn. Cost $0.4143 to prove the seam end-to-end. The fix does not reach backwards: saved agentic figures are labelled, not corrected. |
 | 3 | COS-11 | harness | Errored cells score 0 on rules and 1.0 on the judge. Both biases, one fix. |
 | 4 | COS-13 | fixture | The fixture asserts 850 and computes 849. Needs COS-10. |
 | 5 | COS-14 | config | `matrix.improve` inherits `run`'s model list. Small, no spend. |
@@ -124,6 +125,7 @@ IS counted above.
 | # | Issue | Status/date/session | Evidence summary |
 |---|---|---|---|
 | 1 | COS-12 | Task Done — 2026-08-17, session 9 | All 4 ACs verified, and AC #4 required a real kill rather than a unit test. Two paid Haiku runs, **$0.0898**. `results/2026-08-17T05-29-31-663Z` (beginner, Haiku, baseline, 4 conversational cases, repeats 1, concurrency 1, judge on) was SIGKILLed — `kill -9`, no handler, no graceful shutdown — the moment `run.json` read `completed=2`. Both survivors came back fully scored: `conv-status-auth` rules 0.985 / judge 0.62 / total 0.802, `conv-decision-db` rules 1.0 / judge 0.58 / total 0.79, $0.0682 between them. The killed process never printed its `wrote` line, so nothing but the per-cell flush put those files on disk (**AC #1**). `run.json` read `complete: false, completed: 2, expected: 4` (**AC #2**), and `score --rows=` exited 0 printing `PARTIAL run — 2 cells of 4 expected (2 never ran)` above every table (**AC #3**). `results/2026-08-17T05-31-40-879Z`, the same configuration allowed to finish, writes `complete: true` and `score` says `complete run — 1 cell`. Design: `rows.json` stays a bare array — every run in the ledger is one and every offline re-derivation reads it as one — so completeness lives in a sibling `run.json`, and every file is written through a temp file and `rename(2)` so a kill mid-write cannot truncate the paid data. The manifest is written last on purpose: it can then only ever undercount what is on disk. New `harness/src/results.mjs` owns the directory; `evaluate()` gained `onRows` (per completed cell, indexed by cell so a partial file is ordered like the complete one it would have become) and an injectable `runCell`; `improve` uses the same writer. Regression check: re-scoring `12-44-03` still returns 81.0% at $7.517, so the flush moved no published figure. `/code-review high` raised four findings, all real and all fixed on the branch: a partial `report.md` was indistinguishable from a complete one (it now opens with the manifest sentence as a blockquote, the same device `report.mjs` already used for optimizer traces); the PARTIAL line went to stderr while every figure went to stdout, so `score > figures.txt` dropped it — and that was a *new* exposure, because a bare `score` resolves to the newest run and only now can the newest run be a partial one; `improve` stamped `complete: true` even when every style threw; and `improve.json` was written after the manifest, contradicting the manifest-last invariant this change itself asserts. `npm --prefix harness test` **64 → 79**; `audit` exit 0; `lore check` exit 0. Spend caveat now recorded in the ledger: the cell in flight when the kill lands has spent tokens no row will ever carry, so flushing recovers completed cells, not the interrupted one. Merged via PR #10 (rebase) as `b735501`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. |
+| 2 | COS-10 | Task Done — 2026-08-17, session 10 | All 5 ACs verified. Three paid Haiku/Opus/Sonnet cells, **$0.4143**. `run.mjs` no longer does `text += b.text`: it keeps the assistant's blocks in order and `splitTurn` derives `trace` (all text blocks joined by a blank line) and `final` (the blocks after the last tool call, falling back to the last block said if the turn ended on one — `''` would score 1.0 on every "no X found" check). The row carries `text` = final, `trace`, `allTurns` (per-turn trace) and `allFinals`. **AC #1 was measured, not read**: run `06-21-53` (2 cells, $0.38) caught an Opus cell making 8 tool calls and opening *"I'll look at the file first."* — `trace` 642 chars, `text` 612, the difference being exactly that narration. Segmented with the project's own `sentences()`, the glued string the old code would have saved reads one **22-word** opening sentence, over beginner's 20-word cap; `final` reads it at **17 words**, under it; `trace` reads the narration as its own 6-word sentence. One check changes answer on one cell — the whole defect in miniature. The Sonnet cell aborted on the turn limit and wrote `trace: ''`, exercising the error path; `06-21-03` (1 cell, $0.03, Haiku) made a tool call with *no* pre-tool text and returned the two views byte-identical, which is the case the fix has to leave alone. **AC #2**: every entry in `CHECKS` declares `reads: 'final' | 'trace'` and the value is copied onto each saved check row, so a figure lifted from `rows.json` says which string produced it. The line comes from the case rubrics, not taste — three of the four agentic rubrics say "the final message ... in style", so checks measuring how the answer is written read `final`; rules the style states as outright bans (narration, celebration, emoji) read `trace`, because those are violations wherever they appear. The judge reads `caseDef.judgeOn`: `agentic-read-report` → `trace` (its rubric grades narration of the search), the other three agentic cases → `final`. Both are enforced by tests, and the chosen judge view is saved as `judgeReads`. `scoreDeterministic` now throws a TypeError on a bare string so no caller could be missed silently. **AC #3/#4**: `sentences()` splits on a single newline; against HEAD's code the new tests move "Here's why:\nYou're paying twice." from 1 sentence to 2, a two-item list from 2 to 3, and `sentence_length` at an 8-word cap from 0.0 to 1.0 — and `splitTurn`/`viewsOf`/`VIEWS` do not exist on HEAD at all, so the whole new block fails to link against it. **AC #5 is the one that took the session.** All 61 saved runs were re-scored on both codebases and compared per run, per scope and per check. The seam half **cannot be applied backwards** — gluing is lossy — so every published agentic figure was re-scored to confirm the applicable half leaves it unchanged (`paragraph_length` on `agentic-read-report` 100.0/100.0/100.0/95.8 by tier; Fable `agentic-fix-verify` `paragraph_length` 16.7, `leads_with_conclusion` 16.7, rules 79.5; `leads_with_conclusion` on `agentic-read-report` 50.0/100.0/16.7/16.7) and then **explicitly labelled as measured on the glued turn** in `FINDINGS.md`, the ledger, `harness/README.md` and both story docs. The newline half *is* re-derivable and was: rule totals move at most +1.07 points on any run and scope, and 0.00–0.34 on every run behind a published four-tier figure — inside the noise floor — but segmentation figures move more and were corrected in place (FINDINGS' per-model table Opus 10.6→10.2w/7.9→6.3%, Fable 11.1→10.7/9.6→8.8%, Haiku 11.3→10.1/10.0→8.1%, Sonnet 13.4→12.9/20.3→19.5%, Haiku full-pool 11.5→9.6/10.6→7.0%; the ledger's probe table 16.6→15.5, 12.1→10.8, 12.2→10.4 words and 60.0→56.3%, 43.0→35.2%, 38.4→30.2%). **Every pre-fix figure reproduced exactly before its replacement was quoted**, which is what makes the deltas trustworthy. One published conclusion needed restating: the ledger argued the 12-word cap did nothing because the tightened arm's 40.5% over-12 share sat *inside* the untightened range 38.4–43.0%; re-segmented it reads 38.5% against 30.2–35.2%, i.e. **above** the range, and the paired CI moved from [0.06, 8.07] to [−0.17, 8.03] — from barely excluding zero to including it. The conclusion holds and is firmer; it was restated rather than left standing. `npm --prefix harness test` **79 → 90**; `audit` exit 0; `lore check` exit 0. |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -690,3 +692,59 @@ Both remaining issues carry known risk against that policy:
   Merged via PR #10 (rebase) as `b735501`; `dev` and `main` both pushed at
   that SHA, remote and local `feature/COS-12` pruned, no open PRs. Cursor
   advanced to COS-10.
+
+- 2026-08-17 — session 10: resolved COS-10 on `feature/COS-10`. No drift at
+  restore: `dev`, `main` and both remotes level at `f6c098f`, tree clean, no
+  leftover branches, PR #10 merged and pruned, cursor and handover agreed.
+
+  The seam is fixed and the fix is deliberately not retroactive. `runTurn` keeps
+  the assistant's blocks in order; `splitTurn` derives `trace` (all text blocks,
+  blank-line joined) and `final` (the blocks after the last tool call). The
+  fallback matters more than it looks: when a turn ends ON a tool call there is
+  no post-tool block, and returning `''` would score 1.0 on every "no X found"
+  check while returning the trace would re-glue exactly what the split exists to
+  separate — so it returns the last thing the model actually said.
+
+  **The design question was which string each rubric asks about, and the answer
+  came from the rubrics rather than from taste.** Three of the four agentic case
+  rubrics say "the final message ... in style"; `agentic-read-report` says "no
+  narration of the search process", which needs the narration present. So checks
+  that measure how the answer is written read `final`, rules the style states as
+  outright bans (narration, celebration, emoji) read `trace`, and the judge reads
+  whatever its case declares in `judgeOn`. Both choices are recorded on the saved
+  row (`checks[].reads`, `judgeReads`), so a figure lifted out of `rows.json`
+  carries the string that produced it. Two tests enforce the declarations.
+
+  **AC #1 was bought, not argued.** A 2-cell Opus/Sonnet run on
+  `agentic-fix-verify` ($0.38) caught the exact sentence this project has quoted
+  since session 6 — *"I'll look at the file first."* — in a row that now holds it
+  in `trace` and not in `text`. Segmented three ways: the glued string reads one
+  22-word opening sentence, over beginner's 20-word cap; `final` reads it at 17,
+  under it; `trace` reads the narration as its own 6-word sentence. A check
+  changes answer on a real cell, which is the defect in one line. A prior 1-cell
+  Haiku run ($0.03) had made a tool call with no pre-tool text and returned the
+  two views byte-identical — worth having, because that is the case the fix must
+  leave alone.
+
+  **AC #5 was most of the session, and the useful part is what it could not do.**
+  Gluing is lossy, so no saved agentic figure can be re-derived onto the fix; the
+  honest move is the AC's own escape hatch — re-score to confirm the applicable
+  half changes nothing, then label the figure as measured on the glued turn
+  everywhere it appears. What *is* re-derivable is the newline split, and that
+  was run across all 61 saved runs, old code against new, per run and per scope
+  and per check. Rule totals move at most +1.07 points anywhere and 0.00–0.34 on
+  every run behind a published four-tier figure. Segmentation figures move more
+  and were corrected in place.
+
+  Worth carrying forward: **every pre-fix figure was reproduced exactly before
+  its replacement was quoted.** All twelve FINDINGS sentence figures, the
+  ledger's three-row probe table and the paired validation's CI all came back
+  identical on HEAD's code, which is what makes the deltas trustworthy rather
+  than a second opinion. That check also caught the one place the conclusion
+  needed restating: the ledger argued the 12-word cap did nothing because the
+  tightened arm's over-12 share sat *inside* the untightened range; re-segmented
+  it sits *above* it, and the paired CI moved from just excluding zero to
+  including it. Same conclusion, firmer, but it had to be rewritten rather than
+  left to read as if the old numbers still supported it.
+
+  `npm test` 79 → 90; `audit` exit 0; `lore check` exit 0. Spend $0.4143.
