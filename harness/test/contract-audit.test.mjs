@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { statedCaps, auditStyle, auditAll, problemsOf, renderAudit, PATTERNS } from '../src/contract-audit.mjs'
+import { statedCaps, statedCondition, auditStyle, auditAll, problemsOf, renderAudit, PATTERNS } from '../src/contract-audit.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const CONTRACTS_PATH = join(ROOT, 'config/contracts.json')
@@ -76,7 +76,9 @@ test('auditStyle catches the divergence that actually shipped', () => {
   // contracts.json once graded beginner at 15 words / 3 sentences against a
   // file that said 20 / 4. This is that exact case.
   const body = 'Keep sentences under 20 words. Keep paragraphs under 4 sentences.\n\nNever show code unless they ask.\n\nKeep the whole update under about 80 words.'
-  const badContract = { maxSentenceWords: 15, maxParagraphSentences: 3, maxUpdateWords: 80, maxCodeLines: 0 }
+  // codeOnRequest is present so the two numeric divergences are the only
+  // findings; the conditional half of the code rule has its own tests below.
+  const badContract = { maxSentenceWords: 15, maxParagraphSentences: 3, maxUpdateWords: 80, maxCodeLines: 0, codeOnRequest: true }
   const rows = auditStyle('beginner', body, badContract)
   const bad = problemsOf(rows)
   assert.equal(bad.length, 2)
@@ -110,6 +112,112 @@ test('a styleFile that does not resolve is a finding, not a crash', () => {
   assert.match(rows[0].detail, /cannot read \.\.\/no-such-style\.md: ENOENT/)
   assert.equal(problemsOf(rows).length, 1)
   assert.match(renderAudit(rows), /WARN ghost\s+styleFile/)
+})
+
+// ---------- conditional caps (COS-15) ----------
+
+test('a cap the prose lifts on request is drift when the contract cannot say so', () => {
+  // The defect COS-15 opened on. The numbers agree — 0 and 0 — and the old
+  // audit called that agreement while beginner's prose granted a permission
+  // maxCodeLines had no field to hold.
+  const body = 'Never show code unless they ask.'
+  const rows = auditStyle('beginner', body, { maxCodeLines: 0 })
+  const code = rows.find(r => r.field === 'maxCodeLines')
+  assert.equal(code.status, 'mismatch')
+  assert.equal(code.condition, 'unless they ask')
+  assert.match(code.detail, /both say 0, but the file lifts the cap "unless they ask" and contracts\.json sets no codeOnRequest/)
+})
+
+test('a lifted cap passes once the contract expresses the lift', () => {
+  const rows = auditStyle('beginner', 'Never show code unless they ask.', { maxCodeLines: 0, codeOnRequest: true })
+  const code = rows.find(r => r.field === 'maxCodeLines')
+  assert.equal(code.status, 'ok')
+  assert.match(code.detail, /both lift it on request/)
+})
+
+test('a contract that lifts a cap the prose never lifts is drift too', () => {
+  // The mirror: a reader of the style would never learn the permission exists.
+  const rows = auditStyle('x', 'Code or diffs under 10 lines.', { maxCodeLines: 10, codeOnRequest: true })
+  const code = rows.find(r => r.field === 'maxCodeLines')
+  assert.equal(code.status, 'mismatch')
+  assert.match(code.detail, /contracts\.json sets codeOnRequest and the file states no such permission/)
+})
+
+test('a judgement condition is not a request condition', () => {
+  // Advanced's real line. "when they carry the point faster than prose" is the
+  // writer's call, not the reader's request: nothing outside the writer can
+  // evaluate it, so it must stay an ordinary unconditional cap rather than
+  // demanding a codeOnRequest that would then be graded on every reply.
+  const rows = auditStyle('advanced', 'Code or diffs under 10 lines when they carry the point faster than prose.', { maxCodeLines: 10 })
+  const code = rows.find(r => r.field === 'maxCodeLines')
+  assert.equal(code.status, 'ok')
+  assert.equal(code.condition, null)
+})
+
+test('a condition is read from the sentence that states the cap, not the whole file', () => {
+  // Beginner's file says "Do not elaborate unless asked" three sections above
+  // its code rule. A whole-body test would read that as a code-cap condition
+  // and report drift on a file that has none.
+  const body = 'Reply with the minimum that is needed. Do not elaborate unless asked.\n\nCode or diffs under 10 lines.'
+  assert.equal(statedCondition(body, 'maxCodeLines'), null)
+  const rows = auditStyle('x', body, { maxCodeLines: 10 })
+  assert.equal(rows.find(r => r.field === 'maxCodeLines').status, 'ok')
+})
+
+test('the shipped beginner and intermediate files both state the code cap conditionally', () => {
+  // Grounds the two contracts' codeOnRequest in the files themselves: if a
+  // style stops granting the permission, this fails rather than the flag
+  // sitting in contracts.json unread.
+  for (const id of ['plain-english-beginner', 'plain-english-intermediate']) {
+    const body = readFileSync(resolve(ROOT, contracts[id].styleFile), 'utf8')
+    assert.ok(statedCondition(body, 'maxCodeLines'), `${id} no longer lifts its code cap on request`)
+    assert.equal(contracts[id].codeOnRequest, true)
+  }
+  const advanced = readFileSync(resolve(ROOT, contracts['plain-english-advanced'].styleFile), 'utf8')
+  assert.equal(statedCondition(advanced, 'maxCodeLines'), null)
+  assert.equal(contracts['plain-english-advanced'].codeOnRequest, undefined)
+})
+
+test('parsing the same body twice gives the same answer', () => {
+  // The condition scan tests PATTERNS against individual sentences. PATTERNS
+  // carries /g for matchAll, and .test() on a /g/ regex advances lastIndex,
+  // which matchAll copies — so the second parse of a file skipped its own
+  // opening lines and reported a stated cap as `unstated`. Idempotence is the
+  // property that catches it; the symptom is two different audits of one file.
+  const body = readFileSync(resolve(ROOT, contracts['plain-english-advanced'].styleFile), 'utf8')
+  assert.deepEqual(statedCaps(body), statedCaps(body))
+  assert.deepEqual(statedCaps(body), statedCaps(body))
+  for (const field of Object.keys(PATTERNS)) {
+    assert.equal(statedCaps(body)[field].status, 'stated', field)
+  }
+})
+
+// ---------- AC #3: the guard still goes red on a real disagreement ----------
+
+test('breaking a shipped contract on purpose turns the guard red', () => {
+  // A guard is only worth its exit code if the red is reachable. Each mutation
+  // is asserted to have landed before its effect is believed — two sabotage
+  // runs in this campaign came back green because the mutation never applied.
+  const mutations = [
+    { field: 'maxSentenceWords', to: 15, expect: /file says 20, contracts\.json grades at 15/ },
+    { field: 'maxUpdateWords', to: 999, expect: /file says 80, contracts\.json grades at 999/ },
+    { field: 'codeOnRequest', to: undefined, expect: /sets no codeOnRequest/ }
+  ]
+  const original = contracts['plain-english-beginner']
+  const body = readFileSync(resolve(ROOT, original.styleFile), 'utf8')
+  assert.deepEqual(problemsOf(auditStyle('plain-english-beginner', body, original)), [])
+
+  for (const { field, to, expect } of mutations) {
+    const mutated = { ...original, [field]: to }
+    if (to === undefined) delete mutated[field]
+    assert.notEqual(mutated[field], original[field], `mutation of ${field} did not land`)
+    const bad = problemsOf(auditStyle('plain-english-beginner', body, mutated))
+    assert.equal(bad.length, 1, `${field}: expected exactly one finding, got ${bad.length}`)
+    assert.match(bad[0].detail, expect)
+  }
+
+  // And the original is still clean, so the red came from the mutation.
+  assert.deepEqual(problemsOf(auditStyle('plain-english-beginner', body, original)), [])
 })
 
 test('a contract that omits a cap is reported as unconfigured, not as a mismatch', () => {

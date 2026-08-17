@@ -84,6 +84,56 @@ const hit = (text, list) => {
   return list.filter(p => lower.includes(p))
 }
 
+// ---------- glosses ----------
+
+// A gloss is the escape every style file grants and no contract could hold:
+// beginner says "If you must keep the word, explain it right after in one short
+// phrase", intermediate says "Deeper terms need a short gloss the first time",
+// and both give a worked example. Only two forms are recognised, and they are
+// the two the shipped files demonstrate:
+//
+//   TERM (>=3-word phrase)        "the API (the messenger that lets two programs talk)"
+//   >=2-word expansion (TERM)     "continuous integration (CI)"
+//
+// The em-dash appositive a reader might also write — "the cache — the saved
+// copy" — is deliberately NOT recognised. Nothing distinguishes it from "I
+// dropped the cache — tests pass", and a gloss detector that guesses wrong
+// turns a real violation into a clean score. Same strictness the contract audit
+// applies to unrecognised phrasing: fail loud rather than pass quiet.
+const MIN_GLOSS_WORDS = 3
+const MIN_EXPANSION_WORDS = 2
+
+const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Does `term` appear at all, and is its FIRST appearance unglossed?
+ *
+ * First use only, because that is what the styles ask for: "explain it right
+ * after", "a short gloss the first time". A term glossed once and then reused
+ * is the rule being followed, so scoring later bare occurrences would penalise
+ * exactly the behaviour the file teaches.
+ */
+export function firstUseIsUnglossed (text, term) {
+  const m = new RegExp(`\\b${escapeRe(term)}\\b`, 'i').exec(text)
+  if (!m) return false
+
+  const after = text.slice(m.index + m[0].length)
+  const parenthetical = /^\s*\(([^)]*)\)/.exec(after)
+  if (parenthetical && words(parenthetical[1]).length >= MIN_GLOSS_WORDS) return false
+
+  const before = text.slice(0, m.index)
+  // The expansion form: the term is what is inside the brackets, and the gloss
+  // is the words in front of them.
+  if (/^\s*\)/.test(after) && /\(\s*$/.test(before)) {
+    const lead = before.replace(/\(\s*$/, '')
+    // Same sentence only — the expansion has to be adjacent to what it expands.
+    const clause = lead.split(/[.!?\n]/).pop()
+    if (words(clause).length >= MIN_EXPANSION_WORDS) return false
+  }
+
+  return true
+}
+
 // ---------- views ----------
 
 /** The two readings of a turn a check can ask for. */
@@ -261,11 +311,29 @@ export const CHECKS = {
 
   code_block_size: {
     reads: 'trace',
-    describe: c => c.maxCodeLines === 0 ? 'shows no code' : `code blocks under ${c.maxCodeLines} lines`,
-    run: (text, c) => {
+    describe: c => c.maxCodeLines === 0
+      ? (c.codeOnRequest ? 'shows no code unless the reader asks' : 'shows no code')
+      : `code blocks under ${c.maxCodeLines} lines`,
+    // `codeOnRequest` lifts a BAN, never a SIZE CAP, and the distinction is the
+    // whole reason the field exists. Beginner's file says "Never show code
+    // unless they ask": the ban is conditional, and no style file anywhere
+    // states how long a requested snippet may be. So a zero cap plus a request
+    // scores clean, and a nonzero cap keeps applying — inventing an on-request
+    // length would put a number in the scorer that no reader of the style could
+    // find, which is the exact drift COS-15 exists to remove.
+    //
+    // The condition is read from the CASE, not guessed from the reply. A check
+    // cannot see whether this reader asked for code, and a regex over the prompt
+    // would put a guess inside a scorer whose only value is being deterministic.
+    run: (text, c, caseDef) => {
       const blocks = codeBlocks(text)
       if (!blocks.length) return { score: 1, evidence: [] }
-      if (c.maxCodeLines === 0) return { score: 0, evidence: [`${blocks.length} code block(s) shown; this level shows none`] }
+      if (c.maxCodeLines === 0) {
+        if (c.codeOnRequest && caseDef?.requestsCode) {
+          return { score: 1, evidence: [`${blocks.length} code block(s); the case asks for code and this level permits it on request`] }
+        }
+        return { score: 0, evidence: [`${blocks.length} code block(s) shown; this level shows none`] }
+      }
       const bad = blocks.filter(b => b.length > c.maxCodeLines)
       return { score: 1 - bad.length / blocks.length, evidence: bad.map(b => `${b.length} lines vs cap ${c.maxCodeLines}`) }
     }
@@ -371,12 +439,18 @@ export const CHECKS = {
 
   no_jargon: {
     reads: 'trace',
+    // The name was always "unglossed". The implementation was not: it matched
+    // the bare term, so a reply following beginner's own worked example — "I
+    // updated the API (the messenger that lets two programs talk)" — lost the
+    // heaviest-weighted check in the contract for doing what the file told it
+    // to do. Same defect as the code cap, from the other direction: the prose
+    // states a conditional permission and the contract encoded an absolute ban.
     describe: c => `avoids unglossed jargon (${c.level} level)`,
     run: (text, c) => {
       const banned = c.bannedTerms ?? []
       if (!banned.length) return { score: 1, evidence: [] }
       const clean = stripCode(text)
-      const h = banned.filter(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(clean))
+      const h = banned.filter(term => firstUseIsUnglossed(clean, term))
       return { score: h.length ? Math.max(0, 1 - h.length / 3) : 1, evidence: h }
     }
   },

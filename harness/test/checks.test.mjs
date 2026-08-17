@@ -156,6 +156,70 @@ test('code_block_size treats maxCodeLines 0 as "no code"', () => {
   assert.equal(CHECKS.code_block_size.run('No code here.', beginner).score, 1)
 })
 
+// ---------- COS-15: conditional caps ----------
+
+test('codeOnRequest lifts a zero cap only when the case asks for code', () => {
+  const beginner = { ...C, maxCodeLines: 0, codeOnRequest: true }
+  const code = '```js\na\n```'
+  assert.equal(CHECKS.code_block_size.run(code, beginner, { requestsCode: true }).score, 1)
+  assert.equal(CHECKS.code_block_size.run(code, beginner, { requestsCode: false }).score, 0)
+  assert.equal(CHECKS.code_block_size.run(code, beginner, {}).score, 0)
+  // No caseDef at all — the offline scorers pass one, but the check must not
+  // throw if a caller does not.
+  assert.equal(CHECKS.code_block_size.run(code, beginner).score, 0)
+})
+
+test('a request does not lift a cap the contract never said was liftable', () => {
+  const strict = { ...C, maxCodeLines: 0 }
+  assert.equal(CHECKS.code_block_size.run('```js\na\n```', strict, { requestsCode: true }).score, 0)
+})
+
+test('codeOnRequest lifts the ban, never the size cap', () => {
+  // Intermediate's shape. No style file states how long a REQUESTED snippet may
+  // be, so the stated cap keeps applying; inventing an on-request length would
+  // put a number in the scorer that no reader of the style could find.
+  const intermediate = { ...C, maxCodeLines: 5, codeOnRequest: true }
+  const long = '```js\n' + 'a\n'.repeat(9) + '```'
+  assert.equal(CHECKS.code_block_size.run(long, intermediate, { requestsCode: true }).score, 0)
+  const short = '```js\na\nb\n```'
+  assert.equal(CHECKS.code_block_size.run(short, intermediate, { requestsCode: true }).score, 1)
+})
+
+test('code_block_size says out loud when the cap is conditional', () => {
+  assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 0 }), 'shows no code')
+  assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 0, codeOnRequest: true }), 'shows no code unless the reader asks')
+})
+
+test('no_jargon forgives a glossed first use and still catches a bare one', () => {
+  const beginner = { ...C, bannedTerms: ['API'] }
+  // The worked example from beginner's own core rules.
+  assert.equal(CHECKS.no_jargon.run('I updated the API (the messenger that lets two programs talk).', beginner).score, 1)
+  assert.ok(CHECKS.no_jargon.run('I updated the API and it works.', beginner).score < 1)
+})
+
+test('no_jargon accepts the expansion form and rejects a bare parenthetical', () => {
+  const c = { ...C, bannedTerms: ['CI', 'API'] }
+  // Intermediate's worked example: the gloss comes before the acronym.
+  assert.deepEqual(CHECKS.no_jargon.run('We run continuous integration (CI) nightly.', { ...c, bannedTerms: ['CI'] }).evidence, [])
+  // A parenthetical that explains nothing is not a gloss.
+  assert.deepEqual(CHECKS.no_jargon.run('The API (v2) changed.', { ...c, bannedTerms: ['API'] }).evidence, ['API'])
+})
+
+test('no_jargon grades first use, so a term glossed once may be reused', () => {
+  const c = { ...C, bannedTerms: ['cache'] }
+  assert.deepEqual(CHECKS.no_jargon.run('I cleared the cache (the saved copy). The cache was stale.', c).evidence, [])
+  // Gloss arriving late does not retroactively cover the bare first use.
+  assert.deepEqual(CHECKS.no_jargon.run('The cache was stale. I cleared the cache (the saved copy).', c).evidence, ['cache'])
+})
+
+test('no_jargon does not accept an em-dash appositive as a gloss', () => {
+  // Deliberate: "the cache — the saved copy" is indistinguishable from "the
+  // cache — tests pass", and a gloss detector that guesses wrong turns a real
+  // violation into a clean score.
+  const c = { ...C, bannedTerms: ['cache'] }
+  assert.deepEqual(CHECKS.no_jargon.run('The cache — the saved copy — was stale.', c).evidence, ['cache'])
+})
+
 test('leads_with_conclusion flags hedged openers', () => {
   assert.equal(CHECKS.leads_with_conclusion.run('Fixed the 401s.', C).score, 1)
   assert.equal(CHECKS.leads_with_conclusion.run("Let me look at that for you.", C).score, 0)
