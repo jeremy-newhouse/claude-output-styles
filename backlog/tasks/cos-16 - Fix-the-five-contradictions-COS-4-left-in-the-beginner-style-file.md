@@ -4,7 +4,9 @@ title: Fix the five contradictions COS-4 left in the beginner style file
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:46'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
   - COS-10
   - COS-11

@@ -4,7 +4,9 @@ title: Test whether intermediate and advanced carry beginner's defects
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:46'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
   - COS-10
   - COS-11
@@ -15,6 +17,7 @@ references:
   - harness/rejected/README.md
 documentation:
   - docs/specs/style-contracts-by-audience-level.md
+  - docs/stories/close-the-style-quality-gaps.md
 ordinal: 18000
 ---
 
