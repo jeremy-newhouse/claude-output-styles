@@ -10,7 +10,9 @@ output-style harness
   node src/cli.mjs score     --rows=results/<stamp>/rows.json
   node src/cli.mjs audit     [--styles=a,b]
 
-  run      evaluate the matrix and write results/<stamp>/{rows,summary,report.md}
+  run      evaluate the matrix and write results/<stamp>/{rows,summary,run,report.md},
+           re-written after every completed cell so a killed run keeps what it paid for.
+           run.json says whether the rows beside it are the whole matrix
   improve  loop: measure -> rewrite the style -> re-measure -> keep if train up and holdout flat,
            then validate the winner on the reserve split and roll back to v0 if it regresses
   score    re-score saved transcripts offline after changing checks.mjs
@@ -23,10 +25,11 @@ output-style harness
  * True when the argv asks for usage rather than work.
  *
  * `--help` used to be parsed as just another inert flag, so `run --help` ran the
- * entire paid matrix instead of printing this text. Because `run` writes
- * rows.json only after the whole matrix finishes, killing it lost every cell it
- * had already paid for. Any help-shaped argv must short-circuit before the CLI
- * reads config or spends a token.
+ * entire paid matrix instead of printing this text. At the time, killing it also
+ * lost every cell it had already paid for; `run` now flushes after each cell, so
+ * that second loss is fixed, but the spend itself is not recoverable. Any
+ * help-shaped argv must short-circuit before the CLI reads config or spends a
+ * token.
  */
 export function wantsHelp (args) {
   const positionals = args._ ?? []

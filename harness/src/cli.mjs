@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
+import { readFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { evaluate, summarize } from './evaluate.mjs'
 import { improveStyle, spendOf } from './improve.mjs'
 import { loadStyle } from './style.mjs'
-import { renderConsole, renderMarkdown, renderVerdict } from './report.mjs'
+import { renderConsole, renderVerdict } from './report.mjs'
+import { writeResults, writeAtomic, readManifest, describeManifest } from './results.mjs'
 import { USAGE, wantsHelp } from './usage.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -93,12 +94,17 @@ const progress = (done, total, r) => {
 
 if (cmd === 'run') {
   mkdirSync(outDir, { recursive: true })
-  console.error(`cells: ${styles.length} styles x ${variants.length} variants x ${models.length} models x ${cases.length} cases x ${opts.repeats} repeats = ${styles.length * variants.length * models.length * cases.length * opts.repeats}`)
-  const { rows, summary } = await evaluate({ styles, variants, models, cases, contracts, opts, onProgress: progress })
+  const expected = styles.length * variants.length * models.length * cases.length * opts.repeats
+  console.error(`cells: ${styles.length} styles x ${variants.length} variants x ${models.length} models x ${cases.length} cases x ${opts.repeats} repeats = ${expected}`)
+  // Persist after every completed cell. A run is routinely ended by Ctrl-C, an
+  // OOM or a laptop lid, and the cells it has already bought are the most
+  // expensive thing in this project — writing them once at the end throws away
+  // everything a killed run paid for. `improve` has always done this; this is
+  // the same flush on the path that spends the most.
+  const flush = (rows, complete = false) => writeResults({ outDir, rows, stamp, kind: 'run', expected, complete })
+  const { rows } = await evaluate({ styles, variants, models, cases, contracts, opts, onProgress: progress, onRows: rows => flush(rows) })
   process.stderr.write('\n')
-  writeFileSync(join(outDir, 'rows.json'), JSON.stringify(rows, null, 2))
-  writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
-  writeFileSync(join(outDir, 'report.md'), renderMarkdown(summary, { when: stamp }))
+  const { summary } = flush(rows, true)
   console.log(renderConsole(summary))
   console.log(`\nwrote ${outDir}`)
 
@@ -112,19 +118,20 @@ if (cmd === 'run') {
   // The transcripts live in rows.json, in the same shape and at the same path
   // the `run` command uses — that is what lets `score` re-grade an improve run
   // offline with no arguments. improve.json stays a summary of the loop.
-  const flush = () => {
-    const summary = summarize(allRows)
-    writeFileSync(join(outDir, 'rows.json'), JSON.stringify(allRows, null, 2))
-    writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
-    writeFileSync(join(outDir, 'report.md'), renderMarkdown(summary, { when: stamp }))
-    writeFileSync(join(outDir, 'improve.json'), JSON.stringify(results, null, 2))
+  // The cell count an improve loop will reach is not known up front (it depends
+  // on how many iterations it buys), so the manifest carries no expected count.
+  const flush = (complete = false) => {
+    writeResults({ outDir, rows: allRows, stamp, kind: 'improve', expected: null, complete })
+    writeAtomic(join(outDir, 'improve.json'), JSON.stringify(results, null, 2))
   }
   for (const style of styles) {
     const before = allRows.length
     try {
       // improveStyle returns its own rows; strip them so improve.json stays a
       // summary of the loop rather than a second copy of rows.json.
-      const { rows, ...r } = await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows, onRows: flush })
+      // Wrapped, not passed bare: improveStyle calls onRows(rows), and flush's
+      // first parameter is the completeness flag.
+      const { rows, ...r } = await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows, onRows: () => flush() })
       results.push(r)
     } catch (err) {
       log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
@@ -136,6 +143,7 @@ if (cmd === 'run') {
     // style got as far as its first measurement.
     flush()
   }
+  flush(true)
   for (const r of results.filter(r => r.best)) console.log(`\n${renderVerdict(r, cfg.reserveSplit)}`)
   console.log(`\ntotal spend $${spendOf(allRows)} across ${allRows.length} saved cells`)
   console.log(`candidates in ${join(outDir, 'candidates')}`)
@@ -146,6 +154,10 @@ if (cmd === 'run') {
   const rowsPath = args.rows ? resolve(args.rows) : newestRows()
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   console.error(`re-scoring ${rowsPath}`)
+  // Say what this file is before printing a single figure. A partial run's
+  // numbers describe the cells that survived and not the matrix that was asked
+  // for, and nothing in the table itself would tell a reader that.
+  console.error(describeManifest(readManifest(rowsPath)))
   const rows = readJson(rowsPath)
   const { scoreDeterministic } = await import('./checks.mjs')
   const rescored = rows.map(r => {
