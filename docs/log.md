@@ -47,6 +47,7 @@
 - 2026-08-17T08:37:10-05:00 8d503ba49552445fcd2d393dcdcd0ff3cf979b08 chore(COS-13): record the branch's commits in the doc log
 - 2026-08-17T08:37:10-05:00 aa60eb7a052b5411d5abb8958c364f043cc060fc chore(COS-13): record the tracker and summary updates in the doc log
 - 2026-08-17T08:43:43-05:00 a11018a170d738964283188c8f1248f7a955c520 Open two follow-ups from the COS-13 review, and record why they were appended
+- 2026-08-17T08:59:28-05:00 374378aef4c8a3f5da89a0fd3914d0dece75ca7a Give improve its own model list instead of run's
 
 ## docs/adr
 
@@ -154,3 +155,4 @@
 - 2026-08-17T08:37:10-05:00 170135bf9b5702b13f9e7c48ddf1286a47bcbe04 Apply the branch review: make npm test work, and stop the guard misfiring
 - 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
+- 2026-08-17T08:59:28-05:00 374378aef4c8a3f5da89a0fd3914d0dece75ca7a Give improve its own model list instead of run's
