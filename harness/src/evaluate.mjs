@@ -1,5 +1,5 @@
-import { scoreDeterministic } from './checks.mjs'
-import { judge } from './judge.mjs'
+import { scoreDeterministic, viewsOf } from './checks.mjs'
+import { judge, JUDGE_VIEW_DEFAULT } from './judge.mjs'
 import { runCell, pool } from './run.mjs'
 
 // Deterministic checks carry most of the weight by default: they are the style's
@@ -52,17 +52,20 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
       opts
     })
 
+    // Each check reads the view it declares and the judge reads the one this
+    // case's rubric names; see CHECKS[].reads and caseDef.judgeOn.
+    const views = viewsOf(run)
     const rules = run.error && !run.text
       ? { total: 0, checks: [] }
-      : scoreDeterministic(run.text, contract, cell.caseDef)
+      : scoreDeterministic(views, contract, cell.caseDef)
 
     const j = opts.judge && !run.error
-      ? await judge({ text: run.text, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })
+      ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })
       : { score: 1, violations: [] }
 
     const wJudge = contract.judgeWeight ?? DEFAULT_JUDGE_WEIGHT
     const total = Number((rules.total * (1 - wJudge) + j.score * wJudge).toFixed(3))
-    const row = { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeViolations: j.violations, total }
+    const row = { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeReads: cell.caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT, judgeViolations: j.violations, total }
     landed[idx] = row
     onProgress?.(++done, cells.length, { ...run, total })
     onRows?.(landed.filter(Boolean))

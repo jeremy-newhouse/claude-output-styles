@@ -40,7 +40,11 @@ export function codeBlocks (text) {
 export function sentences (text) {
   return stripCode(text)
     .replace(/^[-*>#|\s]*/gm, '')
-    .split(/(?<=[.!?])[\s\n]+|\n{2,}/)
+    // A single newline ends a sentence. Models write list headers as
+    // "Here's why:\nYou're paying twice." — no terminal punctuation, so splitting
+    // only on [.!?] or a blank line merged the header into its first item and
+    // reported one long sentence where the reader sees two short ones.
+    .split(/(?<=[.!?])[\s\n]+|\n+/)
     .map(s => s.replace(/\*\*/g, '').trim())
     .filter(s => s.length > 1)
 }
@@ -58,12 +62,49 @@ const hit = (text, list) => {
   return list.filter(p => lower.includes(p))
 }
 
+// ---------- views ----------
+
+/** The two readings of a turn a check can ask for. */
+export const VIEWS = ['final', 'trace']
+
+/**
+ * The two views of a saved row, for offline re-scoring.
+ *
+ * Rows written before the text-block seam was fixed have no `trace` key: their
+ * `text` is the whole turn with the blocks glued together, so on an agentic cell
+ * neither view is recoverable from it. Both fall back to that string and the row
+ * is flagged, because the alternative — quietly serving a glued turn as `final` —
+ * is how a figure measured on the old scorer gets republished as a new one.
+ */
+export function viewsOf (row) {
+  const text = row.text ?? ''
+  return { final: text, trace: row.trace ?? text, legacy: row.trace === undefined }
+}
+
 // ---------- checks ----------
 // Each: (text, contract, caseDef) => { score: 0..1, evidence: string[] }
 // score is a continuous rate so the optimizer can see partial progress.
+//
+// `reads` names which view of the turn the check grades, and every check states
+// it rather than inheriting a default — on a conversational turn the two views
+// are the same string, so an implied default stays invisible right up until it
+// is wrong on an agentic cell.
+//
+// The line is drawn from what the case rubrics in cases/cases.json actually ask
+// about, not from taste. Three of the four agentic rubrics grade "the final
+// message ... in style", so every check that measures how the answer is written
+// reads 'final'. The exception is a rule the style states as an outright ban
+// rather than a cap: narration, celebration and emoji are violations wherever
+// they appear, and grading them on the final message alone would score a turn
+// that opened "Let me search the repo 🚀" as clean. Those read 'trace'.
+//
+// `agentic-read-report` grades the whole turn on purpose — its rubric is "no
+// narration of the search process", which needs the narration present. That is a
+// case-level choice about the judge, carried by caseDef.judgeOn, not by a check.
 
 export const CHECKS = {
   sentence_length: {
+    reads: 'final',
     describe: c => `sentences under ${c.maxSentenceWords} words`,
     run: (text, c) => {
       const all = sentences(text)
@@ -77,6 +118,7 @@ export const CHECKS = {
   },
 
   paragraph_length: {
+    reads: 'final',
     describe: c => `paragraphs under ${c.maxParagraphSentences} sentences`,
     run: (text, c) => {
       const ps = paragraphs(text).filter(p => !/^[-*|\d]/.test(p))
@@ -87,6 +129,7 @@ export const CHECKS = {
   },
 
   total_length: {
+    reads: 'final',
     describe: c => `whole reply under ~${c.maxUpdateWords} words`,
     run: (text, c) => {
       const n = words(stripCode(text)).length
@@ -97,6 +140,7 @@ export const CHECKS = {
   },
 
   no_filler: {
+    reads: 'final',
     describe: () => 'no filler or buzzwords',
     run: text => {
       const h = hit(stripCode(text), FILLER)
@@ -105,6 +149,7 @@ export const CHECKS = {
   },
 
   no_celebration: {
+    reads: 'trace',
     describe: () => 'no celebratory or servile filler',
     run: text => {
       const h = hit(text, CELEBRATION)
@@ -113,6 +158,7 @@ export const CHECKS = {
   },
 
   no_emoji: {
+    reads: 'trace',
     describe: () => 'no emoji',
     run: text => {
       const h = [...text].filter(ch => EMOJI.test(ch))
@@ -121,6 +167,7 @@ export const CHECKS = {
   },
 
   no_process_narration: {
+    reads: 'trace',
     describe: () => 'reports results, does not narrate process',
     run: text => {
       const h = hit(stripCode(text), NARRATION)
@@ -129,6 +176,7 @@ export const CHECKS = {
   },
 
   active_voice: {
+    reads: 'final',
     describe: () => 'active voice',
     run: text => {
       const all = sentences(text)
@@ -140,6 +188,7 @@ export const CHECKS = {
   },
 
   code_block_size: {
+    reads: 'final',
     describe: c => c.maxCodeLines === 0 ? 'shows no code' : `code blocks under ${c.maxCodeLines} lines`,
     run: (text, c) => {
       const blocks = codeBlocks(text)
@@ -151,6 +200,7 @@ export const CHECKS = {
   },
 
   three_question_structure: {
+    reads: 'final',
     describe: () => 'answers what I did / did it work / what you do next, in that order',
     // Keyword presence alone is too weak: a reply can contain "next" and "tests
     // pass" while having no beat structure at all. Beat 1 must be an action the
@@ -181,6 +231,7 @@ export const CHECKS = {
   },
 
   two_options_max: {
+    reads: 'final',
     describe: () => 'at most two options, compared, with one recommendation',
     // Deliberately does NOT require the literal "Option A / Option B" labels.
     // A reply that leads with the recommendation and names both alternatives in
@@ -204,6 +255,7 @@ export const CHECKS = {
   },
 
   no_jargon: {
+    reads: 'final',
     describe: c => `avoids unglossed jargon (${c.level} level)`,
     run: (text, c) => {
       const banned = c.bannedTerms ?? []
@@ -215,6 +267,7 @@ export const CHECKS = {
   },
 
   leads_with_conclusion: {
+    reads: 'final',
     describe: () => 'first sentence states the outcome',
     run: text => {
       const first = sentences(text)[0] ?? ''
@@ -225,16 +278,21 @@ export const CHECKS = {
 }
 
 /**
- * @returns {{ total: number, checks: Array<{id,score,weight,evidence,describe}> }}
+ * @param {{final: string, trace: string}} views  the turn as viewsOf() returns it
+ * @returns {{ total: number, checks: Array<{id,score,weight,evidence,describe,reads}> }}
  */
-export function scoreDeterministic (text, contract, caseDef) {
+export function scoreDeterministic (views, contract, caseDef) {
+  if (typeof views === 'string') throw new TypeError('scoreDeterministic takes {final, trace} — use viewsOf(row)')
   const ids = caseDef.checks ?? contract.defaultChecks
   const rows = ids.map(id => {
     const chk = CHECKS[id]
     if (!chk) throw new Error(`unknown check: ${id}`)
-    const { score, evidence } = chk.run(text, contract, caseDef)
+    if (!VIEWS.includes(chk.reads)) throw new Error(`check ${id} declares no view to read`)
+    const { score, evidence } = chk.run(views[chk.reads], contract, caseDef)
     const weight = contract.weights?.[id] ?? 1
-    return { id, score: Number(score.toFixed(3)), weight, evidence, describe: chk.describe(contract) }
+    // `reads` travels with the score: a saved checks[] row says which string it
+    // graded, so a figure quoted from it can be read back without the source.
+    return { id, score: Number(score.toFixed(3)), weight, evidence, describe: chk.describe(contract), reads: chk.reads }
   })
   const wsum = rows.reduce((a, r) => a + r.weight, 0) || 1
   const total = rows.reduce((a, r) => a + r.score * r.weight, 0) / wsum

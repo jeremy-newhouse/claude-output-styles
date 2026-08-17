@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { CHECKS } from '../src/checks.mjs'
+import { CHECKS, VIEWS } from '../src/checks.mjs'
 
 // `src/cli.mjs` reads these three files at startup, before any subcommand runs,
 // so a malformed one breaks `run`, `improve`, `score` and `audit` alike. Nothing
@@ -85,6 +85,18 @@ test('no case sits in a split the optimizer never reads', () => {
   // cases COS-1 added, so assert containment in the other direction too.
   for (const c of readCases()) {
     assert.ok(known.has(c.split), `case "${c.id}" has split "${c.split}", which improve never reads`)
+  }
+})
+
+test('every agentic case says which view of the turn its judge grades', () => {
+  // On a conversational cell the final message and the whole turn are the same
+  // string, so judge.mjs can default. On an agentic cell they differ and the
+  // default decides the score silently — which is how every agentic judge figure
+  // in this project came to describe the whole turn. Make the agentic cases
+  // state it. A typo'd value would fall through `views[...]` as undefined and
+  // score the cell 1.0, so assert the value too, not just its presence.
+  for (const c of readCases().filter(c => c.agentic)) {
+    assert.ok(VIEWS.includes(c.judgeOn), `case "${c.id}" must declare judgeOn: 'final' | 'trace'`)
   }
 })
 

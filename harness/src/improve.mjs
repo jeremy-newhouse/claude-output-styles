@@ -82,7 +82,10 @@ function failureBrief (summary, styleId, transcripts) {
     .filter(r => r.styleId === styleId && r.text)
     .sort((a, b) => a.total - b.total)
     .slice(0, 2)
-    .map(r => `--- ${r.model} / ${r.caseId} (score ${r.total}) ---\n${r.text.slice(0, 1200)}`)
+    // The trace, not the final message: the author model is being shown what the
+    // style produced, and on an agentic cell the narration is half of what went
+    // wrong. Pre-COS-10 rows have no trace and fall back to their glued text.
+    .map(r => `--- ${r.model} / ${r.caseId} (score ${r.total}) ---\n${(r.trace ?? r.text).slice(0, 1200)}`)
 
   return [
     'MEASURED RULE FAILURES:', lines.join('\n') || '(none)',
@@ -103,6 +106,9 @@ async function rewrite ({ style, brief, model }) {
       prompt: user,
       options: { systemPrompt: AUTHOR_SYSTEM, model, maxTurns: 3, allowedTools: [], settingSources: [], permissionMode: 'dontAsk' }
     })) {
+      // Bare concatenation is correct here, unlike run.mjs: allowedTools is
+      // empty, so there is nothing to split the blocks around, and the output is
+      // one markdown document that a separator would corrupt.
       if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
     }
   } catch {

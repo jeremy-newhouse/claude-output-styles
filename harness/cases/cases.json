@@ -95,6 +95,8 @@
       "no_process_narration",
       "no_jargon"
     ],
+    "//judgeOn": "COS-10. This rubric grades narration of the search, so it must see the whole turn: pre-tool and inter-tool text blocks included. It is the one case in the file that reads the trace rather than the final message.",
+    "judgeOn": "trace",
     "judge": "After using tools, does the reply stay in style — outcome first, no narration of the search process?"
   },
   {
@@ -116,6 +118,8 @@
       "three_question_structure",
       "no_jargon"
     ],
+    "//judgeOn": "COS-10. The rubric names the final message, so the judge grades the text blocks after the last tool call, not the narration around them.",
+    "judgeOn": "final",
     "judge": "Does the final message report what changed, the test result, and the next action — in style, after a multi-tool session?"
   },
   {
@@ -260,13 +264,15 @@
       "three_question_structure",
       "no_jargon"
     ],
+    "//judgeOn": "COS-10. The rubric names the final message. Narration inside that message is still graded; narration before the last tool call is not this rubric subject.",
+    "judgeOn": "final",
     "judge": "After writing new code and running the suite, does the final message report what was added and what the run showed — in style — rather than narrating the session or pasting the new test back?"
   },
   {
     "id": "reserve-agentic-session",
     "split": "reserve",
     "agentic": true,
-    "//": "COS-1. agentic-fix-verify names the bug and the file, so the session is short. This one withholds both, which forces search, read, run, edit and re-run before the model has anything to say — the multi-tool shape the style files had no rule for. It is on the reserve split so no optimizer round can train on the gap it measures. sentence_length and paragraph_length are kept for comparability with the other agentic cases, but neither is quotable here: run.mjs concatenates assistant text blocks with no separator, so a tool-using turn scores as one run-on sentence (harness/README.md).",
+    "//": "COS-1. agentic-fix-verify names the bug and the file, so the session is short. This one withholds both, which forces search, read, run, edit and re-run before the model has anything to say — the multi-tool shape the style files had no rule for. It is on the reserve split so no optimizer round can train on the gap it measures. sentence_length and paragraph_length are kept for comparability with the other agentic cases. Both were unquotable here until COS-10: run.mjs concatenated assistant text blocks with no separator, so a tool-using turn scored as one run-on sentence. They now read the final message and are quotable on any run saved after that fix — but not on the runs already in the ledger, which hold the glued turn.",
     "prompt": "Something in this repo gets money rounding wrong, but I do not know where. Find it, fix it, make sure the tests cover it, and tell me where we ended up.",
     "checks": [
       "sentence_length",
@@ -282,6 +288,8 @@
       "three_question_structure",
       "no_jargon"
     ],
+    "//judgeOn": "COS-10. The rubric names the final message and asks for only the end state, so the judge reads the post-tool answer.",
+    "judgeOn": "final",
     "judge": "This took many tool calls. Does the final message report only the end state — what was wrong, what changed, what the tests showed, and what the reader does next — without narrating the search, counting steps or tools, or pasting back the code it just wrote?"
   },
   {
