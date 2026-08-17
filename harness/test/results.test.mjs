@@ -278,10 +278,10 @@ test('an aborted cell raises no judge mean and lowers no rules mean, in one run'
 
   // And the reader is told the arm is short, at the same place as the figures.
   assert.equal(withAbort.byModel[0].n, 2)
-  assert.equal(withAbort.byModel[0].noReply, 1)
+  assert.equal(withAbort.byModel[0].dropped, 1)
   assert.equal(withAbort.byModel[0].cells, 3)
   assert.equal(withAbort.n, 2)
-  assert.equal(withAbort.noReply, 1)
+  assert.equal(withAbort.dropped, 1)
   assert.equal(withAbort.cells, 3)
 })
 
@@ -290,7 +290,7 @@ test('a cell that goes silent without an error flag is excluded on the same term
   const withSilent = summarize([good(), good({ caseId: 'conv-badnews' }), silent({ caseId: 'agentic-fix-verify' })])
   assert.equal(withSilent.byModel[0].rules, clean.byModel[0].rules)
   assert.equal(withSilent.byModel[0].judge, clean.byModel[0].judge)
-  assert.equal(withSilent.byModel[0].noReply, 1, 'counted as no reply, not as a scored cell')
+  assert.equal(withSilent.byModel[0].dropped, 1, 'dropped from the mean, not scored into it')
 })
 
 test('the cost of a cell that said nothing still counts against its arm', () => {
@@ -325,8 +325,8 @@ test('neither renderer prints an unmeasured arm as 0.0%', () => {
     assert.doesNotMatch(out, /0\.0%/, `${name} must not render null as a zero score`)
     assert.match(out, /n\/a/, `${name} must say the figure is missing`)
   }
-  assert.match(console_, /no cell produced a reply/)
-  assert.match(md, /no cell produced a reply/)
+  assert.match(console_, /no cell completed a reply/)
+  assert.match(md, /no cell completed a reply/)
 })
 
 test('report.md and summary.json separate cells that replied from cells that did not', () => {
@@ -338,22 +338,22 @@ test('report.md and summary.json separate cells that replied from cells that did
     // summary.json: the three counts on every level it aggregates, not just the top.
     const saved = readJson(join(out, 'summary.json'))
     assert.deepEqual(
-      [saved.n, saved.noReply, saved.cells], [2, 1, 3],
+      [saved.n, saved.dropped, saved.cells], [2, 1, 3],
       'the headline states its own sample'
     )
     for (const level of ['byModel', 'byVariant', 'byStyle', 'byStyleModel', 'byCase', 'bySplit']) {
       for (const g of saved[level]) {
         assert.equal(typeof g.n, 'number', `${level}.${g.key} states its sample`)
-        assert.equal(typeof g.noReply, 'number', `${level}.${g.key} states what it dropped`)
-        assert.equal(g.n + g.noReply, g.cells, `${level}.${g.key} counts add up`)
+        assert.equal(typeof g.dropped, 'number', `${level}.${g.key} states what it dropped`)
+        assert.equal(g.n + g.dropped, g.cells, `${level}.${g.key} counts add up`)
       }
     }
     assert.equal(saved.byCase.find(g => g.key === 'agentic-fix-verify').score, null)
 
     // report.md: the same split, in the table a reader quotes figures off.
     const md = readFileSync(join(out, 'report.md'), 'utf8')
-    assert.match(md, /\| n \| cells \| no reply \|/)
-    assert.match(md, /\*\*Measured over:\*\* 2 of 3 cells scored — 1 produced no reply/)
+    assert.match(md, /\| n \| cells \| dropped \|/)
+    assert.match(md, /\*\*Measured over:\*\* 2 of 3 cells scored — 1 aborted or said nothing/)
     assert.equal(summary.overall, 0.75)
   } finally {
     rmSync(out, { recursive: true, force: true })
@@ -369,4 +369,57 @@ test('a cell that said nothing briefs the optimizer on nothing', () => {
     silent({ caseId: 'agentic-fix-verify', checks: [{ id: 'no_emoji', score: 0, weight: 1, evidence: [''], describe: 'no emoji' }] })
   ])
   assert.deepEqual(s.failures.map(f => f.checkId), ['total_length'])
+})
+
+test('a cell that aborted after emitting text is graded, but not pooled', async () => {
+  // Two different questions. Grading it is possible and the answer is real, so
+  // rows.json keeps it — every offline re-derivation reads rulesScore, and
+  // overwriting a measurement with a fabricated 0 to say "do not trust this"
+  // destroys data that `error` already flags. Pooling it is a different claim:
+  // a truncated turn measures how far the model got before the harness stopped
+  // it, not how well the style was followed.
+  const contracts = { s: { defaultChecks: ['no_emoji'], judgeWeight: 0.3 } }
+  const cases = [{ id: 'c1', split: 'train', prompt: 'p' }, { id: 'c2', split: 'train', prompt: 'p' }]
+  const runCell = async ({ styleId, variant, model, caseDef, repeat }) => caseDef.id === 'c2'
+    ? { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
+        text: 'A clean fragment, no emoji.', trace: 'A clean fragment, no emoji.',
+        allTurns: [], toolCalls: [], costUsd: 0.02, error: 'error_max_turns' }
+    : { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
+        text: 'Done ✅', trace: 'Done ✅', allTurns: [], toolCalls: [], costUsd: 0.01, error: null }
+
+  const { rows, summary } = await evaluate({
+    styles: STYLES, variants: VARIANTS, models: ['haiku'], cases, contracts,
+    opts: { ...OPTS, judge: false }, deps: { runCell }
+  })
+
+  const aborted = rows.find(r => r.caseId === 'c2')
+  assert.equal(aborted.rulesScore, 1, 'the fragment was clean and is scored as such')
+  assert.equal(aborted.checks.length, 1, 'its checks survive for re-derivation')
+  assert.equal(aborted.judgeReads, null, 'the judge never ran on it')
+
+  // ...and none of that reaches a mean. The completed cell scored 0 on no_emoji,
+  // so pooling the 1.0 fragment would have doubled the reported rules figure.
+  assert.equal(summary.byModel[0].rules, 0)
+  assert.equal(summary.byModel[0].n, 1)
+  assert.equal(summary.byModel[0].dropped, 1)
+  assert.equal(summary.byModel[0].costUsd, 0.03, 'it was still paid for')
+})
+
+test('a silent cell is not graded at all, so it briefs nothing', async () => {
+  // The other side of the same line: no turn means nothing to grade, and a ban
+  // check run against an empty string reports a perfect score on a rule the
+  // cell never met.
+  const contracts = { s: { defaultChecks: ['no_emoji'], judgeWeight: 0.3 } }
+  const cases = [{ id: 'c1', split: 'train', prompt: 'p' }]
+  const runCell = async ({ styleId, variant, model, caseDef, repeat }) => ({
+    styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
+    text: '', trace: '', allTurns: [], toolCalls: [], costUsd: 0.01, error: null
+  })
+  const { rows, summary } = await evaluate({
+    styles: STYLES, variants: VARIANTS, models: ['haiku'], cases, contracts,
+    opts: { ...OPTS, judge: false }, deps: { runCell }
+  })
+  assert.deepEqual(rows[0].checks, [], 'nothing graded, so nothing to brief from')
+  assert.equal(summary.overall, null)
+  assert.equal(summary.dropped, 1)
 })

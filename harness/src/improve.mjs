@@ -80,12 +80,32 @@ export function comparableRows (baselineRows, candidateRows) {
 const DEFAULT_MIN_RESERVE_DELTA = -0.02
 
 // summarize() reports an arm where nothing replied as null rather than as a
-// score. These three keep that null intact through the loop's arithmetic and
-// its log lines instead of letting `null - 0.7` quietly become -0.7.
+// score. These keep that null intact through the loop's arithmetic and its log
+// lines instead of letting `null - 0.7` quietly become -0.7.
 const UNMEASURED = 'unmeasured'
 const fmt = v => v == null ? UNMEASURED : v
-const delta = (a, b) => (a == null || b == null) ? null : Number((a - b).toFixed(3))
 const signed = d => d == null ? UNMEASURED : `${d >= 0 ? '+' : ''}${d.toFixed(3)}`
+
+/**
+ * The loop's own KEEP/REVERT comparison, paired by case.
+ *
+ * The same like-with-like rule the reserve gate has always applied, and for a
+ * sharper reason here. Since COS-11 an arm's mean covers only the cells that
+ * replied, so a rewrite that makes the model abort a hard case does not merely
+ * escape the penalty it used to take — it is measured on the *easier remaining
+ * cells* and can score higher for having broken one. Comparing two means over
+ * different case sets would let the optimizer adopt a rewrite because it
+ * destroyed a case, which is the opposite of what the loop is for.
+ *
+ * @returns {{delta: number|null, n: number, dropped: string[]}} null delta when
+ *   no case produced a reply on both sides — no evidence, so never a KEEP.
+ */
+function pairedDelta (baselineRows, candidateRows) {
+  const { a, b } = comparableRows(baselineRows, candidateRows)
+  const dropped = [...new Set([...baselineRows, ...candidateRows].filter(r => !producedReply(r)).map(r => r.caseId))]
+  if (!a.length) return { delta: null, n: 0, dropped }
+  return { delta: Number((meanTotal(b) - meanTotal(a)).toFixed(3)), n: a.length, dropped }
+}
 
 function failureBrief (summary, styleId, transcripts) {
   const fails = summary.failures.filter(f => f.styleId === styleId).slice(0, 10)
@@ -99,8 +119,13 @@ function failureBrief (summary, styleId, transcripts) {
     .flatMap(r => r.judgeViolations.map(v => `- [judge/${r.model}/${r.caseId}] ${v}`))
     .slice(0, 8)
 
+  // producedReply, not `r.text`: an aborted cell that got as far as emitting
+  // narration has `total` forced to the judge weight (rules 0, judge substituted
+  // 1.0), which is below almost any genuine reply, so it would reliably win both
+  // slots here and hand the author model a truncated turn to rewrite from.
+  // summary.failures is filtered the same way; this is the brief's other input.
   const worst = transcripts
-    .filter(r => r.styleId === styleId && r.text)
+    .filter(r => r.styleId === styleId && producedReply(r))
     .sort((a, b) => a.total - b.total)
     .slice(0, 2)
     // The trace, not the final message: the author model is being shown what the
@@ -160,6 +185,7 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   const incumbent = { text: style.text, body: style.body, train: null, holdout: null, iteration: 0 }
   let best = { ...incumbent }
   const history = []
+  let unmeasurableBaseline = false
 
   // Every cell the loop measures is kept. Without this the loop's transcripts —
   // most of the project's spend — vanish the moment the process exits: they
@@ -187,21 +213,27 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   const h0 = await measure(best.text, holdout, cfg.holdoutSplit, 0)
   best.train = incumbent.train = b0.summary.overall
   best.holdout = incumbent.holdout = h0.summary.overall
+  // The rows, not just the means. Every later comparison is paired by case
+  // against these, so the incumbent has to carry what it was measured on.
+  best.trainRows = incumbent.trainRows = b0.rows
+  best.holdoutRows = incumbent.holdoutRows = h0.rows
   history.push({ iteration: 0, train: best.train, holdout: best.holdout, kept: true, note: 'baseline' })
   log(`[${style.id}] baseline train=${fmt(best.train)} holdout=${fmt(best.holdout)}`)
   // An unmeasured baseline is the one state this loop cannot recover from: every
   // later iteration is scored as a delta against it, and there is nothing to
-  // subtract from. Say so once, here, rather than letting each iteration report
-  // an incomparable delta.
+  // subtract from. Stop rather than warn — each further pass buys a rewrite call
+  // plus a full train arm and a full holdout arm, and `keep` is false by
+  // construction, so every one of them is spend on a verdict already decided.
   if (best.train == null || best.holdout == null) {
-    log(`[${style.id}] WARNING: no baseline cell produced a reply on ${best.train == null ? cfg.trainSplit : cfg.holdoutSplit} — ` +
-        'every iteration below is incomparable and nothing can be kept')
+    log(`[${style.id}] no baseline cell produced a reply on ${best.train == null ? cfg.trainSplit : cfg.holdoutSplit} — ` +
+        'nothing can be compared against, stopping before any candidate is bought')
+    unmeasurableBaseline = true
   }
 
   let lastRun = b0
   let sinceKeep = 0
 
-  for (let i = 1; i <= cfg.maxIterations; i++) {
+  for (let i = 1; i <= cfg.maxIterations && !unmeasurableBaseline; i++) {
     if (best.train >= cfg.targetScore && best.holdout >= cfg.targetScore) {
       log(`[${style.id}] target ${cfg.targetScore} reached — stopping at iteration ${i - 1}`)
       break
@@ -225,21 +257,51 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
 
     const t = await measure(candidateText, train, cfg.trainSplit, i)
     const h = await measure(candidateText, holdout, cfg.holdoutSplit, i)
-    const dTrain = delta(t.summary.overall, best.train)
-    const dHold = delta(h.summary.overall, best.holdout)
+    // Paired by case against what the incumbent was measured on, not a
+    // difference of two arm means — see pairedDelta.
+    const pt = pairedDelta(best.trainRows, t.rows)
+    const ph = pairedDelta(best.holdoutRows, h.rows)
+    const dTrain = pt.delta
+    const dHold = ph.delta
     // An incomparable side is a REVERT, never a KEEP. Both deltas are null when
-    // either arm went entirely silent, and the alternative is arithmetic on
-    // null, which JS reads as 0: an arm that measured nothing would then show a
-    // delta equal to the other side's score and could be adopted on it.
+    // no case replied on both sides, and the alternative is arithmetic on null,
+    // which JS reads as 0: an arm that measured nothing would show a delta equal
+    // to the other side's score and could be adopted on it.
     const keep = dTrain != null && dHold != null && dTrain > 0 && dHold >= cfg.minHoldoutDelta
 
     log(`[${style.id}] iter ${i}: train ${fmt(t.summary.overall)} (${signed(dTrain)}) ` +
         `holdout ${fmt(h.summary.overall)} (${signed(dHold)}) -> ${keep ? 'KEEP' : 'REVERT'}`)
+    // Named, not just counted. A verdict taken over fewer cases than the split
+    // holds is a weaker verdict, and which case vanished is the first thing
+    // worth knowing when a rewrite starts winning by breaking things.
+    for (const [split, p] of [[cfg.trainSplit, pt], [cfg.holdoutSplit, ph]]) {
+      if (p.dropped.length) {
+        log(`[${style.id}]   ${split}: compared ${p.n} case(s); ${p.dropped.length} produced no reply on one or both sides ` +
+            `and were excluded: ${p.dropped.join(', ')}`)
+      }
+    }
 
-    history.push({ iteration: i, train: t.summary.overall, holdout: h.summary.overall, dTrain, dHold, kept: keep })
+    history.push({
+      iteration: i,
+      train: t.summary.overall,
+      holdout: h.summary.overall,
+      dTrain,
+      dHold,
+      // The paired comparison is the verdict's actual basis, so it is recorded
+      // beside the arm means rather than left to be inferred from them.
+      comparedTrain: pt.n,
+      comparedHoldout: ph.n,
+      droppedCases: [...new Set([...pt.dropped, ...ph.dropped])],
+      kept: keep
+    })
 
     if (keep) {
-      best = { text: candidateText, body: newBody, train: t.summary.overall, holdout: h.summary.overall, iteration: i }
+      // Rows travel with the winner: the next iteration pairs against these.
+      best = {
+        text: candidateText, body: newBody, iteration: i,
+        train: t.summary.overall, holdout: h.summary.overall,
+        trainRows: t.rows, holdoutRows: h.rows
+      }
       lastRun = t
       sinceKeep = 0
     } else {

@@ -7,10 +7,16 @@ const bar = s => s == null ? 'unmeasured'.padEnd(20, '·') : '█'.repeat(Math.r
 const pct = s => s == null ? UNMEASURED : `${(s * 100).toFixed(1)}%`
 
 // `n` is the sample the figures rest on; `cells` is the arm as requested. They
-// differ whenever a cell said nothing, and the gap is the reader's warning that
-// the mean beside it covers less than the label suggests.
+// differ whenever a cell aborted or said nothing, and the gap is the reader's
+// warning that the mean beside it covers less than the label suggests.
+//
+// "dropped", not "no reply": the set also holds a cell that aborted part-way
+// after emitting text. That cell is graded and its score kept on the row — it
+// is dropped from the mean, which is a different claim from having said
+// nothing. Distinct from the manifest's "never ran", which is a cell that was
+// requested and never started.
 const counts = r => `n=${String(r.n).padStart(3)}` +
-  (r.noReply ? `  no reply=${r.noReply}/${r.cells}` : '')
+  (r.dropped ? `  dropped=${r.dropped}/${r.cells}` : '')
 
 function table (title, rows) {
   if (!rows.length) return ''
@@ -39,8 +45,10 @@ const isTrace = summary => (summary.byIteration ?? []).length > 0
  */
 function sampleLine (summary) {
   const cells = summary.cells ?? summary.n
-  if (!summary.noReply) return `${cells} cell${cells === 1 ? '' : 's'}`
-  const verb = summary.n === 0 ? 'no cell produced a reply' : `${summary.noReply} produced no reply`
+  if (!summary.dropped) return `${cells} cell${cells === 1 ? '' : 's'}`
+  const verb = summary.n === 0
+    ? 'no cell completed a reply'
+    : `${summary.dropped} aborted or said nothing`
   return `${summary.n} of ${cells} cells scored — ${verb}`
 }
 
@@ -115,7 +123,7 @@ export function renderVerdict (r, reserveSplit = 'reserve') {
     // verdict, and silently printing the full case count would hide that.
     const dropped = r.reserve.droppedCases ?? []
     if (dropped.length) {
-      lines.push(`    ${dropped.length} case(s) errored and were excluded: ${dropped.join(', ')}` +
+      lines.push(`    ${dropped.length} case(s) produced no reply and were excluded: ${dropped.join(', ')}` +
                  (r.reserve.comparedCells !== undefined ? ` (${r.reserve.comparedCells} cells compared)` : ''))
     }
   } else if (r.best.iteration === 0) {
@@ -126,18 +134,21 @@ export function renderVerdict (r, reserveSplit = 'reserve') {
     lines.push(`  reserve: NOT MEASURED — no ${reserveSplit} cases in this run; this candidate is unvalidated`)
   }
 
-  for (const h of r.history) lines.push(`  v${h.iteration}: train ${h.train} holdout ${h.holdout} ${h.kept ? 'KEEP' : 'revert'}`)
+  // `split()` here too, not only on the headline: a history line for an arm that
+  // went entirely silent carries null, and `train null` is the exact output the
+  // guard above exists to prevent.
+  for (const h of r.history) lines.push(`  v${h.iteration}: train ${split(h.train)} holdout ${split(h.holdout)} ${h.kept ? 'KEEP' : 'revert'}`)
   return lines.join('\n')
 }
 
 export function renderMarkdown (summary, meta = {}) {
   // Three count columns, not one. `n` is what the three figures to its left were
-  // averaged over, `cells` is the arm that was requested, and `no reply` is the
+  // averaged over, `cells` is the arm that was requested, and `dropped` is the
   // difference. A single `n` column cannot say which of the two it means, and
   // this table is where quoted figures are read off.
   const md = (title, rows) => rows.length
-    ? `\n### ${title}\n\n| | score | rules | judge | n | cells | no reply |\n|---|---|---|---|---|---|---|\n` +
-      rows.map(r => `| ${r.key} | ${pct(r.score)} | ${pct(r.rules)} | ${pct(r.judge)} | ${r.n} | ${r.cells} | ${r.noReply} |`).join('\n') + '\n'
+    ? `\n### ${title}\n\n| | score | rules | judge | n | cells | dropped |\n|---|---|---|---|---|---|---|\n` +
+      rows.map(r => `| ${r.key} | ${pct(r.score)} | ${pct(r.rules)} | ${pct(r.judge)} | ${r.n} | ${r.cells} | ${r.dropped} |`).join('\n') + '\n'
     : ''
 
   // A partial report.md is a new thing in this project — before rows were

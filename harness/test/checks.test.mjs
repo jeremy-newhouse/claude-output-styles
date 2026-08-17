@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf, producedReply } from '../src/checks.mjs'
+import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf, producedReply, hasTurnText } from '../src/checks.mjs'
 import { splitTurn } from '../src/run.mjs'
 import { judge } from '../src/judge.mjs'
 
@@ -237,9 +237,30 @@ test('producedReply separates a cell that said something from one that did not',
   assert.equal(producedReply({ error: null, text: 'I fixed it.', trace: 'I fixed it.' }), true)
 
   // An error flag beats surviving text: a turn that aborted part-way holds a
-  // fragment of a reply, not a reply, and scoring the fragment against a rate
-  // check grades the style on how far it got before the harness stopped it.
+  // fragment of a reply, not a reply, and pooling the fragment measures how far
+  // the model got before the harness stopped it.
   assert.equal(producedReply({ error: 'error_max_turns', text: 'I fixed', trace: 'I fixed' }), false)
+})
+
+test('hasTurnText asks the other question: is there anything to grade', () => {
+  // The two predicates part company on exactly one row shape, and that is the
+  // point — an aborted cell that emitted text is graded (the score is real and
+  // rows.json is what offline re-derivation reads) but never pooled.
+  const abortedWithText = { error: 'error_max_turns', text: 'I fixed', trace: 'I fixed' }
+  assert.equal(hasTurnText(abortedWithText), true, 'gradeable')
+  assert.equal(producedReply(abortedWithText), false, 'not poolable')
+
+  // Everywhere else they agree, stated as the table it is.
+  const cases = [
+    [{ error: null, text: 'a reply', trace: 'a reply' }, true, true],
+    [{ error: null, text: '', trace: '' }, false, false],
+    [{ error: null, text: '  \n ', trace: ' ' }, false, false],
+    [{ error: 'error_max_turns', text: '', trace: '' }, false, false]
+  ]
+  for (const [row, gradeable, poolable] of cases) {
+    assert.equal(hasTurnText(row), gradeable, `hasTurnText ${JSON.stringify(row)}`)
+    assert.equal(producedReply(row), poolable, `producedReply ${JSON.stringify(row)}`)
+  }
 })
 
 test('producedReply reads the whole turn, not just the final message', () => {

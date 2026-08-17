@@ -82,30 +82,35 @@ export function viewsOf (row) {
 }
 
 /**
- * Did this cell say anything at all?
+ * Is there anything here to grade?
  *
- * The one predicate that decides whether a row may be scored and whether it may
- * be pooled into a mean. Both halves of the score go wrong on a silent cell and
- * they go wrong in opposite directions, so they do not cancel: every
- * deterministic check is a "no X found" search that a empty string passes or
- * fails wholesale, and the judge is skipped and substituted with a neutral 1.0.
- * Pooled, one aborted cell drags a rules mean down and pushes a judge mean up.
+ * Grading an empty string is the defect underneath COS-11: every deterministic
+ * check is a "no X found" search that an empty string wins wholesale, so a cell
+ * that said nothing scores ~0.93 on rules for beginner on `agentic-fix-verify`
+ * — verified — and takes a free 1.0 from the judge on top of it.
  *
- * Keyed on the turn rather than on `row.error` deliberately. An SDK error flag
- * is the common way a cell goes silent, not the only one: a turn that ends
- * without producing any text and without setting the flag scores ~0.93 on rules
- * for beginner on `agentic-fix-verify` — verified — because every ban check
- * finds no banned thing in an empty string, and the judge hands it a free 1.0
- * on top. A predicate reading only the flag would leave that case biasing
- * everything, and it is the same defect.
- *
- * `trace` is the whole turn, so a cell that narrated and then ended on a tool
- * call still counts as having replied. That cell produced measurable behaviour
- * and belongs in the mean; it is an empty FINAL message, which is a different
- * question from an empty turn and is not this predicate's business.
+ * Reads the whole turn. A cell that narrated and then ended on a tool call has
+ * an empty FINAL message and a real turn; it produced measurable behaviour and
+ * is graded like any other.
  */
-export const producedReply = row =>
-  !row.error && String(row.trace ?? row.text ?? '').trim() !== ''
+export const hasTurnText = row => String(row.trace ?? row.text ?? '').trim() !== ''
+
+/**
+ * Did this cell complete a reply that belongs in a mean?
+ *
+ * Stricter than `hasTurnText`, and the difference is the point. A turn that
+ * aborted part-way holds a *fragment* of a reply: pooling it measures how far
+ * the model got before the harness stopped it, not how well the style was
+ * followed. So an aborted cell is excluded from every mean whether or not text
+ * survived it — but it is still graded, and its real score is kept on the row,
+ * because throwing away a measurable number is the same sin in the other
+ * direction.
+ *
+ * Nothing keyed on `row.error` alone would do: an SDK error flag is the common
+ * way a cell goes silent, not the only one, and a turn that produced no text
+ * without setting the flag carries the identical bias.
+ */
+export const producedReply = row => !row.error && hasTurnText(row)
 
 // ---------- checks ----------
 // Each: (text, contract, caseDef) => { score: 0..1, evidence: string[] }

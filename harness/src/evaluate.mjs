@@ -1,4 +1,4 @@
-import { scoreDeterministic, viewsOf, producedReply } from './checks.mjs'
+import { scoreDeterministic, viewsOf, producedReply, hasTurnText } from './checks.mjs'
 import { judge, JUDGE_VIEW_DEFAULT } from './judge.mjs'
 import { runCell, pool } from './run.mjs'
 
@@ -55,17 +55,24 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
     // Each check reads the view it declares and the judge reads the one this
     // case's rubric names; see CHECKS[].reads and caseDef.judgeOn.
     const views = viewsOf(run)
-    // A silent cell is not scored on either half. `checks: []` is the part that
-    // matters beyond the row: summary.failures is built from checks[], and
-    // grading an empty string against every ban check would file a perfect score
-    // on rules the cell never met, or a zero backed by evidence that quotes
-    // nothing. Neither belongs in the brief the optimizer rewrites from.
-    const replied = producedReply(run)
-    const rules = replied
+    // Two different questions, and conflating them loses data either way.
+    //
+    // Grade whenever there is a turn to grade, even one an abort cut short:
+    // that score is real and `rows.json` is what every offline re-derivation
+    // reads. Overwriting it with a fabricated 0 would destroy a measurement to
+    // express "do not trust this", which `error` already says.
+    //
+    // A silent cell has nothing to grade, and `checks: []` is what keeps it out
+    // of summary.failures — grading an empty string against a ban list files a
+    // perfect score on rules the cell never met, backed by evidence quoting
+    // nothing, into the brief the optimizer rewrites from.
+    const rules = hasTurnText(run)
       ? scoreDeterministic(views, contract, cell.caseDef)
       : { total: 0, checks: [] }
 
-    const judged = opts.judge && replied
+    // The judge is skipped on any incomplete cell — a truncated turn is not
+    // worth paying to grade, and its substituted score reaches no mean.
+    const judged = opts.judge && producedReply(run)
     const j = judged
       ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })
       : { score: 1, violations: [] }
@@ -102,7 +109,7 @@ const meanOrNull = xs => xs.length ? Number(mean(xs).toFixed(3)) : null
  *
  * Means are taken over the cells that produced a reply, and never over the ones
  * that did not. Alongside each figure the group states how many cells stand
- * behind it (`n`), how many said nothing (`noReply`), and how big the arm was
+ * behind it (`n`), how many said nothing (`dropped`), and how big the arm was
  * (`cells`), so a partial arm cannot be read as a full one. `costUsd` is the
  * exception and covers every cell: a cell that aborted was still paid for.
  */
@@ -123,7 +130,7 @@ export function summarize (rows) {
         return {
           key: k,
           n: said.length,
-          noReply: rs.length - said.length,
+          dropped: rs.length - said.length,
           cells: rs.length,
           score: meanOrNull(said.map(r => r.total)),
           rules: meanOrNull(said.map(r => r.rulesScore)),
@@ -170,7 +177,7 @@ export function summarize (rows) {
     // The three counts travel with `overall` for the same reason they travel
     // with every group: the headline is the figure most often quoted alone.
     n: replied.length,
-    noReply: rows.length - replied.length,
+    dropped: rows.length - replied.length,
     cells: rows.length,
     totalCostUsd: Number(rows.reduce((a, r) => a + r.costUsd, 0).toFixed(4)),
     byModel: by(r => r.model),

@@ -56,8 +56,9 @@ than that, and those were corrected in place.
 under COS-11.** An empty reply scores 0.0 on every deterministic check and,
 because `evaluate.mjs` substitutes `{ score: 1 }` when it skips the judge, a free
 100% on the judge. The two did not cancel. One turn-limit abort moved a published
-figure from 33.0 to 44.2, and six aborts in `22-59-53` understated Haiku's
-advanced rule compliance by 10.8 points. `improve`'s adoption gate was fixed
+figure from 33.0 to 44.2, and the three aborts inside `22-59-53`'s 26-cell
+advanced arm understated its rule compliance by 10.8 points, 94.2 down to 83.4.
+`improve`'s adoption gate was fixed
 under COS-1; `summarize()`, which every quoted arm mean comes from, now excludes
 them too, and every figure states the sample it was taken over.
 

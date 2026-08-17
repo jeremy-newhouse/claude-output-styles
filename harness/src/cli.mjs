@@ -165,7 +165,7 @@ if (cmd === 'run') {
   console.error(`re-scoring ${rowsPath}`)
   const manifest = readManifest(rowsPath)
   const rows = readJson(rowsPath)
-  const { scoreDeterministic, viewsOf, producedReply } = await import('./checks.mjs')
+  const { scoreDeterministic, viewsOf, hasTurnText } = await import('./checks.mjs')
   const agenticCases = new Set(allCases.filter(c => c.agentic).map(c => c.id))
   let legacy = 0
   let legacyAgentic = 0
@@ -192,9 +192,11 @@ if (cmd === 'run') {
     // to agree most of the time. Re-scoring is this project's free way to
     // re-derive a published figure, and a re-derivation that grades a different
     // set of cells from the run it re-derives is not one. This branched on
-    // `r.text` alone, which disagreed with the live guard on a cell that
-    // errored while still emitting text.
-    const s = producedReply(r) ? scoreDeterministic(views, contract, caseDef) : { total: 0, checks: [] }
+    // `r.text`, which reads the final message and so disagreed with the live
+    // guard on a turn whose text came before its last tool call.
+    // Whether the row then lands in a mean is summarize()'s question, not this
+    // one — see producedReply.
+    const s = hasTurnText(r) ? scoreDeterministic(views, contract, caseDef) : { total: 0, checks: [] }
     const wJudge = contract.judgeWeight ?? 0.3
     return { ...r, rulesScore: s.total, checks: s.checks, total: Number((s.total * (1 - wJudge) + (r.judgeScore ?? 1) * wJudge).toFixed(3)) }
   })
