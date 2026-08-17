@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 02:39'
+updated_date: '2026-08-17 02:49'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies: []
@@ -232,6 +232,34 @@ Over-cap share on the shared five: **40.0% (8/20) → 14.3% (10/70)**; mean repl
 Final spend: **$18.6813** across six arms ($2.1756, $1.8652, $2.1477, $1.9229, $3.9336, $6.6363) against a ~$20 budget. 128 cells, 0 errored.
 
 **Shipped text verified byte-identical to the measured text.** `diff -q` against the off-tree copy taken before the pass-2 edits returns no difference; sha256 of `plain-english-beginner.md` at merge is `96fdbea405081c4239390962b9d7724696c3b9c9c43a1bb8869be71359eaab66`. That is the file both pass-1 arms (`02-15-14`, `02-25-39`) and the reserve after-arm (`02-16-47`) measured, so the pooled n=35 figures describe what ships.
+
+**Three defects in the shipped text, found by my own review pass, all recorded rather than fixed.** The budget is at $18.6813 of ~$20, so none can be measured, and shipping an unmeasured edit is what COS-1's precedent forbids. Listed so a future session can test them as one bundle at adequate n.
+
+1. **The jargon rules conflict for a product name the reader used first.** 'Say what a thing is only when the answer makes no sense without it … Skip it for a word they used first' says do not explain; 'A product or tool name is a technical word too. Put it in plain terms once … even if they used the name first' says do translate. For 'Redis' in `conv-explain-cache` both apply and they disagree. This is the same class of defect the task set out to remove, introduced by the fix for it.
+2. **The 'one number' rule demands a number that may not exist.** 'Give it, and give only one' — the judge quoted exactly this against a reply that had nothing to run: 'the reply never states whether the code was actually tested … no proof number given as required'. Pass 2's replacement ('Give one when you have one … When there is no number to give, say what you checked instead') is the better sentence and was measured only inside a five-edit bundle.
+3. **Router bullets 1 and 3 both match a tool-using report.** 'You finished a job' and 'They asked what something is or does' both describe `agentic-read-report`, and the file does not say which wins. Pass 2 tried to settle it with 'There was no job to report', which is false on that case; the softer pass-1 wording ships instead and leaves the ambiguity.
+
+Ranked by evidence, (2) is the only one with a quoted judge violation behind it. (1) is the most clearly wrong as written.
+
+**Branch review (`/code-review high`) — 11 findings. Ten are real and fixed; one is wrong and the reason it is wrong matters.**
+
+**Corrections to my own published numbers.**
+
+1. **'128 cells' was wrong everywhere I wrote it.** The six arms are 20+12+20+12+30+50 = **144**; the two paired comparisons use **114**, excluding the 30-cell rejected pass-2 arm. 128 is neither, and the ledger already totalled 144 for this task. Corrected in FINDINGS.md, the story and these notes.
+2. **'8 of 24 judge violations' was wrong on both numbers.** Recounted programmatically against run `02-10-45` with a stated rule — a missing/omits/lacks/drops/skips verb within 80 characters of a beat name, over the twelve beginner rows for the three weak cases — the count is **10 of 40**, falling on `conv-explain-cache` 3, `agentic-read-report` 3, `conv-followup-drift` 4. My original figure came from eyeballing a violation dump instead of counting it, which is the same class of error COS-1 recorded ('compute a rate with the code that defines it').
+3. **The reviewer's counter-claim on that finding is itself wrong, and it is worth recording why.** It reported 4 of 48, all on `conv-followup-drift`, and concluded the router's justification is unsupported. Those are the numbers for run **`12-44-03`** — the superseded run whose judge was told a 15-word cap no file states, and the run this whole task exists to stop quoting. On `02-10-45`, the arm the diagnosis was actually built on, the violations are spread across all three cases. The finding was right that my number was wrong; its diagnosis was drawn from the wrong arm.
+4. **'$0.107 a cell' is the cheapest arm, not the measured cost.** Task mean is $18.6813/144 = **$0.1297**, with arms running $0.1074 to $0.1602. Every derived price was ~20% low.
+5. **The sample-size claim confused precision with score.** I wrote that clearing a 70% bar 'needs roughly 151 cells per model'. No sample size moves a point estimate: Sonnet measures 58.1 and more cells only narrow the interval around 58.1. Rewritten to say what n actually buys, recomputed on the shipped text's pooled judge SD of **24.6** (Opus 24.1, Sonnet 22.8): one arm's 95% half-width reaches ±10 at 24 cells per model (~$3), ±7 at 48 (~$6), ±5 at 94 (~$12), ±4 at 146 (~$19); detecting a real between-arm difference costs about double — 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
+6. **'`no_jargon` bans 27' — `contracts.json` lists 28** beginner terms.
+7. **A sentence in the epic was garbled by my own edit** ('six rewrites were generated for it and beginner and every one was rejected').
+8. **'the shipped text' named two different files fifteen lines apart** in the story — the before arm's 58.7/70.7 and the after arm's 98.5/97.4. The first now says 'the pre-rewrite file' and the section states which one the phrase means from there on.
+
+**Two more defects in the shipped text, added to the three I recorded earlier.** All five are unmeasurable to fix at $18.6813 of ~$20, and shipping an unmeasured edit is what COS-1's precedent forbids.
+
+4. **The file's own worked example of the gloss rule uses a banned term.** 'I updated the API (the messenger that lets two programs talk)' — 'API' is one of the 28 terms `no_jargon` matches by regex at weight 2, with no awareness of the gloss. A model following the example scores 0.667 on the heaviest-weighted check. The rewrite added 'best is to drop the word' above it and left the demonstration contradicting the preference.
+5. **The shape router omits two of the file's own six shapes** — 'Reporting a long session' and 'Answering a follow-up'. The second is the sharper miss: `conv-followup-drift` produced 4 of the 10 structure violations that motivated the router, and the router does not route it.
+
+And a correction to weakness (2) as I recorded it: the 'always give a proof number' rule is stated in **three** places, not one — the Beginner-level bullet, beat 2, and the long-session bullet 'One sentence, one number'. Replacing only the first, as I proposed, would leave the other two pushing a reply that has nothing to count.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
