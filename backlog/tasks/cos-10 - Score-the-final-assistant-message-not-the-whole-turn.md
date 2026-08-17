@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:44'
-updated_date: '2026-08-17 06:26'
+updated_date: '2026-08-17 06:31'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -96,6 +96,14 @@ The Sonnet cell aborted on the 12-turn limit and wrote `trace: ''`, exercising t
 - *One published conclusion needed restating, not reversing.* The ledger argued the 12-word cap did nothing because the tightened arm's 40.5% over-12 share sat inside the untightened range 38.4-43.0%. Re-segmented, the tightened arm reads 38.5% against an untightened range of 30.2-35.2% — above it, not inside it. The conclusion holds and is slightly firmer (the cap now looks worse than no cap), and the paired CI moved from [0.06, 8.07] to [-0.17, 8.03], i.e. from barely excluding zero to including it. Restated in place rather than left standing.
 
 **Gates.** `npm --prefix harness test` 90/90 (was 79). `node src/cli.mjs audit` exit 0, all 12 checks agree. `lore check` exit 0.
+
+## Found while working, deliberately NOT fixed here (out of scope)
+
+`node src/cli.mjs score --rows=<run>` crashes with `TypeError: Cannot read properties of undefined (reading 'maxSentenceWords')` on any saved run whose rows carry a styleId that `contracts.json` no longer defines — `22-27-15` (`beginner-baseline-20w`), `22-18-53` (`plain-english-beginner-tight`) and several early runs. `scoreDeterministic` receives `contracts[r.styleId]` as `undefined` and the first check dereferences it.
+
+**Pre-existing, not introduced by this change**: the identical throw reproduces against HEAD's `checks.mjs`, which is how it was first hit while building this task's re-derivation script.
+
+It matters because it is a crash in exactly the workflow AC #5 depends on — 'a saved run can be re-scored offline for free' — and it fails on the two runs behind the sentence-cap decision. This session worked around it by filtering those rows in a throwaway script; the CLI still cannot do it. A one-line guard (skip the row, or exit with the unknown style named) would fix it, but adding it here would silently widen the task, so it is recorded for the user to rule on.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
