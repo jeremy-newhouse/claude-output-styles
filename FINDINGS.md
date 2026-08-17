@@ -763,12 +763,31 @@ five cases; pooled over 35 cells of the shipped text it is 58.1 [50.5, 65.6].
 24.6 pooled (24.1 Opus, 22.8 Sonnet), so the ten-cell arms every judge figure in
 this project rests on carry 95% intervals about 30 points wide.
 
+**Most of that spread is the reply, not the judge — but not all of it.** Judging
+60 saved replies three times each with four model tiers splits the same 24.6 into
+**10.17 points of judge-call noise and 22.58 points of reply**, an intraclass
+correlation of 0.83. Score one reply twice with the same judge and the two
+numbers differ by 10.8 points on average; on one reply of the sixty they differed
+by 55.7. Repeat-judging shrinks only the judge's 17% of the variance, so it is a
+small lever, and a slow one — a cell costs about one judge call in wall clock and
+repeat-judging only pays when a cell costs eleven.
+
 What sample size does *not* give you is a score. Sonnet measures 58.1 on the
 shipped text; no arm size moves a point estimate, and none places it above 70.
 What it gives you is precision. Narrowing one arm's 95% half-width to ±10 points
-takes 24 cells per model, ±7 takes 48, ±5 takes 94 and ±4 takes 146. Detecting a
-real difference *between* two arms takes about twice that: 47 cells per arm for
-10 points, 95 for 7, 187 for 5, 291 for 4.
+takes 24 cells per model, ±7 takes 49, ±5 takes 95 and ±4 takes 148 — and no
+number of judge calls per cell takes ±4 below 123. Detecting a real difference
+*between* two arms takes twice that: 48 cells per arm for 10 points, 97 for 7,
+189 for 5, 295 for 4.
+
+**A bar is stated against a judge, and this project never named one.** Opus grades
+the same replies within noise of Sonnet (+2.4 [−1.4, +6.1]), but Haiku marks
++10.8 higher overall and **+18.0 [+12.3, +23.7] on beginner** — an interval wider
+than beginner's whole 11.9-point gap to its bar. The three styles rank the same
+way under all four judges; the Opus-versus-Sonnet ordering does not, flipping
+sign between judges on deltas of one to three points. Sonnet, the configured
+judge, is also the least repeatable of the four: judge SD 10.17 against Opus's
+5.49.
 
 Deterministic rules and reply length are settled at small arm sizes and were
 settled here; the judge is not, and a ten-cell judge difference under about 20
