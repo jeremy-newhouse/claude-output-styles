@@ -54,7 +54,7 @@ author model from the failures, rewrite, re-measure, keep or revert.
 | `cli.mjs` | argument parsing, cell-list construction, output paths, the three commands |
 | `workspace.mjs` | builds a throwaway workspace with the style file, settings, and fixture repo; encodes the verified SDK loading recipe and the variant switches |
 | `style.mjs` | frontmatter parse and render, so a rewritten body can be re-emitted with the original metadata |
-| `run.mjs` | one cell: multi-turn session via `resume`, collects visible text, tool calls, cost; `splitTurn` derives the two views of a turn; also the concurrency pool |
+| `run.mjs` | one cell: multi-turn session via `resume`, collects visible text, tool calls and `elapsedMs`, bounded by the `maxCellSeconds` `AbortController`; `splitTurn` derives the two views of a turn; also the concurrency pool |
 | `checks.mjs` | one function per style rule; pure, no model calls, unit-tested; each check declares which view it grades |
 | `judge.mjs` | rubric grading against the style body, on the view the case names |
 | `evaluate.mjs` | crosses the matrix, combines the two scores by `judgeWeight`, summarizes; calls back with the rows completed so far after every cell |

@@ -41,38 +41,54 @@ async function runTurn ({ prompt, ws, env, model, opts, resume, controller, quer
   let sessionId = null
   let result = null
   const toolCalls = []
+  let thrown = null
 
-  for await (const m of queryFn({
-    prompt,
-    options: {
-      cwd: ws,
-      model,
-      // REQUIRED: without the preset there is no Claude Code system prompt,
-      // so the output style has nothing to attach to and is silently dropped.
-      systemPrompt: { type: 'preset', preset: 'claude_code' },
-      // REQUIRED: both sources. 'local' alone reads the outputStyle setting but
-      // never discovers the style file under .claude/output-styles/.
-      settingSources: ['project', 'local'],
-      permissionMode: 'bypassPermissions',
-      env: { ...process.env, ...env },
-      maxTurns: opts.maxTurns,
-      abortController: controller,
-      ...(resume ? { resume } : {})
-    }
-  })) {
-    if (m.type === 'assistant') {
-      for (const b of m.message.content ?? []) {
-        // Order across the whole turn, not just within one message: splitTurn
-        // needs to know which text came after the last tool call.
-        if (b.type === 'text') blocks.push({ type: 'text', text: b.text })
-        if (b.type === 'tool_use') { blocks.push({ type: 'tool_use', name: b.name }); toolCalls.push(b.name) }
+  try {
+    for await (const m of queryFn({
+      prompt,
+      options: {
+        cwd: ws,
+        model,
+        // REQUIRED: without the preset there is no Claude Code system prompt,
+        // so the output style has nothing to attach to and is silently dropped.
+        systemPrompt: { type: 'preset', preset: 'claude_code' },
+        // REQUIRED: both sources. 'local' alone reads the outputStyle setting but
+        // never discovers the style file under .claude/output-styles/.
+        settingSources: ['project', 'local'],
+        permissionMode: 'bypassPermissions',
+        env: { ...process.env, ...env },
+        maxTurns: opts.maxTurns,
+        abortController: controller,
+        ...(resume ? { resume } : {})
       }
-    } else if (m.type === 'result') {
-      result = m
-      sessionId = m.session_id
-    } else if (m.type === 'system' && m.session_id) {
-      sessionId = m.session_id
+    })) {
+      if (m.type === 'assistant') {
+        for (const b of m.message.content ?? []) {
+          // Order across the whole turn, not just within one message: splitTurn
+          // needs to know which text came after the last tool call.
+          if (b.type === 'text') blocks.push({ type: 'text', text: b.text })
+          if (b.type === 'tool_use') { blocks.push({ type: 'tool_use', name: b.name }); toolCalls.push(b.name) }
+        }
+      } else if (m.type === 'result') {
+        result = m
+        sessionId = m.session_id
+      } else if (m.type === 'system' && m.session_id) {
+        sessionId = m.session_id
+      }
     }
+  } catch (err) {
+    // Everything the model had already said this turn is in `blocks`, and
+    // letting the exception past this point threw it away. An abort ends the
+    // stream one of two ways — a throw or a quiet close — and only the quiet
+    // one kept the partial reply, so a cell that narrated "Let me check the
+    // tests first." and then wedged came back either with that fragment and a
+    // real score, or with nothing at all, depending on SDK internals. The
+    // fragment is also the one diagnostic an operator has for tuning
+    // maxCellSeconds: it says what the model was doing when it was stopped.
+    //
+    // The error is returned rather than rethrown; runCell's loop already breaks
+    // on a turn that carries one, and that path builds a complete row.
+    thrown = String(err.message ?? err)
   }
 
   return {
@@ -80,7 +96,7 @@ async function runTurn ({ prompt, ws, env, model, opts, resume, controller, quer
     sessionId,
     toolCalls,
     numTurns: result?.num_turns ?? 0,
-    error: result?.is_error ? (result.subtype ?? 'error') : null
+    error: thrown ?? (result?.is_error ? (result.subtype ?? 'error') : null)
   }
 }
 
@@ -104,8 +120,22 @@ export function cellLimitMs (maxCellSeconds) {
   if (!Number.isFinite(ms) || ms <= 0) {
     throw new Error(`maxCellSeconds must be a positive number — got ${maxCellSeconds}`)
   }
+  // The high end fails the same way the low end does, and less obviously.
+  // setTimeout takes a 32-bit signed delay: anything past 2147483647 ms logs a
+  // TimeoutOverflowWarning and is set to 1 ms. Measured — a limit of 999999999
+  // seconds fires after 2 ms. So the one edit an operator would make to "turn
+  // the guard off" produces exactly the runaway this function exists to
+  // prevent: every cell in the matrix aborted on the next tick, every row
+  // labelled error_timeout, and a green run as far as any completeness check
+  // can tell. There is no value here worth accepting silently.
+  if (ms > MAX_TIMER_MS) {
+    throw new Error(`maxCellSeconds must be at most ${MAX_TIMER_MS / 1000} — got ${maxCellSeconds}. setTimeout truncates a longer delay to 1ms, which would abort every cell instantly.`)
+  }
   return ms
 }
+
+/** setTimeout's 32-bit signed ceiling, past which a delay silently becomes 1ms. */
+const MAX_TIMER_MS = 2147483647
 
 /**
  * Run one cell of the matrix: (style x variant x model x case x repeat).
@@ -174,12 +204,14 @@ export async function runCell ({ styleId, styleText, variant, model, caseDef, re
       error: timedOut ? 'error_timeout' : (turns.find(t => t.error)?.error ?? null)
     }
   } catch (err) {
+    // Reached only by something outside runTurn now that runTurn catches its
+    // own abort — a workspace or scoring fault, not a model call. Kept because
+    // it is the difference between one bad cell and a dead run, and it still
+    // reports whatever turns finished before it.
     return {
       ...base,
-      // '' rather than the last completed turn's text, matching the quiet path:
-      // there, the wedged turn returns an empty turn object and `text` is its
-      // empty final. The turn that failed produced nothing, and saying so is the
-      // same answer on both paths.
+      // '' because no turn object exists for whatever failed here. The turns
+      // that did complete are below, exactly as on the ordinary path.
       text: '',
       trace: '',
       allTurns: turns.map(t => t.trace),

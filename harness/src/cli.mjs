@@ -106,8 +106,8 @@ if (cmd === 'run') {
   const expected = styles.length * variants.length * models.length * cases.length * opts.repeats
   console.error(`cells: ${styles.length} styles x ${variants.length} variants x ${models.length} models x ${cases.length} cases x ${opts.repeats} repeats = ${expected}`)
   // Persist after every completed cell. A run is routinely ended by Ctrl-C, an
-  // OOM or a laptop lid, and the cells it has already bought are the most
-  // slowest thing in this project — writing them once at the end throws away
+  // OOM or a laptop lid, and the cells it has already measured are the slowest
+  // thing in this project to produce — writing them once at the end throws away
   // everything a killed run measured. `improve` has always done this; this is
   // the same flush on the path that measures the most.
   const flush = (rows, complete = false) => writeResults({ outDir, rows, stamp, kind: 'run', expected, complete })
