@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 01:38'
+updated_date: '2026-08-17 01:40'
 ---
 # Backlog campaign tracker
 
@@ -416,4 +416,5 @@ Both remaining issues carry known risk against that policy:
   documented that same error bias in three places and left the code alone. Fixed
   in the gate with six new tests, after `01-33-41` measured the case aborting
   3 of 6 on Haiku. `audit` exit 0; `lore check` exit 0. Six paid runs, $13.6567
-  against ~$15. Cursor advanced to COS-4.
+  against ~$15. Merged via PR #8 (rebase) as `1c35697`; `dev` and `main` both
+  pushed at that SHA, no branch litter, no open PRs. Cursor advanced to COS-4.
