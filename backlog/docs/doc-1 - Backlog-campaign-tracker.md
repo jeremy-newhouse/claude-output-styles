@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 05:37'
+updated_date: '2026-08-17 05:49'
 ---
 # Backlog campaign tracker
 
@@ -46,7 +46,7 @@ and 15 of campaign 2, because the blockers under them have owners.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
-| 1 | COS-12 | harness | **Resolved, session 9.** Flush rows so a killed run keeps what it paid for. Insurance before any large arm. Cost $0.0898 to prove, not the $0 planned. |
+| 1 | COS-12 | harness | **Resolved, session 9.** Flush rows so a killed run keeps what it paid for. Insurance before any large arm. Cost $0.1812 to prove, not the $0 planned. |
 | 2 | COS-10 | harness | Score the final message, not the whole turn. Unblocks 6 of the 15. Moves published agentic figures. |
 | 3 | COS-11 | harness | Errored cells score 0 on rules and 1.0 on the judge. Both biases, one fix. |
 | 4 | COS-13 | fixture | The fixture asserts 850 and computes 849. Needs COS-10. |
@@ -85,12 +85,12 @@ have to get everything tested - no budget"). For planning: an arm at the require
 146 non-errored cells per model runs about $19 at the measured $0.1297 a cell,
 and considerably more on Fable, whose worst single agentic cell has cost $1.1315.
 Budget off the worst cell, not the mean. Items 1-6 were planned at zero spend;
-COS-12 in fact cost $0.0898, because its fourth acceptance criterion required a
+COS-12 in fact cost $0.1812, because its fourth acceptance criterion required a
 real run to be killed rather than a unit test. Expect the same shape on the
 other instrument-repair items: a few cents to prove a behaviour end to end. The
 arm-sized spend still starts at item 8, and the largest single session is COS-19.
 
-**Campaign 2 spend so far: $0.0898** — COS-12 $0.0898.
+**Campaign 2 spend so far: $0.1812** — COS-12 $0.1812 ($0.0682 the killed run, $0.0216 the completed one, $0.0914 an improve loop run to exercise the shared writer).
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -123,7 +123,7 @@ IS counted above.
 
 | # | Issue | Status/date/session | Evidence summary |
 |---|---|---|---|
-| 1 | COS-12 | Task Done — 2026-08-17, session 9 | All 4 ACs verified, and AC #4 required a real kill rather than a unit test. Two paid Haiku runs, **$0.0898**. `results/2026-08-17T05-29-31-663Z` (beginner, Haiku, baseline, 4 conversational cases, repeats 1, concurrency 1, judge on) was SIGKILLed — `kill -9`, no handler, no graceful shutdown — the moment `run.json` read `completed=2`. Both survivors came back fully scored: `conv-status-auth` rules 0.985 / judge 0.62 / total 0.802, `conv-decision-db` rules 1.0 / judge 0.58 / total 0.79, $0.0682 between them. The killed process never printed its `wrote` line, so nothing but the per-cell flush put those files on disk (**AC #1**). `run.json` read `complete: false, completed: 2, expected: 4` (**AC #2**), and `score --rows=` exited 0 printing `PARTIAL run — 2 cells of 4 expected (2 never ran)` above every table (**AC #3**). `results/2026-08-17T05-31-40-879Z`, the same configuration allowed to finish, writes `complete: true` and `score` says `complete run — 1 cell`. Design: `rows.json` stays a bare array — every run in the ledger is one and every offline re-derivation reads it as one — so completeness lives in a sibling `run.json`, and every file is written through a temp file and `rename(2)` so a kill mid-write cannot truncate the paid data. The manifest is written last on purpose: it can then only ever undercount what is on disk. New `harness/src/results.mjs` owns the directory; `evaluate()` gained `onRows` (per completed cell, indexed by cell so a partial file is ordered like the complete one it would have become) and an injectable `runCell`; `improve` uses the same writer. Regression check: re-scoring `12-44-03` still returns 81.0% at $7.517, so the flush moved no published figure. `npm --prefix harness test` **64 → 77**; `audit` exit 0; `lore check` exit 0. Spend caveat now recorded in the ledger: the cell in flight when the kill lands has spent tokens no row will ever carry, so flushing recovers completed cells, not the interrupted one. |
+| 1 | COS-12 | Task Done — 2026-08-17, session 9 | All 4 ACs verified, and AC #4 required a real kill rather than a unit test. Two paid Haiku runs, **$0.0898**. `results/2026-08-17T05-29-31-663Z` (beginner, Haiku, baseline, 4 conversational cases, repeats 1, concurrency 1, judge on) was SIGKILLed — `kill -9`, no handler, no graceful shutdown — the moment `run.json` read `completed=2`. Both survivors came back fully scored: `conv-status-auth` rules 0.985 / judge 0.62 / total 0.802, `conv-decision-db` rules 1.0 / judge 0.58 / total 0.79, $0.0682 between them. The killed process never printed its `wrote` line, so nothing but the per-cell flush put those files on disk (**AC #1**). `run.json` read `complete: false, completed: 2, expected: 4` (**AC #2**), and `score --rows=` exited 0 printing `PARTIAL run — 2 cells of 4 expected (2 never ran)` above every table (**AC #3**). `results/2026-08-17T05-31-40-879Z`, the same configuration allowed to finish, writes `complete: true` and `score` says `complete run — 1 cell`. Design: `rows.json` stays a bare array — every run in the ledger is one and every offline re-derivation reads it as one — so completeness lives in a sibling `run.json`, and every file is written through a temp file and `rename(2)` so a kill mid-write cannot truncate the paid data. The manifest is written last on purpose: it can then only ever undercount what is on disk. New `harness/src/results.mjs` owns the directory; `evaluate()` gained `onRows` (per completed cell, indexed by cell so a partial file is ordered like the complete one it would have become) and an injectable `runCell`; `improve` uses the same writer. Regression check: re-scoring `12-44-03` still returns 81.0% at $7.517, so the flush moved no published figure. `/code-review high` raised four findings, all real and all fixed on the branch: a partial `report.md` was indistinguishable from a complete one (it now opens with the manifest sentence as a blockquote, the same device `report.mjs` already used for optimizer traces); the PARTIAL line went to stderr while every figure went to stdout, so `score > figures.txt` dropped it — and that was a *new* exposure, because a bare `score` resolves to the newest run and only now can the newest run be a partial one; `improve` stamped `complete: true` even when every style threw; and `improve.json` was written after the manifest, contradicting the manifest-last invariant this change itself asserts. `npm --prefix harness test` **64 → 79**; `audit` exit 0; `lore check` exit 0. Spend caveat now recorded in the ledger: the cell in flight when the kill lands has spent tokens no row will ever carry, so flushing recovers completed cells, not the interrupted one. |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -666,8 +666,9 @@ Both remaining issues carry known risk against that policy:
 
   AC #4 is the one that carried the rest — a real 4-cell paid run SIGKILLed
   after two cells, both survivors fully scored, `score` re-reading them at exit
-  0 behind `PARTIAL run — 2 cells of 4 expected (2 never ran)`. $0.0898 across
-  two runs. Re-scoring `12-44-03` still returned 81.0% at $7.517, so nothing
+  0 behind `PARTIAL run — 2 cells of 4 expected (2 never ran)`. $0.1812 across
+  three runs, the third an `improve` loop run only because nothing else
+  exercises that branch and this change moved it onto the shared writer. Re-scoring `12-44-03` still returned 81.0% at $7.517, so nothing
   published moved. `npm test` 64 → 77; `audit` exit 0; `lore check` exit 0.
 
   Two pieces of stale prose were fixed rather than left: `usage.mjs`'s
@@ -676,5 +677,14 @@ Both remaining issues carry known risk against that policy:
   `run` when COS-5 itself added the guard. Also found while updating the
   ledger's total: its 26 rows sum to $83.34 against a stated $83.33 — a rounding
   artifact, now stated rather than silently reconciled.
+
+  `/code-review high` earned its place twice over. Two of its four findings are
+  hazards this change *created*: a partial `report.md` had never been possible
+  before, and a bare `score` had never been able to resolve to a partial run.
+  Both passed every automated gate. The other two are the change failing to
+  apply its own stated invariants to `improve` — `complete: true` over three
+  crashed styles, and `improve.json` written after the manifest the module
+  documents as going last. Worth carrying forward: when a change makes a new
+  state representable, ask which existing readers have never had to consider it.
 
   Cursor advanced to COS-10.

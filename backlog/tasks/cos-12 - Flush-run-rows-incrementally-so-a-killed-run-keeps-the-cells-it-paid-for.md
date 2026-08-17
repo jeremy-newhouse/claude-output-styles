@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:45'
-updated_date: '2026-08-17 05:35'
+updated_date: '2026-08-17 05:48'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -76,6 +76,22 @@ Legacy path: score --rows= on results/2026-08-16T12-44-03-883Z (pre-manifest) pr
 Spend caveat, recorded in the ledger: the cell in flight when SIGKILL landed had already spent tokens and will never be written, so 05-29-31's $0.07 is the two cells that landed and not what the process cost. Flushing recovers completed cells, not the interrupted one.
 
 Gates: npm --prefix harness test 64 -> 77 (new harness/test/results.test.mjs, 13 cases); node src/cli.mjs audit exit 0; lore check exit 0.
+
+**Review (/code-review high) — four findings, all real, all fixed on the branch.**
+
+1. A partial report.md was indistinguishable from a complete one. writeResults knew 'complete' and 'expected' but passed neither to renderMarkdown, so a killed run's report.md carried a normal-looking **Overall:** figure — and report.md is the file the runbook tells readers to open first. Before this change a partial report.md could not exist, so the flush created the hazard. Fixed by moving describeManifest into report.mjs (the same job as its existing TRACE_WARNING) and having renderMarkdown emit it as a blockquote under the title when the manifest says complete: false. Verified on the real killed rows: the regenerated report opens '> **PARTIAL run — 2 cells of 4 expected (2 never ran)...**', and a complete run's report has no banner.
+
+2. The PARTIAL line went to stderr while every figure went to stdout, so 'npm run score > figures.txt' produced a figures file with no completeness marker — the exact failure the README says score prevents. Worse, this was a new exposure: before COS-12 a killed run left no rows.json at all, so a bare 'score' always resolved to the last finished run; now newestRows() can resolve to a partial one. Moved to stdout, immediately above the tables. Verified: 'score --rows=<partial> 2>/dev/null' prints the PARTIAL line first.
+
+3. improve stamped complete: true even when every style threw. The per-style try/catch records the failure in improve.json and the loop continues, then flush(true) ran unconditionally — so three crashed styles would produce 'complete improve run — N cells' over wreckage. run already behaves correctly (a throw out of evaluate leaves the last flush's complete: false standing). Now gated on results.every(r => !r.error).
+
+4. improve.json was written after the manifest, contradicting the manifest-last invariant this same change asserts: a kill between the two would leave run.json declaring the run complete over an improve.json missing the final style's verdict, reserve result and spend. Reordered to write improve.json first.
+
+Fixes 1 and 2 are verified by execution on the real killed run. Fix 4 is verified by the improve run below. **Fix 3's error branch is verified by reading only** — reaching it needs a style that throws inside a paid loop, and the improve branch is inline in cli.mjs rather than importable. Stated rather than glossed.
+
+Also exercised improve end to end, because nothing else does and this change moved it onto a shared writer: results/2026-08-17T05-46-38-180Z (beginner, Haiku, 1 train + 1 holdout case, --iterations=0, 4 cells, $0.0914). run.json reads kind improve / complete true / expected null; report.md still opens with the optimizer-trace warning; score prints 'complete improve run — 4 cells'. Logged in the ledger's optimizer table, not the runs table — that table's own rule forbids improve rows, which the first draft of this session's ledger edit broke.
+
+Suite 77 -> 79. Session spend $0.1812 total.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
