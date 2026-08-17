@@ -105,6 +105,18 @@ unaffected in practice: one of its five cases is agentic, `paragraph_length`
 still scores 95.8–100.0 there on every model, and the artifact is identical in
 all four columns.
 
+A second limit of the same kind was fixed under COS-13 and is equally
+non-retroactive: the fixture every agentic case works in shipped a test suite
+that failed on a clean checkout, because its `priceOrder` assertion expected 966
+where the code returns 965. Three of the four agentic cases ask the model to run
+the tests, so the runs behind this story were measured against a model meeting an
+unexplained failure it had not caused — and a second assertion broke the moment
+the model correctly fixed the bug it was sent to fix. Neither is anything the
+style text governs, and both landed hardest on the models that did the most work.
+This one shapes what the model met rather than what the scorer read, so no
+re-score can undo it; `agentic-read-report`, which never needs the tests, and
+every conversational case are untouched.
+
 COS-10 also changed `sentences()` to split on a single newline, and that half
 *does* apply to saved rows. It moved this story's per-model sentence figures —
 Opus 10.6 → 10.2 words, Fable 11.1 → 10.7, Haiku 11.3 → 10.1, Sonnet 13.4 → 12.9

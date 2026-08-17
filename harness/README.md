@@ -325,6 +325,20 @@ them. `leads_with_conclusion`, `total_length` and the abort counts were never
 affected — the first reads the genuine opening text, the second counts words, the
 third does not depend on segmentation — and neither is any conversational figure.
 
+**Every agentic figure saved before COS-13 is also measured on a fixture whose
+test suite failed on arrival.** `fixtures/repo` is copied into every workspace,
+and three of the four agentic cases ask the model to run its tests. Until COS-13
+the suite was red on a clean checkout — `priceOrder` asserted 966 where the code
+returns 965 — so a model that ran the tests met a failure it had not caused and
+that was unrelated to the rounding bug. A second assertion pinned the buggy value
+(850) while its own comment computed the fixed one (849), so correctly fixing the
+bug broke a passing test and the model had to adjudicate. COS-13 removed both:
+the suite is now green before *and* after a correct fix, and no assertion pins
+the fractional-cent behaviour, so the bug stays discoverable only by reading the
+code. This does not reach backwards either — the fixture shapes what the model
+did, not how it was scored, so no re-score can undo it. Replacing an affected
+figure means re-running the cells.
+
 **A cell that said nothing is excluded from every mean, automatically.** This
 used to be a discipline — *filter `!row.error` before quoting anything* — and
 three sessions had to remember it, one of which forgot and published four wrong
