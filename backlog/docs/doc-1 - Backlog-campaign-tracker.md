@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 03:49'
+updated_date: '2026-08-17 04:39'
 ---
 # Backlog campaign tracker
 
@@ -15,27 +15,24 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**No cursor. The first campaign is complete and a second is not yet ordered.**
+**Next issue: COS-12** — queue order for campaign 2 confirmed by the user on
+2026-08-17, who chose the "Fix tools first, then everything" option from a
+presented comparison over a shorter path that went straight to the two missed
+bars: "15 sessions. Repairs the measuring tools before spending on any test,
+then re-establishes every published number. Slowest to the headline goal, but
+nothing gets measured twice." The user separately confirmed keeping COS-17 as
+its own session rather than folding it into COS-19, because "it answers sooner
+and cheaper, and COS-19 can reuse its data."
 
-All eight issues COS-1 through COS-8 were taken one per session in the order the
-user confirmed on 2026-08-16: "COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5 ->
-COS-7 -> COS-1 -> COS-4." Six resolved. Two — COS-1 and COS-4, the hard style
-tasks deliberately sequenced last — shipped most of their work and missed a
-measured judge bar, and are parked with the scores they reached.
+Do not re-ask before taking the next item.
 
-**A second backlog now exists.** On 2026-08-17 the user asked for follow-up
-issues covering everything untested, with budget removed as a constraint. Twelve
-issues are open: COS-9 (raised in session 3) plus COS-10 through COS-21, and the
-two parked tasks COS-1 and COS-4 now carry dependencies on them. Nothing is
-queued, because queue order is the user's to confirm.
+Campaign 1 is closed. Its cursor ran COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5
+-> COS-7 -> COS-1 -> COS-4; six resolved, two parked. Those two are now items 14
+and 15 of campaign 2, because the blockers under them have owners.
 
-Starting the second campaign means running `/backlog-handover init`, which will
-inventory the twelve and propose an order. The dependency graph already implies
-most of one — see the note under Queue below.
+## Queue (confirmed order)
 
-## Queue
-
-**Campaign 1: complete.** The confirmed order ran to completion.
+**Campaign 1: complete.**
 
 | # | Issue | Type | Outcome |
 |---|---|---|---|
@@ -43,33 +40,50 @@ most of one — see the note under Queue below.
 | 7 | COS-1 | styles | ACs #1-#3 merged; AC #4 missed and parked |
 | 8 | COS-4 | styles | ACs #2-#3 met and merged; AC #1 missed and parked |
 
-**Campaign 2: twelve issues open, no order confirmed.** The dependencies are
-already recorded on the tasks, and they imply a shape rather than an order:
+**Campaign 2: 15 issues, order confirmed 2026-08-17.**
 
-- **Instrument first, and nothing measured until it lands.** COS-10 (score the
-  final message, not the whole turn), COS-11 (errored cells bias every score),
-  COS-12 (flush rows so a killed run keeps what it paid for), COS-13 (the
-  fixture contradicts itself). Every measurement issue depends on some of these,
-  and re-measuring on the current scorer would buy precision on the wrong number.
-- **Cheap independents, any time.** COS-14 (`improve` inherits `run`'s models),
-  COS-15 (the audit cannot express "unless they ask"), COS-9 (`two_options_max`
-  is blind to prose option sprawl).
-- **Then the measurement.** COS-20 (validate the judge — do this before sizing
-  anything expensive, because it may cut the 146-cell figure), COS-16 (the five
-  contradictions the beginner rewrite left), COS-17 (beginner on Haiku and
-  Fable), COS-18 (do the other two styles carry the same defects), COS-19 (the
-  headline table at a sample size its claims need), COS-21 (the reinforcement
-  ADR rests on five cells per arm).
-- **Last, the two parked bars.** COS-4's AC #1 and COS-1's AC #4, both of which
-  now depend on the above.
+| # | Issue | Type | One-line note |
+|---|---|---|---|
+| 1 | COS-12 | harness | Flush rows so a killed run keeps what it paid for. Insurance before any large arm. No spend. |
+| 2 | COS-10 | harness | Score the final message, not the whole turn. Unblocks 6 of the 15. Moves published agentic figures. |
+| 3 | COS-11 | harness | Errored cells score 0 on rules and 1.0 on the judge. Both biases, one fix. |
+| 4 | COS-13 | fixture | The fixture asserts 850 and computes 849. Needs COS-10. |
+| 5 | COS-14 | config | `matrix.improve` inherits `run`'s model list. Small, no spend. |
+| 6 | COS-9 | checks | `two_options_max` is blind to prose option sprawl. Re-scores saved rows, no new spend. |
+| 7 | COS-20 | judge | Validate the judge as an instrument. Cheap — saved replies re-judge for free — and may cut every later sample size. |
+| 8 | COS-15 | contracts | The audit cannot express "unless they ask". Touches two style rules, so it measures. |
+| 9 | COS-16 | styles | The five contradictions COS-4 left. Each edit measured on its own this time. |
+| 10 | COS-18 | styles | Do intermediate and advanced carry beginner's four defects? Nobody has looked. |
+| 11 | COS-17 | measurement | Beginner on Haiku and Fable. Kept separate from COS-19 by the user's decision. |
+| 12 | COS-21 | measurement | The reinforcement ADR rests on five cells per arm. |
+| 13 | COS-19 | measurement | The four-tier baseline at a sample size its claims need. Last of the measurement work, so it measures final text. |
+| 14 | COS-4 | styles | Beginner judge > 70% on Opus and Sonnet. Currently 73.9 / 58.1. Achievability unproven. |
+| 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
+
+The order is a valid topological sort of the recorded dependencies, and every
+phase boundary is a real constraint rather than a preference:
+
+- **1-6, repair the instrument.** No measurement spend. COS-12 is first because
+  it is insurance for everything after it. Buying precision on a scorer that
+  reads the wrong string, pools errored rows and grades against a
+  self-contradicting fixture would be expensive and worthless.
+- **7, characterise the instrument.** COS-20 before the expensive arms, because
+  it may lower the 146-cell figure the rest of the campaign is priced on.
+- **8-11, the style text.** Every file change lands before the record is rebuilt,
+  so nothing is measured twice.
+- **12-13, rebuild the published record.** COS-19 last of these: it re-measures
+  the headline table, and it must measure final text.
+- **14-15, the two parked bars**, each of which depends on work above it.
 
 **Campaign 1 spend: $53.00** — COS-6 nothing, COS-3 $0.7500, COS-2 $1.1800,
 COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290, COS-1 $13.6567, COS-4 $18.6813.
 
-**Campaign 2 has no budget ceiling**, by the user's decision on 2026-08-17. For
-planning: an arm at the required 146 non-errored cells per model runs about $19
-at the measured $0.1297 a cell, and considerably more on Fable, whose worst
-single agentic cell has cost $1.1315. Budget off the worst cell, not the mean.
+**Campaign 2 has no budget ceiling**, by the user's decision on 2026-08-17 ("we
+have to get everything tested - no budget"). For planning: an arm at the required
+146 non-errored cells per model runs about $19 at the measured $0.1297 a cell,
+and considerably more on Fable, whose worst single agentic cell has cost $1.1315.
+Budget off the worst cell, not the mean. Sessions 1-6 spend nothing; the spend
+starts at item 8 and the largest single session is COS-19.
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -98,7 +112,17 @@ IS counted above.
 | 5 | COS-5 | Task Done — 2026-08-16, session 5 | All 3 ACs verified against `results/2026-08-16T22-59-53-852Z` (3 styles x haiku x baseline x **13 cases** x 2 repeats = 78 cells, $1.8770). AC #1 ran the full pool, not the 5 cases the old baseline used. AC #2 was satisfied **without re-running opus/sonnet** (~$19.5 at 12-44-03's measured $0.1253/cell, against a ~$5 budget): the new haiku rows were sliced to the same 5 case ids `12-44-03` used, after verifying in git that those 5 case definitions are byte-identical across 444b221/8a76f13/49fd1fa/HEAD and that the style files, `checks.mjs` and `contracts.json` are unchanged between the runs; re-scoring `12-44-03` offline reproduced its 12 published FINDINGS figures to the tenth of a point. Zero errored cells in that slice on any model. Result: rules survive the drop to the cheapest tier (haiku 90.9–96.0, never more than 1.8 points behind the better of opus/sonnet, and ahead of opus on intermediate); judge does not (37.5–62.2, last on all three styles) — which also closed the one-style-file ADR's open item that the cheap tier was untested. AC #3's failure mode is **turn-limit exhaustion, not wording**: 6 of 78 cells returned no reply at all, every one a 12-turn abort on a case that edits a file then runs tests. Like-for-like on `agentic-fix-verify`, the one such case all three models have run: haiku 5 aborts in 6 cells, opus 0 in 6, sonnet 0 in 6. It hit all three styles, so no rewrite fixes it. Because an empty reply scores 0.0 on every rule, pooling those cells understates haiku's rule compliance ~10 points — FINDINGS.md now reports "replies only" and "counting no-reply as 0" separately. **The predicted failure mode was refuted**: measured with `checks.mjs`'s own `words()`, haiku averages 11.8w on the shared 5 and 12.0w on the full pool, and **sonnet** is the long-sentence model at 13.5w. The probe's arms re-derive exactly, but its 16.6 is not haiku's baseline — the same configuration measures 12.1w at 8 cells and 12.2w at 25. Decisively, the probe's case was a 12-word cap cutting the over-12 share 60.0% → 40.5%; haiku's *untightened* share is 38.4–43.0%, so 40.5% sits inside its own range. Stated as "the evidence for an effect is gone", not "there is no effect", since the tightened arm is also n=4. COS-8's revert stands and is strengthened; its mechanism is corrected in the ledger, the audience-level spec and `harness/README.md`. Also fixed rather than only documented: `run --help` launched the full paid matrix (new `src/usage.mjs` guard, unknown command now exits 2). `npm test` 47 → 52; `audit` exit 0; `lore check` exit 0. `/code-review high` raised 10 findings, all real and all addressed. Merged via PR #6 (rebase) as `14d72ea`. |
 | 6 | COS-7 | Task Done — 2026-08-16, session 6 | All 4 ACs verified. Three paid runs, **$14.4290** against a ~$20 budget — the campaign's most expensive session and its last measurement task. `23-47-08` (5 cells, $1.58) confirmed the SDK accepts `claude-fable-5[1m]` before the matrix launched. `23-48-45` (30 cells, $7.04, **0 errors**) is the Fable baseline on the same five case ids, style text, scorer and variant as `12-44-03`. `23-53-02` (6 cells, $5.81, 0 errors) added `agentic-fix-verify`, the one case that discriminated the tiers. Reuse of `12-44-03`/`22-59-53` as the other three columns was re-verified, not assumed: the five case definitions are byte-identical across 444b221/3370e4d/8a76f13/49fd1fa/HEAD, `checks.mjs` and all three style files are byte-identical 444b221→HEAD, and because `contracts.json` did change once (3370e4d, after `12-44-03`) the question was settled by re-scoring both runs offline — all twelve published figures reproduced exactly. **AC #1**: advanced 97.9/78.3, intermediate 93.1/67.7, beginner 91.4/53.9. The top tier does not sweep — last of four on intermediate rules, behind Sonnet on intermediate judge. **AC #2**: FINDINGS.md's per-model table, the epic snapshot and the story's coverage table all carry four columns. **AC #3 — word-cap overrun does not track tier.** Mean reply words ÷ that style's own cap, counted with `checks.mjs`'s own `words()`: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300; in tier order the sequence turns twice. Paired over the 15 (style × case) cells, the cheapest model overruns significantly MORE than the second cheapest (+0.127, 95% CI [+0.034, +0.219]) and the top two tiers are indistinguishable (+0.070, CI [−0.118, +0.259]). Sonnet is the outlier that keeps to the cap; there is no gradient. The doc's "roughly twice as often" is from a run whose style text has since been replaced — on the shipped files it is 1.44×. **AC #4 — one-file decision confirmed** at the top of the range: Fable drops the same rule subsets the others do, never more than 2.5 points behind the best of the other three, the eight rules it does not drop scoring 96.7–100.0 on all four tiers at once. One ADR overstatement corrected while confirming it (the ranking is identical for rules, but the judge's top two swap: Haiku/Sonnet rank intermediate above advanced, Opus/Fable the reverse — already present in the three-model data). Beyond the ACs: Fable aborts **0 of 6** on `agentic-fix-verify` where Haiku aborts 5 of 6, at $0.9681/cell, but its own compliance falls 94.1/66.6 → 79.5/41.2 there with `leads_with_conclusion` at 16.7 — on `agentic-read-report`, the one agentic case all four tiers ran under the current style text, `leads_with_conclusion` is sonnet 100.0, opus 50.0, haiku 16.7, **fable 16.7** — the top tier level with the cheapest and both far behind the middle two, which makes pre-tool narration a Claude Code habit rather than an Opus trait. Reading those transcripts found a harness defect, raised not patched (see below). Fable deliberately kept OUT of `matrix.json`'s `models`, which is `improve`'s default too. `npm test` **52 → 56** (new `harness/test/config.test.mjs`); `audit` exit 0; `lore check` exit 0. `/code-review high` raised 9 findings, all real and all addressed — the serious one being statistical over-claiming in my own word-cap section, where six paired comparisons on the same 15 units were run without multiplicity adjustment and three bolded as significant; under Bonferroni only one survives, and the units are 3 styles x the SAME 5 cases so the intervals were too narrow besides. The section was rewritten to rest on the point estimates instead, which need no inference and give the same answer. Merged via PR #7 (rebase) as `0747cc8`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. |
 
-## Not queued — needs a human / blocked
+## Parked in campaign 1 — now queued as items 14 and 15
+
+Both entries below record why campaign 1 stopped short. Neither is blocked on a
+human: they are blocked on work that now has owners, and the user's 2026-08-17
+decision removed the budget constraint that made their bars unaffordable to test.
+They sit at the end of campaign 2's order for that reason.
+
+**Achievability is still unproven for both**, and the risk policy below applies
+unchanged — a session that cannot reach the bar records what it reached and parks
+the issue again rather than lowering it.
+
 
 - **COS-1** (session 7). ACs #1-#3 met and merged; **AC #4 not met and parked
   under the risk policy.** Two authoring passes were measured against a bar of
@@ -284,10 +308,16 @@ Both remaining issues carry known risk against that policy:
   score to exceed 70% on Opus and Sonnet. The shipped rewrite reaches 73.9 and
   58.1 at n=35 a model, so the bar is missed on Sonnet and the task is parked.
   The prediction recorded here — that achievability was unproven — held, but not
-  for the reason given: the session established that the criterion is **not
-  objectively testable at this budget**, because a ten-cell judge arm carries a
+  for the reason given: the session established that the criterion was **not
+  objectively testable at that budget**, because a ten-cell judge arm carries a
   30-point interval. Both hard style tasks were sequenced last on the user's
   "safety-first" ordering, and both hit a judge bar rather than a content wall.
+
+  **Campaign 2 removes the budget objection but not the risk.** The bars stand,
+  the arms get sized to support them, and both issues sit last in the order
+  behind the work that unblocks them. Sonnet at 58.1 is 12 points under the bar
+  and no sample size closes that — only a better style file will, which is what
+  COS-16 and COS-18 are for. If it still misses, record and park again.
 - **No ruling is needed on which models the bars apply to, despite the owning
   story's looser phrasing.** COS-1's AC #4 and COS-4's AC #1 both name "opus and
   sonnet" explicitly, so the two tiers added by COS-5 and COS-7 do not move
@@ -585,3 +615,19 @@ Both remaining issues carry known risk against that policy:
   (COS-20), the *Reject harness-level reinforcement* ADR is Accepted on five
   cells per arm (COS-21), and nobody has checked the other two style files for
   the defects the beginner rewrite found (COS-18).
+- 2026-08-17 — campaign 2 armed (`/backlog-handover init`). Inventoried all 15
+  open issues; every one classified agent-resolvable, because every acceptance
+  criterion is checkable by a test, a command, or a measured run, and none needs
+  a human present. Nothing went to "Not queued": COS-1 and COS-4 were parked in
+  campaign 1 on blockers that now have owners and on a budget constraint the user
+  has removed, so they queue last rather than sitting out.
+
+  The user was offered two orders and chose the longer one — tools first, then
+  the whole sweep, over a seven-session path straight to the two missed bars —
+  and separately chose to keep COS-17 as its own session rather than folding it
+  into COS-19. Both choices are recorded verbatim in the Cursor section.
+
+  No spend this session. Cursor armed at COS-12, which is first precisely because
+  it is insurance: `run` currently writes `rows.json` only after the whole matrix
+  completes, and campaign 2's arms are an order of magnitude larger than anything
+  run so far.
