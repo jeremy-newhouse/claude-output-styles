@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 04:39'
+updated_date: '2026-08-17 05:37'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-12** — queue order for campaign 2 confirmed by the user on
+**Next issue: COS-10** — queue order for campaign 2 confirmed by the user on
 2026-08-17, who chose the "Fix tools first, then everything" option from a
 presented comparison over a shorter path that went straight to the two missed
 bars: "15 sessions. Repairs the measuring tools before spending on any test,
@@ -25,6 +25,8 @@ its own session rather than folding it into COS-19, because "it answers sooner
 and cheaper, and COS-19 can reuse its data."
 
 Do not re-ask before taking the next item.
+
+Campaign 2 item 1 (COS-12) is resolved; the cursor has advanced to item 2.
 
 Campaign 1 is closed. Its cursor ran COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5
 -> COS-7 -> COS-1 -> COS-4; six resolved, two parked. Those two are now items 14
@@ -44,7 +46,7 @@ and 15 of campaign 2, because the blockers under them have owners.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
-| 1 | COS-12 | harness | Flush rows so a killed run keeps what it paid for. Insurance before any large arm. No spend. |
+| 1 | COS-12 | harness | **Resolved, session 9.** Flush rows so a killed run keeps what it paid for. Insurance before any large arm. Cost $0.0898 to prove, not the $0 planned. |
 | 2 | COS-10 | harness | Score the final message, not the whole turn. Unblocks 6 of the 15. Moves published agentic figures. |
 | 3 | COS-11 | harness | Errored cells score 0 on rules and 1.0 on the judge. Both biases, one fix. |
 | 4 | COS-13 | fixture | The fixture asserts 850 and computes 849. Needs COS-10. |
@@ -82,8 +84,13 @@ COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290, COS-1 $13.6567, COS-4 $18.6813.
 have to get everything tested - no budget"). For planning: an arm at the required
 146 non-errored cells per model runs about $19 at the measured $0.1297 a cell,
 and considerably more on Fable, whose worst single agentic cell has cost $1.1315.
-Budget off the worst cell, not the mean. Sessions 1-6 spend nothing; the spend
-starts at item 8 and the largest single session is COS-19.
+Budget off the worst cell, not the mean. Items 1-6 were planned at zero spend;
+COS-12 in fact cost $0.0898, because its fourth acceptance criterion required a
+real run to be killed rather than a unit test. Expect the same shape on the
+other instrument-repair items: a few cents to prove a behaviour end to end. The
+arm-sized spend still starts at item 8, and the largest single session is COS-19.
+
+**Campaign 2 spend so far: $0.0898** — COS-12 $0.0898.
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -111,6 +118,12 @@ IS counted above.
 | 4 | COS-8 | Task Done — 2026-08-16, session 4 | All 4 ACs verified; the caps question was settled by trying the change and measuring it, not by argument. AC #4 first and free: new `harness/src/contract-audit.mjs` parses each style file's stated caps out of its own prose and compares them against `contracts.json`, exposed as `node src/cli.mjs audit` (exit 1 on disagreement) and 11 test cases; suite 34 -> 45. Proved by re-creating the divergence that actually shipped (contracts back to beginner 15/3, intermediate 18): 3 FAILs, CLI exit 1, `npm test` 43/45. AC #1: measured `results/2026-08-16T12-44-03-883Z/` — all three levels already write the same sentence length (beginner 12.3, intermediate 12.4, advanced 11.5 words), so the lower levels are not being served shorter sentences today; paragraph caps settled offline for free as inert (1.4-1.8 sentences against a cap of 4; re-scoring at cap 3 moves the check 0.000-0.017). A $0.18 Haiku probe (`22-18-53`) said a 12-word cap works — 16.6 -> 12.3 words, over-cap 30% -> 11% — and the user ratified tightening on it, conditional on both-model validation. AC #3 killed it: paired opus+sonnet run over 6 cases spanning all three splits (`22-27-15`, 24 cells, $2.24) moved mean sentence length **+0.26 words, 95% CI [-0.77, +1.29]**, 6 of 12 pairs shorter, judge 0.557 -> 0.532, reply length 105 -> 114. Reverted; `git status` clean on both files. AC #2 is checked but vacuous — nothing shipped tightened; the mechanism was exercised (file first, contracts second, audit caught the in-flight mismatch) before the revert. `/code-review high` found seven issues, all real and all fixed on the branch — including a fourth-consecutive-session prose-number defect (the spec quoted Haiku's over-20-word rate against an over-12-word metric) and the guard not being wired into the optimizer runbook's adopt step, where it would predictably have turned `npm test` red on a legitimately-won rewrite. Suite 34 -> 47. Total spend $2.4152 against ~$8. Merged via PR #5 (rebase) as `ac1a161`. |
 | 5 | COS-5 | Task Done — 2026-08-16, session 5 | All 3 ACs verified against `results/2026-08-16T22-59-53-852Z` (3 styles x haiku x baseline x **13 cases** x 2 repeats = 78 cells, $1.8770). AC #1 ran the full pool, not the 5 cases the old baseline used. AC #2 was satisfied **without re-running opus/sonnet** (~$19.5 at 12-44-03's measured $0.1253/cell, against a ~$5 budget): the new haiku rows were sliced to the same 5 case ids `12-44-03` used, after verifying in git that those 5 case definitions are byte-identical across 444b221/8a76f13/49fd1fa/HEAD and that the style files, `checks.mjs` and `contracts.json` are unchanged between the runs; re-scoring `12-44-03` offline reproduced its 12 published FINDINGS figures to the tenth of a point. Zero errored cells in that slice on any model. Result: rules survive the drop to the cheapest tier (haiku 90.9–96.0, never more than 1.8 points behind the better of opus/sonnet, and ahead of opus on intermediate); judge does not (37.5–62.2, last on all three styles) — which also closed the one-style-file ADR's open item that the cheap tier was untested. AC #3's failure mode is **turn-limit exhaustion, not wording**: 6 of 78 cells returned no reply at all, every one a 12-turn abort on a case that edits a file then runs tests. Like-for-like on `agentic-fix-verify`, the one such case all three models have run: haiku 5 aborts in 6 cells, opus 0 in 6, sonnet 0 in 6. It hit all three styles, so no rewrite fixes it. Because an empty reply scores 0.0 on every rule, pooling those cells understates haiku's rule compliance ~10 points — FINDINGS.md now reports "replies only" and "counting no-reply as 0" separately. **The predicted failure mode was refuted**: measured with `checks.mjs`'s own `words()`, haiku averages 11.8w on the shared 5 and 12.0w on the full pool, and **sonnet** is the long-sentence model at 13.5w. The probe's arms re-derive exactly, but its 16.6 is not haiku's baseline — the same configuration measures 12.1w at 8 cells and 12.2w at 25. Decisively, the probe's case was a 12-word cap cutting the over-12 share 60.0% → 40.5%; haiku's *untightened* share is 38.4–43.0%, so 40.5% sits inside its own range. Stated as "the evidence for an effect is gone", not "there is no effect", since the tightened arm is also n=4. COS-8's revert stands and is strengthened; its mechanism is corrected in the ledger, the audience-level spec and `harness/README.md`. Also fixed rather than only documented: `run --help` launched the full paid matrix (new `src/usage.mjs` guard, unknown command now exits 2). `npm test` 47 → 52; `audit` exit 0; `lore check` exit 0. `/code-review high` raised 10 findings, all real and all addressed. Merged via PR #6 (rebase) as `14d72ea`. |
 | 6 | COS-7 | Task Done — 2026-08-16, session 6 | All 4 ACs verified. Three paid runs, **$14.4290** against a ~$20 budget — the campaign's most expensive session and its last measurement task. `23-47-08` (5 cells, $1.58) confirmed the SDK accepts `claude-fable-5[1m]` before the matrix launched. `23-48-45` (30 cells, $7.04, **0 errors**) is the Fable baseline on the same five case ids, style text, scorer and variant as `12-44-03`. `23-53-02` (6 cells, $5.81, 0 errors) added `agentic-fix-verify`, the one case that discriminated the tiers. Reuse of `12-44-03`/`22-59-53` as the other three columns was re-verified, not assumed: the five case definitions are byte-identical across 444b221/3370e4d/8a76f13/49fd1fa/HEAD, `checks.mjs` and all three style files are byte-identical 444b221→HEAD, and because `contracts.json` did change once (3370e4d, after `12-44-03`) the question was settled by re-scoring both runs offline — all twelve published figures reproduced exactly. **AC #1**: advanced 97.9/78.3, intermediate 93.1/67.7, beginner 91.4/53.9. The top tier does not sweep — last of four on intermediate rules, behind Sonnet on intermediate judge. **AC #2**: FINDINGS.md's per-model table, the epic snapshot and the story's coverage table all carry four columns. **AC #3 — word-cap overrun does not track tier.** Mean reply words ÷ that style's own cap, counted with `checks.mjs`'s own `words()`: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300; in tier order the sequence turns twice. Paired over the 15 (style × case) cells, the cheapest model overruns significantly MORE than the second cheapest (+0.127, 95% CI [+0.034, +0.219]) and the top two tiers are indistinguishable (+0.070, CI [−0.118, +0.259]). Sonnet is the outlier that keeps to the cap; there is no gradient. The doc's "roughly twice as often" is from a run whose style text has since been replaced — on the shipped files it is 1.44×. **AC #4 — one-file decision confirmed** at the top of the range: Fable drops the same rule subsets the others do, never more than 2.5 points behind the best of the other three, the eight rules it does not drop scoring 96.7–100.0 on all four tiers at once. One ADR overstatement corrected while confirming it (the ranking is identical for rules, but the judge's top two swap: Haiku/Sonnet rank intermediate above advanced, Opus/Fable the reverse — already present in the three-model data). Beyond the ACs: Fable aborts **0 of 6** on `agentic-fix-verify` where Haiku aborts 5 of 6, at $0.9681/cell, but its own compliance falls 94.1/66.6 → 79.5/41.2 there with `leads_with_conclusion` at 16.7 — on `agentic-read-report`, the one agentic case all four tiers ran under the current style text, `leads_with_conclusion` is sonnet 100.0, opus 50.0, haiku 16.7, **fable 16.7** — the top tier level with the cheapest and both far behind the middle two, which makes pre-tool narration a Claude Code habit rather than an Opus trait. Reading those transcripts found a harness defect, raised not patched (see below). Fable deliberately kept OUT of `matrix.json`'s `models`, which is `improve`'s default too. `npm test` **52 → 56** (new `harness/test/config.test.mjs`); `audit` exit 0; `lore check` exit 0. `/code-review high` raised 9 findings, all real and all addressed — the serious one being statistical over-claiming in my own word-cap section, where six paired comparisons on the same 15 units were run without multiplicity adjustment and three bolded as significant; under Bonferroni only one survives, and the units are 3 styles x the SAME 5 cases so the intervals were too narrow besides. The section was rewritten to rest on the point estimates instead, which need no inference and give the same answer. Merged via PR #7 (rebase) as `0747cc8`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. |
+
+**Campaign 2.**
+
+| # | Issue | Status/date/session | Evidence summary |
+|---|---|---|---|
+| 1 | COS-12 | Task Done — 2026-08-17, session 9 | All 4 ACs verified, and AC #4 required a real kill rather than a unit test. Two paid Haiku runs, **$0.0898**. `results/2026-08-17T05-29-31-663Z` (beginner, Haiku, baseline, 4 conversational cases, repeats 1, concurrency 1, judge on) was SIGKILLed — `kill -9`, no handler, no graceful shutdown — the moment `run.json` read `completed=2`. Both survivors came back fully scored: `conv-status-auth` rules 0.985 / judge 0.62 / total 0.802, `conv-decision-db` rules 1.0 / judge 0.58 / total 0.79, $0.0682 between them. The killed process never printed its `wrote` line, so nothing but the per-cell flush put those files on disk (**AC #1**). `run.json` read `complete: false, completed: 2, expected: 4` (**AC #2**), and `score --rows=` exited 0 printing `PARTIAL run — 2 cells of 4 expected (2 never ran)` above every table (**AC #3**). `results/2026-08-17T05-31-40-879Z`, the same configuration allowed to finish, writes `complete: true` and `score` says `complete run — 1 cell`. Design: `rows.json` stays a bare array — every run in the ledger is one and every offline re-derivation reads it as one — so completeness lives in a sibling `run.json`, and every file is written through a temp file and `rename(2)` so a kill mid-write cannot truncate the paid data. The manifest is written last on purpose: it can then only ever undercount what is on disk. New `harness/src/results.mjs` owns the directory; `evaluate()` gained `onRows` (per completed cell, indexed by cell so a partial file is ordered like the complete one it would have become) and an injectable `runCell`; `improve` uses the same writer. Regression check: re-scoring `12-44-03` still returns 81.0% at $7.517, so the flush moved no published figure. `npm --prefix harness test` **64 → 77**; `audit` exit 0; `lore check` exit 0. Spend caveat now recorded in the ledger: the cell in flight when the kill lands has spent tokens no row will ever carry, so flushing recovers completed cells, not the interrupted one. |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -631,3 +644,37 @@ Both remaining issues carry known risk against that policy:
   it is insurance: `run` currently writes `rows.json` only after the whole matrix
   completes, and campaign 2's arms are an order of magnitude larger than anything
   run so far.
+
+- 2026-08-17 — session 9: resolved COS-12 on `feature/COS-12`, campaign 2's first
+  issue. Restore found no drift that mattered: `dev`, `main` and both remotes
+  level at `9f54140`, tree clean, no leftover branches, no open PRs. The
+  handover was grounded two commits earlier at `7c269a1`; the gap is init's own
+  arming commits, which is why the drift is benign.
+
+  `run` now re-writes its whole results directory after every completed cell.
+  The design question was where completeness should live, and the answer was
+  *not* inside `rows.json`: every run in the ledger is a bare array and every
+  offline re-derivation reads it as one, so wrapping it would have broken
+  `score --rows=` on the project's entire history. A sibling `run.json` carries
+  `{kind, stamp, complete, completed, expected, costUsd}` instead. New
+  `harness/src/results.mjs` writes all four files through a temp file and
+  `rename(2)`, manifest last so it can only ever undercount what is on disk.
+  `improve` was moved onto the same writer, which is where the one real bug of
+  the session surfaced: `improveStyle` calls `onRows(rows)` and the new flush's
+  first parameter is the completeness flag, so passing `flush` bare would have
+  stamped every mid-loop flush `complete: true`.
+
+  AC #4 is the one that carried the rest — a real 4-cell paid run SIGKILLed
+  after two cells, both survivors fully scored, `score` re-reading them at exit
+  0 behind `PARTIAL run — 2 cells of 4 expected (2 never ran)`. $0.0898 across
+  two runs. Re-scoring `12-44-03` still returned 81.0% at $7.517, so nothing
+  published moved. `npm test` 64 → 77; `audit` exit 0; `lore check` exit 0.
+
+  Two pieces of stale prose were fixed rather than left: `usage.mjs`'s
+  `wantsHelp` comment stated the old once-at-the-end behaviour as a present
+  fact, and the ledger's COS-5 caveat still said the CLI treats `run --help` as
+  `run` when COS-5 itself added the guard. Also found while updating the
+  ledger's total: its 26 rows sum to $83.34 against a stated $83.33 — a rounding
+  artifact, now stated rather than silently reconciled.
+
+  Cursor advanced to COS-10.
