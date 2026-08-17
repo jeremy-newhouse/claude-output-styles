@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 00:11'
+updated_date: '2026-08-17 00:12'
 ---
 # Backlog campaign tracker
 
@@ -35,9 +35,16 @@ Not queued yet: **COS-9** (raised session 3) and two harness defects raised in
 sessions 5 and 6 — see "Raised, not queued" below. Deliberately left out of the
 confirmed order, which is the user's to change.
 
-Estimated remaining: ~$35. Spent so far: $20.36 (COS-6 nothing; COS-3 $0.75;
-COS-2 $1.18; COS-8 $2.42; COS-5 $1.88; COS-7 $14.43 against a ~$20 budget — by
-far the most expensive session, and the last measurement task).
+Estimated remaining: ~$35. Spent so far: **$20.65** — COS-6 nothing, COS-3
+$0.7500, COS-2 $1.1800, COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290 against a
+~$20 budget, by far the most expensive session and the last measurement task.
+
+Note for anyone reconciling this against an earlier version: the pre-COS-7 total
+was recorded here and in session 5's handover as $5.93, but the five per-session
+figures those documents themselves state sum to **$6.2222**. The parts are the
+evidence — each is quoted in its own Resolved row from that session's runs — so
+the sum has been corrected rather than the parts. The $5.93 appears to have been
+carried forward without re-adding.
 
 Two spend caveats recorded under COS-5. Cells that abort on the turn limit carry
 `costUsd: 0`, so `22-59-53`'s six failed cells burned tokens no row records. And
