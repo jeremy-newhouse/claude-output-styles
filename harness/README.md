@@ -441,8 +441,16 @@ Relative cell size, measured on the five shared cases: a conversational cell is
 the unit, a read-only agentic cell is roughly twice one, and a write-then-verify
 cell — `agentic-fix-verify` — is **about 4.8× a conversational cell** on the top
 tier. The `long-prompt` variant is a separate multiplier of roughly 3.9× over the
-baseline variant. Larger models produce longer replies for the same case, so a
-top-tier cell runs an order of magnitude more tokens than a small-tier one.
+baseline variant.
+
+Every one of those ratios is **within** a model, which is what makes them
+derivable from the cost figures this project used to record: same per-token
+price on both sides, so a cost ratio is a size ratio. **Nothing here supports a
+cross-tier comparison.** Per-token prices differ by roughly the same factor as
+the per-cell costs did, so the old table's ~10× between the smallest and largest
+model is explained by price alone and implies nothing about token counts. Use
+`elapsedMs` on the rows for cross-tier sizing; it is the only measurement the
+harness takes that means the same thing on every model.
 
 `run.maxCellSeconds` is the runaway guard **for a cell**, and it is a wall-clock
 ceiling enforced by an `AbortController`. It is the only hard stop the SDK

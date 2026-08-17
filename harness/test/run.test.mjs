@@ -64,6 +64,20 @@ const answersAtOnce = async function * () {
 const MULTI = { ...CELL, caseDef: { id: 'c2', split: 'train', multiTurn: ['p1', 'p2'] } }
 
 /**
+ * A query that says something, then wedges. `after` decides which way the abort
+ * ends the stream. Both must keep the fragment: it is the only record of what
+ * the model was doing when the guard stopped it.
+ */
+const narratesThenWedges = after => async function * ({ options }) {
+  yield { type: 'assistant', message: { content: [{ type: 'text', text: 'Let me check the tests first.' }] } }
+  yield { type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Bash' }] } }
+  await new Promise((resolve, reject) => {
+    options.abortController.signal.addEventListener(
+      'abort', () => after === 'throw' ? reject(new Error('This operation was aborted')) : resolve(), { once: true })
+  })
+}
+
+/**
  * Answers turn 1, then wedges on turn 2. `after` decides which abort path the
  * wedged turn takes — throwing, or ending the iterator quietly.
  */
@@ -132,12 +146,32 @@ test('a timeout keeps the turns that finished, on both abort paths', async () =>
   }
 
   // The two paths must agree on what the cell produced, not merely each keep
-  // something. The quiet path carries a trailing empty turn because its wedged
-  // turn still returned a turn object; the throwing path never got one.
-  assert.deepEqual(
-    rows.throw.allFinals.filter(Boolean),
-    rows.quiet.allFinals.filter(Boolean),
-    'both abort paths report the same completed turns')
+  // something. runTurn catches its own abort, so the wedged turn now returns a
+  // turn object on both paths and the two rows are identical.
+  assert.deepEqual(rows.throw.allFinals, rows.quiet.allFinals,
+    'both abort paths report the same turns')
+  assert.deepEqual(rows.throw.allTurns, rows.quiet.allTurns)
+})
+
+test('a partial reply survives the abort that interrupted it, on both paths', async () => {
+  // The fragment is what an operator has to tune maxCellSeconds with: it says
+  // what the model was doing when the guard stopped it. runTurn had no catch,
+  // so on the throwing abort path the blocks accumulated for the in-flight turn
+  // died with the exception — while the quiet path kept them and graded them.
+  // Same wedge, one row scoreable and one empty, decided by SDK internals.
+  const rows = {}
+  for (const after of ['throw', 'quiet']) {
+    rows[after] = await runCell({
+      ...CELL, opts: { maxTurns: 4, maxCellSeconds: 0.05 }, deps: { query: narratesThenWedges(after) }
+    })
+  }
+
+  for (const [after, row] of Object.entries(rows)) {
+    assert.equal(row.error, 'error_timeout', `${after}: still reported as a timeout`)
+    assert.equal(row.text, 'Let me check the tests first.', `${after}: the fragment survived`)
+    assert.deepEqual(row.toolCalls, ['Bash'], `${after}: the tool call it made survived`)
+  }
+  assert.deepEqual(rows.throw.text, rows.quiet.text, 'both paths report the same fragment')
 })
 
 test('every row records how long the cell took', async () => {
@@ -151,8 +185,13 @@ test('every row records how long the cell took', async () => {
   assert.equal(typeof ok.elapsedMs, 'number')
   assert.ok(ok.elapsedMs >= 0, 'a completed cell carries its duration')
 
+  // Bounded below the 50ms limit on purpose. `startedAt` is captured after the
+  // timer is armed, so elapsedMs measures a strictly shorter span than the
+  // delay, and Date.now() is coarse enough that asserting >= 50 would red on a
+  // loaded machine. The claim under test is "the guard's duration is recorded",
+  // not "the clock is exact".
   const timedOut = await runCell({ ...CELL, opts: { maxTurns: 4, maxCellSeconds: 0.05 }, deps: { query: throwsOnAbort } })
-  assert.ok(timedOut.elapsedMs >= 50, `an aborted cell ran at least its limit, got ${timedOut.elapsedMs}ms`)
+  assert.ok(timedOut.elapsedMs >= 40, `an aborted cell ran about its limit, got ${timedOut.elapsedMs}ms`)
 })
 
 test('cellLimitMs converts a good value and rejects an unusable one', async () => {
@@ -160,9 +199,23 @@ test('cellLimitMs converts a good value and rejects an unusable one', async () =
   // instead of leaving the first failure to surface per cell.
   assert.equal(cellLimitMs(600), 600000)
   assert.equal(cellLimitMs('1.5'), 1500)
-  for (const bad of [undefined, null, 0, -1, 'soon', NaN]) {
+  // Infinity sits here rather than with the over-range values below: it fails
+  // the finiteness check first, and asserting the message says which branch
+  // caught it.
+  for (const bad of [undefined, null, 0, -1, 'soon', NaN, Infinity]) {
     assert.throws(() => cellLimitMs(bad), /maxCellSeconds must be a positive number/,
       `maxCellSeconds=${String(bad)} must be rejected, not defaulted`)
+  }
+
+  // The high end fails identically to the low end and far less visibly.
+  // setTimeout truncates any delay past 2^31-1 ms to 1 ms — measured: a limit
+  // of 999999999 seconds fires after 2 ms. So the obvious way to "disable" the
+  // guard aborts every cell in the matrix on the next tick and labels each one
+  // a timeout, which is the exact failure the low-end check exists to stop.
+  assert.equal(cellLimitMs(2147483.647), 2147483647, 'the largest usable limit is accepted')
+  for (const tooBig of [2147484, 999999999, Number.MAX_SAFE_INTEGER]) {
+    assert.throws(() => cellLimitMs(tooBig), /at most/,
+      `maxCellSeconds=${tooBig} exceeds setTimeout's range and must be rejected`)
   }
 })
 

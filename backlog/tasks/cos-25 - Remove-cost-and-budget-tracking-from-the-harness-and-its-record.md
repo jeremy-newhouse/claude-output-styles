@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 14:43'
-updated_date: '2026-08-17 15:28'
+updated_date: '2026-08-17 15:41'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -121,6 +121,23 @@ FINDING 5 (cleanup orphaning subprocesses) — MEASURED, REAL, AND SMALLER THAN 
 So one claude subprocess does outlive wsp.cleanup() holding the just-unlinked workspace as its cwd — the review was right that the window exists — but it is gone inside two seconds, no workspace leaks (the count returns to baseline immediately, so the rmSync succeeded), and cells never share a directory, so concurrency 4 does not compound it. No behaviour change: waiting for the child would cost every timed-out cell that delay for no measured benefit. The measurement is recorded as a comment on the cleanup call so the next reader does not re-derive it.
 
 Suite 126 -> 129. Gates re-run after all of it: npm --prefix harness test 129/129, node src/cli.mjs audit exit 0, lore check exit 0 across 24 files with 0 errors and 0 warnings.
+
+SECOND REVIEW ROUND — /code-review high on the full branch diff returned six more findings after the first five were fixed. All six were real; all six are fixed.
+
+R2-1 (medium, run.mjs cellLimitMs) — the validator guarded the low end and not the high end. setTimeout takes a 32-bit signed delay, so anything past 2147483647 ms is silently set to 1 ms. Measured directly: maxCellSeconds 999999999 fires after 2 ms. That means the single most likely edit an operator would make — a huge number to 'turn the guard off' — produces the exact runaway the low-end check exists to prevent, with every cell aborted on the next tick, every row labelled error_timeout, and nothing for a completeness check to flag. cellLimitMs now rejects anything over the ceiling with a message saying why. Sabotage-verified: removing the ceiling reds exactly that test.
+
+R2-2 (low, run.mjs runTurn) — my own catch-path comment claimed text:'' 'matches the quiet path', and that only held when the wedged turn had emitted nothing. runTurn had no try/catch, so on the throwing abort path the blocks already accumulated for the in-flight turn died with the exception, while the quiet path kept them and graded them. A cell that said 'Let me check the tests first.' and then wedged came back either with that fragment and a real rulesScore, or with nothing at all, depending on SDK internals — the same defect as finding 1, one level down, and the fragment is the only diagnostic an operator has for tuning maxCellSeconds. runTurn now catches its own abort and returns the blocks it collected with the error on the turn; runCell's loop already breaks on a turn carrying an error, so that path builds a complete row. runCell's catch is now reachable only by a fault outside runTurn and its comment says so.
+No mean can move: producedReply is !row.error && hasTurnText, so an errored cell is excluded from every mean and from summary.failures whether or not text survived, and the judge is gated on producedReply too. The change makes the throwing path match what the quiet path already did. New test asserts the fragment and its tool call survive on both paths and that the two rows agree; sabotage-verified — rethrowing instead of returning reds both that test and the both-paths test.
+
+R2-3 (low, run.test.mjs) — assert elapsedMs >= 50 against a 50 ms limit was a flake: startedAt is captured after the timer is armed, so elapsedMs measures a strictly shorter span than the delay, and Date.now() is coarse enough to red it on a loaded machine. Loosened to >= 40 with the reasoning in the test.
+
+R2-4 (low, cli.mjs / evaluate.mjs) — search-and-replace damage from session 15's cost sweep: 'the cells it has already bought are the most slowest thing in this project'. Ungrammatical, and it kept the purchase framing the change existed to remove. Rewritten to 'the cells it has already measured are the slowest thing in this project to produce'; evaluate.mjs's 'not worth paying to grade' is now 'not worth grading'.
+
+R2-5 (low, docs/reference/harness-architecture.md) — the module map still credited run.mjs with collecting 'cost', contradicting AC #3 in a file the rest of which this branch had already swept. Now reads 'tool calls and elapsedMs, bounded by the maxCellSeconds AbortController'.
+
+R2-6 (low, harness/README.md) — the sharpest of the six, and it is this branch's own mistake. Session 15's cost-strip commit WROTE the sentence 'Larger models produce longer replies for the same case, so a top-tier cell runs an order of magnitude more tokens than a small-tier one.' Confirmed by reading the commit: it converted the deleted cost table's ~10x span (haiku $0.0232 to Fable $0.2345) into a claim about tokens. That conversion is invalid. Per-token prices differ across tiers by roughly that same factor, so the cost ratio is explained by price alone and implies nothing about token counts. Every other ratio in the paragraph — 4.8x, 3.9x, ~2x — is WITHIN a model, same price on both sides, so those do convert and they survive. The paragraph now states that distinction explicitly, says outright that nothing here supports a cross-tier comparison, and points at elapsedMs as the only measurement the harness takes that means the same thing on every model. This is the campaign's 'a number in a doc is a claim' rule catching a number that a cost removal had quietly turned into a different claim.
+
+Gates after all six: npm --prefix harness test 130/130, node src/cli.mjs audit exit 0, lore check exit 0 across 24 files. Re-scoring the published 12-44-03 arm offline still returns 81.0%, so no published score moved.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

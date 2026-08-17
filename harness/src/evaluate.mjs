@@ -71,7 +71,7 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
       : { total: 0, checks: [] }
 
     // The judge is skipped on any incomplete cell — a truncated turn is not
-    // worth paying to grade, and its substituted score reaches no mean.
+    // worth grading, and its substituted score reaches no mean.
     const judged = opts.judge && producedReply(run)
     const j = judged
       ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })

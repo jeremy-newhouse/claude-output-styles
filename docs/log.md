@@ -53,6 +53,7 @@
 - 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
 - 2026-08-17T10:08:52-05:00 ae6db0f46b0ca69bc4319b4145aaa8ff6c2a82f7 Record the docs commit in the generated log
 - 2026-08-17T10:17:37-05:00 d05367346a885c5ece20a028422385575dc25839 Record the archive commit in the generated log
+- 2026-08-17T10:30:40-05:00 8cb72e6101ccbce348e7aba60fb4a24e0e72b308 Say that the guard bounds a cell, not a run
 
 ## docs/adr
 
@@ -103,6 +104,7 @@
 - 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
 - 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T10:30:40-05:00 8cb72e6101ccbce348e7aba60fb4a24e0e72b308 Say that the guard bounds a cell, not a run
 
 ## docs/runbooks
 
