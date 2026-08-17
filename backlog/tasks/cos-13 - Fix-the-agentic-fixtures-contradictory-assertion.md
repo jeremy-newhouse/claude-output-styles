@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:45'
-updated_date: '2026-08-17 13:27'
+updated_date: '2026-08-17 13:28'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -119,6 +119,16 @@ Re-reading the four labels caught a defect in this session's own prose, of the e
 That does not hold. The fixture changed what the model *wrote*, not how the text was parsed, so on a cell that met the failure any check can move, the judge included — a model that meets an unexplained red test writes differently, which is precisely why the caveat is worth recording at all. The correct bound is **reach, not check**: conversational cases never involve the repo and are genuinely untouched, and `agentic-read-report` is the least exposed of the four because it asks for a reading rather than a test run — but a model that ran the suite unprompted still met the failure, so it is not exempt either. The earlier wording had called it a figure 'the fixture cannot reach'.
 
 Corrected in all four places, each now stating explicitly why the two caveats cannot be reasoned about the same way. Gates re-run after the correction: `lore check` exit 0, 116/116.
+
+## A second self-review finding: the fix leaked what the decision refused to leak
+
+The first version of the corrected fixture carried explanatory comments — a header saying 'Nothing below pins the fractional-cent behaviour: no assertion covers it', and a note on the `priceOrder` case reading 'Do not "correct" it to 966'. Both were written to stop a future maintainer reintroducing the defect. Both were in the file **the model reads**.
+
+That contradicts the decision they were protecting. AC #2 was settled by refusing to assert 849 because a red test naming the file and the expected value hands `reserve-agentic-session` its answer; a comment announcing that fractional cents are uncovered points at the same place just as plainly, and 'do not correct it to 966' advertises that the number is contested. The leak was moved, not removed.
+
+Fixed by putting every protective statement in `harness/test/fixture.test.mjs`, which the model never sees, and leaving the fixture with only the arithmetic a real repo would carry (`// 500 * 2 = 1000, less 10% = 900, plus 7.25% tax = 965.25`). That still prevents the 966 error recurring — it was made by not showing the work — without telling the reader anything about the bug. The `BUG:` marker in `src/pricing.js` is unchanged in kind: the original already named the 15%-on-999 case, so making its arithmetic correct does not increase what is given away, which keeps the cases comparable with published runs.
+
+Falsification sweep re-run after the change, all four scenarios still caught: reintroduce 966, pin 850, fix the bug in the fixture, delete the fixture's tests — 2 failures each; restored 116/116.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
