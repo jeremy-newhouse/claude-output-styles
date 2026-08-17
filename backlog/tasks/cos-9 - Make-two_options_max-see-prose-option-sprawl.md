@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-16 20:54'
-updated_date: '2026-08-17 16:27'
+updated_date: '2026-08-17 16:29'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -125,4 +125,14 @@ Chasing the ADR's published 'two_options_max | Opus 1.00 | Sonnet 0.85' row to i
 Settled it a stronger way instead. Splitting the old-vs-new per-row diff by model: 0 of 34 Opus rows move, 0 of 32 Sonnet rows move, and the single moved row is one of the 30 Haiku rows. Both published two_options_max figures are Opus/Sonnet numbers — the ADR row, and FINDINGS.md:205's account of the Sonnet regression — so neither can move whichever run backs it. That is a fact about the whole corpus rather than an argument about which claim rests on which case, and it does not depend on provenance I could not establish.
 
 One near-miss worth recording. A saved-score-versus-current-code comparison flagged 20-10-29 sonnet at 0.80 -> 0.90 and looked like an unreported move. It is not mine: re-running the same comparison against dev's checks.mjs reproduces it exactly, so the gap is the historical label-blindness fix, which FINDINGS.md:205 already documents. The lesson is that 'saved score vs current code' and 'old code vs new code' answer different questions, and only the second one is evidence about this change.
+
+ROUND 3 SELF-PROBE — two more, both mine, both about what the estimators count.
+
+8. A REPLY THAT NAMES A COUNT IN ORDER TO REJECT IT IS READ AS CLAIMING IT. 'You asked whether there are "three options here". There are two. Index or cache. I recommend the index' scores 0.70, and so does 'THREE WAYS TO DO THIS? No. Two.' Telling these apart needs negation scope, which is the semantic path this check explicitly refuses — building a fragile negation heuristic here would be the same mistake as the connectives. Applied the round-2 test instead: does the shape appear in the corpus? No. The stated count fires on exactly two saved rows and both are real sprawl, so its measured precision is 2 of 2. Documented as a known limit in the comment rather than patched.
+
+9. EVIDENCE STRING RENAMED. It said '~3 options presented in prose', which is wrong twice: the count can come from a markdown bullet list or from digits rather than prose, and it is never a count of things actually counted — it is what the reply says it has. Now '~3 options claimed (cap is 2)'. Notes above quoting the old string describe what was true when they were written; the string on the branch is the new one.
+
+Also probed and found correct, no change needed: markdown tables of two options (1.0), 'another way to think about it' as a rhetorical aside (1.0, because one 'another' claims two, which is the cap), 'the second option in the runbook' referring to a document rather than an offer (1.0), digits as a stated count ('3 options' -> 0.70), a four-option claim reporting ~4, and repeated 'another option' accumulating correctly.
+
+Re-score re-run after both: unchanged. One moved row, same figures. Suite 135/135.
 <!-- SECTION:NOTES:END -->
