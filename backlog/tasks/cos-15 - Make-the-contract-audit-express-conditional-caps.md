@@ -1,11 +1,11 @@
 ---
 id: COS-15
 title: Make the contract audit express conditional caps
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:45'
-updated_date: '2026-08-17 18:55'
+updated_date: '2026-08-17 19:11'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -33,10 +33,10 @@ Both cases are the same defect: the contract language cannot say "unless". Decid
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The beginner code-block rule and the beginner gloss rule each either audit correctly or are restated so no conditional survives, with the choice argued rather than assumed
-- [ ] #2 No style file states a permission its contract cannot express, verified by re-reading all three against the contract fields rather than by running audit alone
-- [ ] #3 audit still exits 1 on a genuine disagreement, proved by breaking a contract on purpose and watching the suite go red
-- [ ] #4 Any change to a style file is measured, since both cases touch rules that currently score
+- [x] #1 The beginner code-block rule and the beginner gloss rule each either audit correctly or are restated so no conditional survives, with the choice argued rather than assumed
+- [x] #2 No style file states a permission its contract cannot express, verified by re-reading all three against the contract fields rather than by running audit alone
+- [x] #3 audit still exits 1 on a genuine disagreement, proved by breaking a contract on purpose and watching the suite go red
+- [x] #4 Any change to a style file is measured, since both cases touch rules that currently score
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -73,4 +73,28 @@ AC #3 evidence, live at the CLI, both mutations asserted to have landed before t
 Four further mutations on checks.mjs, each asserted landed, each red on its intended test and only that test: gloss detector disabled (2 red), MIN_GLOSS_WORDS 3->0 (1 red), codeOnRequest lifting without a case request (1 red), codeOnRequest lifting a nonzero size cap (1 red). All restored; 41/41 green after each.
 
 AC #4 evidence, old code vs new code on the same saved rows (not saved-score vs current code): 63 saved runs, 651 rows graded, 72 skipped (all optimizer candidates and ad-hoc experiment styles with no contracts.json entry: *-optimized, *-cand, beginner-tight, beginner-baseline-20w). Exactly 6 rows move, all no_jargon, all beginner; code_block_size moves ZERO rows because no case sets requestsCode. Every one of the 6 was hand-read and is a genuine gloss: 'the messenger...(serialization)', 'the name of the repository (the storage place for your project's files)', 'Any pass (token) issued during that swap window', and three of 'the saved copy (cache)'.
+
+REVIEW. /code-review high returned six findings after a self-review had already found three (audit rows missing `condition` on two branches, a standing-fact claim in FINDINGS the change made false, a sample audit failure with the wrong column widths).
+
+The substantive one reversed a call. `codeOnRequest` originally lifted only a ZERO cap, on the reasoning that a ban and a size cap are different things. That ran backwards: intermediate says 'Show code only when asked, OR when a snippet under 5 lines says it faster than prose', where the 'only when X or Y' governs whether to show code and the 5 belongs to the second trigger — so the asked branch states no length, and keeping the 5-line cap there applied a number no reader of the style could find. It also left the flag inert at intermediate while `audit` printed 'both lift it on request', certifying a lift the scorer ignored. Now lifts the whole cap at every level; `describe()` says so at every level too, since that string is what the optimizer is briefed with.
+
+Second real fix: `no_jargon` runs on `stripCode`, which leaves `**` in place, and both gloss forms turn on the bracket being adjacent to the term — so '**API** (the messenger that lets two programs talk)', the bold-label shape beginner's own file uses throughout, read as unglossed. Emphasis markers and a possessive are now stripped before the adjacency test. Latent, not active: zero occurrences across the 63 saved runs, confirmed by re-running the comparison.
+
+Three documentation fixes: 'five of them in these arms' was four (and two inside the paired comparisons the footnote attaches to); the footnote marker sat outside the table cell and would not have rendered; and the two appended queue rows were numbered 20/21 but placed above row 19.
+
+Suite 178 -> 179. Re-score after every fix: still exactly 6 of 651 rows, unchanged, so no finding fix moved a figure.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Extended the contract language rather than editing the style files, because the two conditionals are conditioned on different things.
+
+The gloss is conditioned on the REPLY, which is the string a check already reads — and no_jargon was named 'avoids unglossed jargon' from the start, so only the implementation was unconditional. It now grades first use and forgives two gloss forms: TERM followed by a parenthetical of three words or more, and a two-word-or-longer phrase followed by (TERM). The em-dash appositive is not recognised, because 'the cache — the saved copy' is indistinguishable from 'the cache — tests pass'.
+
+'Unless they ask' is conditioned on the REQUEST, which no check can see, so the condition lives where the request does: codeOnRequest on the contract, requestsCode on the case. It lifts the whole cap at every level, since neither file granting it states a length on the asked branch. The audit fails a prose conditional with no matching contract field, and the mirror too. Only a reader's request counts — advanced's 'when they carry the point faster than prose' is a writer's judgement and stays an ordinary cap.
+
+Restating the two style files was rejected: they are the shipped product, both prose rules are correct guidance for a real reader, and the edit would have cost a 148-cell beginner arm to re-measure something the harness never exercises.
+
+VERIFIED. Suite 159 -> 179, audit exit 0, lore check exit 0. AC #3 proved live: deleting beginner.codeOnRequest makes audit print the FAIL and exit 1, restoring returns it to 0; same for maxSentenceWords 20 -> 15. Six mutations in all, each asserted to have landed before its red was believed, each red only on its intended test. AC #4 needed nothing measured because no style file changed, but the checks change moves saved scores, so all 63 saved runs were re-scored old code against new: 651 rows graded, 72 skipped (all optimizer candidates and experiment styles with no contract), exactly 6 rows moved, all no_jargon, all beginner, every one hand-read and a genuine gloss. code_block_size moved zero rows. Five published figures moved and were corrected. No conclusion changed. AC #2's by-hand read produced COS-27 and COS-28; intermediate's 'when things are normal' was examined and is not a defect, since total_length already grades a soft cap softly.
+<!-- SECTION:FINAL_SUMMARY:END -->
