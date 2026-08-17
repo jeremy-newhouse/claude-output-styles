@@ -54,9 +54,9 @@ author model from the failures, rewrite, re-measure, keep or revert.
 | `cli.mjs` | argument parsing, cell-list construction, output paths, the three commands |
 | `workspace.mjs` | builds a throwaway workspace with the style file, settings, and fixture repo; encodes the verified SDK loading recipe and the variant switches |
 | `style.mjs` | frontmatter parse and render, so a rewritten body can be re-emitted with the original metadata |
-| `run.mjs` | one cell: multi-turn session via `resume`, collects visible text, tool calls, cost; also the concurrency pool |
-| `checks.mjs` | one function per style rule; pure, no model calls, unit-tested |
-| `judge.mjs` | rubric grading against the style body |
+| `run.mjs` | one cell: multi-turn session via `resume`, collects visible text, tool calls, cost; `splitTurn` derives the two views of a turn; also the concurrency pool |
+| `checks.mjs` | one function per style rule; pure, no model calls, unit-tested; each check declares which view it grades |
+| `judge.mjs` | rubric grading against the style body, on the view the case names |
 | `evaluate.mjs` | crosses the matrix, combines the two scores by `judgeWeight`, summarizes; calls back with the rows completed so far after every cell |
 | `results.mjs` | writes a run directory — rows, summary, report, and the `run.json` completeness manifest — atomically, and reads the manifest back |
 | `improve.mjs` | the optimizer loop, keep/revert rule, patience stop, reserve validation, spend tracking |
@@ -73,7 +73,8 @@ author model from the failures, rewrite, re-measure, keep or revert.
   `multiTurn` replaces `prompt` for drift cases; `agentic: true` marks cases that
   need the fixture repo. The split is one of `train`, `holdout`, or `reserve`;
   `improve` selects the first two by name and measures the third only to
-  validate a candidate it wants to adopt.
+  validate a candidate it wants to adopt. `judgeOn` names which view of the turn
+  the rubric grades, and every agentic case must state it — a test enforces that.
 - `fixtures/repo/` — a small module with a real rounding bug and a test file
   whose comments contradict its assertions, copied into every workspace.
 
@@ -84,6 +85,27 @@ text, so a failure can be attributed to the wording or to the plumbing. Each
 maps to a switch in `workspace.mjs`: a tail reminder appended to the style body,
 a `CLAUDE.md` written into the workspace, or
 `CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT` set in the child environment.
+
+### Two views of a turn
+
+A cell's saved row carries the last turn twice. `trace` is every assistant text
+block joined by a blank line — the whole turn, narration included. `text` is the
+final message: the blocks after the last tool call, or the last block said if the
+turn ended on a tool call. On a conversational turn the two are the same string,
+so the distinction only bites on agentic cells. `allTurns` and `allFinals` carry
+the same pair for every turn of a multi-turn case.
+
+Nothing picks between them implicitly. Each entry in `CHECKS` declares `reads`,
+and each case declares `judgeOn` for its judge; both values appear on the saved
+row, so a figure lifted out of `rows.json` says which string produced it. The
+line follows the case rubrics: checks that measure how the answer is written read
+`final`, and rules the style states as outright bans — narration, celebration,
+emoji — read `trace`, because those are violations wherever they appear.
+
+Before COS-10 there was one string, built by concatenating the blocks with no
+separator, and it is not separable after the fact. `viewsOf` serves such a row's
+`text` as both views and flags it; `score` reports how many rows and how many
+agentic cells in a file predate the fix.
 
 ### Invariants worth preserving
 

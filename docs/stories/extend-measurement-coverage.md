@@ -93,15 +93,23 @@ Two results from that wider run shaped how COS-7 was run:
   writes long sentences came from four cells and did not survive a larger sample
   of the same configuration; see the experiment ledger.
 
-One limit of the instrument surfaced under COS-7 and is not yet fixed. `run.mjs`
-concatenates assistant text blocks with no separator, so on agentic turns the
-pre-tool narration is glued to the post-tool answer and `sentences()` and
-`paragraphs()` both under-split. It affects 0 of the 131 cells that made no tool
-call and most of those that did, so `sentence_length` and `paragraph_length` are
-not quotable on agentic cells for any tier. The four-tier table above is unaffected in
-practice — one of its five cases is agentic, `paragraph_length` still scores
-95.8–100.0 there on every model, and the artifact is identical in all four
-columns.
+One limit of the instrument surfaced under COS-7 and was fixed under COS-10, but
+not retroactively. `run.mjs` concatenated assistant text blocks with no
+separator, so on agentic turns the pre-tool narration was glued to the post-tool
+answer and `sentences()` and `paragraphs()` both under-split. It affects 0 of the
+131 cells that made no tool call and most of those that did, so `sentence_length`
+and `paragraph_length` are not quotable on the agentic cells **of the runs behind
+this story**, for any tier — the glue cannot be undone offline, so COS-10 fixes
+future runs and leaves these ones as measured. The four-tier table above is
+unaffected in practice: one of its five cases is agentic, `paragraph_length`
+still scores 95.8–100.0 there on every model, and the artifact is identical in
+all four columns.
+
+COS-10 also changed `sentences()` to split on a single newline, and that half
+*does* apply to saved rows. It moved this story's per-model sentence figures —
+Opus 10.6 → 10.2 words, Fable 11.1 → 10.7, Haiku 11.3 → 10.1, Sonnet 13.4 → 12.9
+— without changing the conclusion; Sonnet's lead over the field grew. The
+corrected figures are in `FINDINGS.md`.
 
 ## Acceptance criteria
 

@@ -463,29 +463,37 @@ which one it is.
 Two rules where the cheap model was expected to fail, and did not:
 
 - **Sentence length.** Measured on the **four conversational cases only** — the
-  agentic case is excluded on purpose, because the text-block seam described
-  below makes `sentence_length` unquotable there:
+  agentic case is excluded on purpose, because the saved agentic replies predate
+  the text-block seam fix described below and are still glued:
 
   | model | mean sentence words | over the 20-word cap |
   |---|---|---|
-  | opus | 10.6 | 7.9% |
-  | fable | 11.1 | 9.6% |
-  | haiku | 11.3 | 10.0% |
-  | sonnet | **13.4** | **20.3%** |
+  | opus | 10.2 | 6.3% |
+  | fable | 10.7 | 8.8% |
+  | haiku | 10.1 | 8.1% |
+  | sonnet | **12.9** | **19.5%** |
 
   Haiku is not the long-sentence model — Sonnet is, by a clear margin, and it
   stays the outlier with the top tier added. Across the full 13-case pool Haiku
-  holds at 11.5 words and 10.6% over cap on its 60 tool-free cells, so this is
+  holds at 9.6 words and 7.0% over cap on its 60 tool-free cells, so this is
   not an artifact of the easier subset. All figures use `checks.mjs`'s own
-  `words()`, the tokenizer `sentence_length` scores with. This **reverses** the
-  reading taken from a four-cell probe during the sentence cap work; see the
-  experiment ledger.
+  `words()` and `sentences()`, the tokenizer and segmenter `sentence_length`
+  scores with. This **reverses** the reading taken from a four-cell probe during
+  the sentence cap work; see the experiment ledger.
 
-  These four numbers replace ones this document previously quoted over all five
-  cases (Haiku 11.8 / 11.3%, Sonnet 13.5 / 19.1%, Opus 11.3 / 10.6%, Fable 11.8 /
-  10.7%) and one over the full pool including its agentic cells (12.0 / 12.3%).
-  Every figure moved by 0.1 to 0.7 words. **The conclusion did not move at all**,
-  and Sonnet's lead over the field grew.
+  These are the same cells re-scored after COS-10 changed `sentences()` to split
+  on a single newline. Before that they read Opus 10.6 / 7.9%, Fable 11.1 / 9.6%,
+  Haiku 11.3 / 10.0%, Sonnet 13.4 / 20.3%, and Haiku's full-pool figure 11.5 /
+  10.6%. Every model got shorter, because a list header is no longer merged into
+  its first item, and Haiku moved most (−1.2 words) because it writes the most
+  lists. **The conclusion did not move**: Sonnet's lead over the field grew again,
+  from 2.1 to 2.2 words and from 10.3 to 10.7 points of over-cap share.
+
+  An earlier revision quoted these over all five cases (Haiku 11.8 / 11.3%,
+  Sonnet 13.5 / 19.1%, Opus 11.3 / 10.6%, Fable 11.8 / 10.7%) and over the full
+  pool including its agentic cells (12.0 / 12.3%). Those are superseded twice
+  over — by the conversational-only pool and by the re-segmentation — and are
+  kept here only so an older copy of this file can be identified.
 - **Code blocks and filler.** `code_block_size` and `no_filler` score 100.0 on
   every model including Haiku.
 
@@ -518,6 +526,10 @@ style files, same scorer, only the case changes:
 | the shared five (30 cells) | 94.1 | 66.6 |
 | `agentic-fix-verify` (6 cells) | 79.5 | 41.2 |
 
+The second row is measured on the glued turn, like every agentic figure here —
+see "Every agentic figure in this document is measured on a glued turn" below.
+Re-scoring it after COS-10 reproduces 79.5 exactly; only a re-run would replace it.
+
 `leads_with_conclusion` scores **16.7** across those six cells. Five of six
 replies open with a variant of *"I'll look at the file first."* before the first
 tool call — the exact failure this document opens with.
@@ -539,26 +551,36 @@ limitation. Note the direction is the opposite of the word cap: there Sonnet was
 the outlier that complied, here Sonnet complies perfectly again. Whatever these
 two rules have in common, tier is not it.
 
-**Two rules are not quotable on agentic cells, for a harness reason.**
-`run.mjs` accumulates assistant text blocks with `text += b.text` and no
-separator, so on an agentic turn the pre-tool narration is glued to the post-tool
-answer: the saved transcript literally reads `"I'll look at the file first.The
-bug is in ..."`. `sentences()` needs whitespace after the full stop to split, and
-`paragraphs()` needs a blank line, so the run-on counts as one very long sentence
-in one paragraph. Checked by searching for a no-whitespace seam after
-sentence-ending punctuation, and splitting cells by whether the model actually
-called a tool — that is what produces multiple text blocks — it appears in **0 of
-131 cells that made no tool call** and in most of those that did: 3 of 6 Opus,
-1 of 7 Sonnet, 10 of 12 Haiku, 5 of 6 Fable, and 6 of 6 on Fable's
-`agentic-fix-verify`.
+**Every agentic figure in this document is measured on a glued turn.** Until
+COS-10, `run.mjs` accumulated assistant text blocks with `text += b.text` and no
+separator, so on an agentic turn the pre-tool narration was glued to the
+post-tool answer: the saved transcript literally reads `"I'll look at the file
+first.The bug is in ..."`. `sentences()` needs whitespace after the full stop to
+split, and `paragraphs()` needs a blank line, so the run-on counted as one very
+long sentence in one paragraph. Checked by searching for a no-whitespace seam
+after sentence-ending punctuation, and splitting cells by whether the model
+actually called a tool — that is what produces multiple text blocks — it appears
+in **0 of 131 cells that made no tool call** and in most of those that did: 3 of
+6 Opus, 1 of 7 Sonnet, 10 of 12 Haiku, 5 of 6 Fable, and 6 of 6 on Fable's
+`agentic-fix-verify`. The judge read the same string, which is the separate
+finding two sections down.
 
 The four-tier table above is essentially unaffected: only one of its five cases
 is agentic, `paragraph_length` still scores 95.8–100.0 on it for every model, and
 the artifact is identical in all four columns. `agentic-fix-verify` is where it
 bites — `paragraph_length` there reads 16.7, which is the harness, not the style.
 So the numbers quoted in this section are `leads_with_conclusion`, `total_length`
-and the abort count, all of which the seam cannot touch. Fixing it would move
-agentic figures already published here, so it is tracked as its own change.
+and the abort count, all of which the seam cannot touch.
+
+COS-10 fixed the harness: the blocks are kept in order, each turn is saved as
+both the full trace and the final message, and every check and case rubric names
+which of the two it grades. **It changed nothing in this document.** The glue is
+lossy, so a saved row cannot be re-split — re-scoring the transcripts on the
+fixed code reproduces every agentic figure above to the decimal, because the only
+part of the fix that re-scoring can apply is the newline split, and that does not
+touch these particular checks. Replacing an agentic figure with one measured on
+the final message costs a re-run of the cells, not a re-score, and no such run has
+been bought. `score` now prints how many rows it re-graded predate the fix.
 
 ## A content gap that new content did not close
 
@@ -611,12 +633,15 @@ COS-4 cut beginner's mean reply from 103 words to 61 and the judge moved +1.3
 real; length was not the cause, or not the only one.
 
 **A harness artifact contaminates the agentic half of this measurement.** The
-judge is handed the whole turn, not the final message — see the ledger entry
+judge was handed the whole turn, not the final message — see the ledger entry
 "The seam reaches the judge". In 16 of 16 agentic cells that carry pre-update
 narration, a judge violation quotes that narration. It is not an excuse for the
-scores: 10 of 18 final updates are over the word cap on their own. But
-`agentic-fix-verify`'s judge score cannot be read as a clean measure of the style
-file until `run.mjs` separates the final message from the trace.
+scores: 10 of 18 final updates are over the word cap on their own. But the
+`agentic-fix-verify` rows in the table above cannot be read as a clean measure of
+the style file. COS-10 separated the final message from the trace and made each
+rubric name the one it grades, so a *future* run of these cells will be clean;
+a judge score cannot be re-derived offline at any price, so the two rows stand as
+they were measured.
 
 No regression came with the change. Run `01-13-15` re-measured the five shared
 cases on Haiku against `22-59-53`; every delta is inside the three-point noise

@@ -36,6 +36,7 @@
 - 2026-08-17T00:49:59-05:00 275dcf1a3cc3ad6b64d3fabb8eddb0a3c035b15e Say which command flushes per cell and which per split
 - 2026-08-17T00:49:59-05:00 b7355016418f832464f8e463fdab4a86c50eeec4 Label a partial run everywhere it can be read, and fix improve's flush order
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
+- 2026-08-17T00:52:00-05:00 f6c098f122e15a8f07170ef424aea43ee42ba7d9 docs(COS-12): archive consumed backlog-campaign handover and record the merge
 
 ## docs/adr
 

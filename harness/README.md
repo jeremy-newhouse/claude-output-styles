@@ -294,34 +294,36 @@ contract while `audit` reports "both say 0". The conditional half of a rule is
 invisible to both instruments. Treat a clean audit as "the numbers agree", not as
 "the file and the contract mean the same thing".
 
-**`sentence_length` and `paragraph_length` are not quotable on agentic cells.**
-`runTurn` accumulates the assistant's visible text with `text += b.text`. A
-conversational turn has one text block, so nothing happens. An agentic turn has
-several, split around the tool calls, and they are concatenated with no
+**Every agentic figure saved before COS-10 is measured on a glued turn.** Until
+COS-10, `runTurn` accumulated the assistant's visible text with `text += b.text`.
+A conversational turn has one text block, so nothing happened. An agentic turn
+has several, split around the tool calls, and they were concatenated with no
 separator — a saved transcript reads `"I'll look at the file first.The bug is in
 ..."`. `sentences()` requires whitespace after the full stop to split and
-`paragraphs()` requires a blank line, so the run-on scores as one long sentence
+`paragraphs()` requires a blank line, so the run-on scored as one long sentence
 in one paragraph. Measured across four models, a no-whitespace seam appears in 0
 of the 131 cells that made no tool call and in most of those that did; on Fable's
 `agentic-fix-verify`, where the model made ten tool calls per cell,
-`paragraph_length` reads 16.7 and is measuring this, not the style.
+`paragraph_length` reads 16.7 and is measuring this, not the style. The judge was
+handed the same string, so every agentic judge score saved before COS-10 grades
+the whole turn against a rubric that asks about the final message: across the 18
+`agentic-fix-verify` cells in `00-44-03` and `00-48-49`, 16 carry pre-update text
+and in **all 16** a judge violation quotes it.
 
-`leads_with_conclusion`, `total_length` and the abort counts are unaffected — the
-first reads the genuine opening text, the second counts words, the third does not
-depend on segmentation. Fixing the seam moves agentic numbers already published
-in `FINDINGS.md` and the experiment ledger, so it is tracked as its own change
-rather than folded into a measurement run.
+COS-10 fixed the seam. `runTurn` now keeps the blocks in order and `splitTurn`
+derives two strings from them — `trace`, every block joined by a blank line, and
+`final`, the blocks after the last tool call. Each check declares which one it
+grades in `CHECKS[].reads` and each case names the one its rubric asks about in
+`judgeOn`. Both are the same string on a conversational turn.
 
-**The judge sees the same concatenated text, so agentic judge scores are affected
-too.** Found under COS-1 and easy to miss, because the two segmentation checks
-above are the obvious victims. The saved reply on an agentic cell is the whole
-turn, so the model's pre-tool and inter-tool narration is prepended to the final
-status update, and the judge grades all of it against a rubric that asks about
-the final message. Across the 18 `agentic-fix-verify` cells in `00-44-03` and
-`00-48-49`, 16 carry pre-update text and in **all 16** a judge violation quotes
-it. Do not read an agentic judge score as a clean measure of the style file — but
-do not use this to wave one away either: 10 of those 18 final updates are over
-the word cap on their own.
+**The fix does not reach backwards.** The glue is lossy, so a row saved before
+COS-10 cannot be re-split: `score` serves its `text` as both views and prints how
+many rows and how many agentic cells are affected. Every agentic figure in
+`FINDINGS.md` and the experiment ledger therefore still describes the glued turn,
+and is labelled there. Replacing one means re-running the cells, not re-scoring
+them. `leads_with_conclusion`, `total_length` and the abort counts were never
+affected — the first reads the genuine opening text, the second counts words, the
+third does not depend on segmentation — and neither is any conversational figure.
 
 **Filter errored rows before quoting any mean.** A cell that returns no text
 scores 0 on every rule *and* 1.0 on the judge — `evaluate.mjs` skips the judge
