@@ -140,11 +140,19 @@ there is no longer a measured gap to explain — and a mechanism was published t
 explain one.
 
 So the end-state reading holds and needs no Haiku exception. Every model lands in
-the same band, roughly 38–43% of sentences over 12 words: Opus 38.9% and Sonnet
-42.9% (`22-27-15`), Haiku 40.5% tightened (`22-18-53`) and 38.4% untightened
-(`22-59-53`). Those are three separate runs, so treat the band as a band and not
-as a ranking — Sonnet alone measures 48.0% on `12-44-03`, which is the size of
-run-to-run movement to expect here.
+one band and none of them is far from the others: Opus 38.9% and Sonnet 42.9% of
+sentences over 12 words (`22-27-15`), Haiku 40.5% tightened (`22-18-53`) and
+38.4% untightened (`22-59-53`).
+
+**Treat that as a band and not as a ranking**, because the movement between
+slices is nearly as large as the spread between models. Measured on one
+consistent slice — the beginner style, the five shared cases, the untightened
+file — the same four models give Opus 39.1%, Haiku 45.5%, Fable 45.9% and Sonnet
+47.4%. That is an 8.3-point spread across four models; the same *single* model
+moves by up to 7.1 points just by changing slice (Haiku 38.4% on the full pool,
+45.5% on the shared five). With those two numbers so close, the ordering carries
+no weight — only the observation that all four sit in one broad band does. Adding
+the top tier changed nothing: Fable lands in the middle of the four.
 
 **A cheap-model probe measures whether an instruction can bind, not whether it
 binds** — and a probe small enough to be cheap is small enough that its baseline
@@ -165,6 +173,22 @@ beginner averages 119 words against 80 with half its replies over, intermediate
 over. Where sentence length and reply length can be told apart (intermediate,
 where they correlate at only −0.05), the judge tracks reply length at −0.647 and
 sentence length at only −0.368.
+
+**The fourth tier reproduces this exactly, which rules out one explanation for
+it.** Mean reply words on the five shared cases, against each level's own cap:
+
+| level | cap | opus | sonnet | haiku | fable |
+|---|---|---|---|---|---|
+| advanced | 120 | 93 | 77 | 91 | 100 |
+| intermediate | 100 | 144 | 96 | 110 | **121** |
+| beginner | 80 | 135 | 103 | 113 | **132** |
+
+Every model writes comfortably inside the advanced cap and overshoots the
+beginner one, and the most capable model overshoots it by 65%. So the lower
+levels are not failing because the model cannot manage a shorter reply — it
+manages a shorter one at the level where the cap is *loosest*. The caps are being
+read as an audience signal rather than as a limit, and the signal points the
+wrong way: "explain this simply" is being answered with more words, not fewer.
 
 ### Keeping a style file and its contract in agreement
 
