@@ -279,11 +279,25 @@ it appears. Replacing one costs a re-run, not a re-score.
 
 Re-scoring the saved rows on the post-COS-10 scorer does isolate the *other* half
 of that change — `sentences()` now splitting on a single newline — and that half
-was re-derived across all 61 saved runs. It moves rule totals by at most 1.07
+was re-derived across all 61 saved runs. It moves rule totals by at most 1.50
 points on any run and scope (`01-33-41` agentic, n=3), and by 0.00 to 0.34 on
-every run backing a published four-tier figure, all of it in `sentence_length`
-and all of it well inside the three-point noise floor. It does move segmentation
-figures materially, and those are corrected below and in `FINDINGS.md`.
+every run backing a published four-tier figure, all of it well inside the
+three-point noise floor.
+
+**Three checks move, not one.** `sentence_length` carries most of it, but
+`paragraph_length` counts sentences per paragraph and `active_voice` iterates
+sentences, so both re-segment too — `active_voice` on 53 of 634 saved rows, for a
+mean of +0.14 points. `paragraph_length` needed a repair rather than a
+re-derivation: its list exemption tested only a paragraph's first character, so a
+lead-in line followed by bullets in one block was graded as prose, and once the
+bullets became separate sentences a five-item list failed a cap of four. The
+exemption now tests every line. Published `paragraph_length` figures are
+unchanged either way — 100.0/100.0/100.0/95.8 on `agentic-read-report` by tier,
+16.7 on Fable's `agentic-fix-verify` — and the repair's whole effect across the
+540 rows the check scores is a mean of 97.21 to 97.44, on five rows.
+
+Segmentation figures do move materially, and those are corrected below and in
+`FINDINGS.md`.
 
 **The seam reached the judge, not only the two segmentation checks.** Found
 under COS-1, and it widens the entry above. The mechanism was one line of
