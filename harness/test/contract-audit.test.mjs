@@ -229,3 +229,17 @@ test('a contract that omits a cap is reported as unconfigured, not as a mismatch
   assert.match(sent.detail, /file says 20, contracts\.json sets no maxSentenceWords/)
   assert.equal(problemsOf(rows).length, rows.length)
 })
+
+test('every audit row carries the same keys, whatever its status', () => {
+  // A caller reading rows[i].condition must not have to know which branch
+  // produced the row. The unconfigured branch was the one that forgot it.
+  const shapes = [
+    auditStyle('a', 'Sentences under 20 words.', {}),
+    auditStyle('b', 'Never show code unless they ask.', { maxCodeLines: 0 }),
+    auditStyle('c', 'Never show code unless they ask.', { maxCodeLines: 0, codeOnRequest: true }),
+    auditStyle('d', 'Sentences under 20 words.', { maxSentenceWords: 15 }),
+    auditAll({ ghost: { styleFile: '../no-such-style.md' } }, ROOT)
+  ].flat()
+  const expected = ['condition', 'configured', 'detail', 'field', 'stated', 'status', 'styleId']
+  for (const row of shapes) assert.deepEqual(Object.keys(row).sort(), expected, JSON.stringify(row))
+})

@@ -709,10 +709,12 @@ and a 60-word status update was failed because it "never establishes what a
 database is". Two more contradictions sat beside it: "skip all internal details"
 was read as forbidding the evidence the status shape requires, so "All 14 checks
 pass" was quoted as a violation; and the prose invited glossing a technical term
-while `no_jargon` bans 28 of them outright at weight 2 — and the file's own
+while `no_jargon` banned 28 of them outright at weight 2 — and the file's own
 worked example of that rule, "I updated the API (the messenger that lets two
-programs talk)", uses one of the 28, so following the example scores 0.667 on the
-heaviest-weighted check.
+programs talk)", uses one of the 28, so following the example scored 0.667 on the
+heaviest-weighted check. (Closed under COS-15: `no_jargon` now grades first use
+and forgives a gloss. The figures in this section predate that and are the ones
+the run measured; the five that move are corrected where they are quoted.)
 
 **And the file never said which of its shapes a reply should take.** Ten of the
 40 judge violations on the three weakest cases in run `02-10-45` say the reply is
