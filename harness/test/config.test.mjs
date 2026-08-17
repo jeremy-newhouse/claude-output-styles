@@ -5,6 +5,7 @@ import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CHECKS, VIEWS } from '../src/checks.mjs'
 import { resolveImproveModels } from '../src/improve.mjs'
+import { cellLimitMs } from '../src/run.mjs'
 
 // `src/cli.mjs` reads these three files at startup, before any subcommand runs,
 // so a malformed one breaks `run`, `improve`, `score` and `audit` alike. Nothing
@@ -34,6 +35,10 @@ test('matrix.json parses and carries the axes the CLI reads', () => {
   // treats NaN as 0, and every cell would abort instantly. A positive number is
   // the whole contract.
   assert.ok(m.run.maxCellSeconds > 0, 'matrix.run.maxCellSeconds must be positive')
+  // Asserted against the shipped validator, not a second opinion about it: this
+  // is the exact call `cli.mjs` makes at startup, so the config that ships and
+  // the check that guards it cannot drift apart.
+  assert.equal(cellLimitMs(m.run.maxCellSeconds), m.run.maxCellSeconds * 1000)
 })
 
 test('contracts.json parses, and every contract points at a style file that exists', () => {

@@ -85,6 +85,29 @@ async function runTurn ({ prompt, ws, env, model, opts, resume, controller, quer
 }
 
 /**
+ * The cell timeout in milliseconds, or a throw naming the bad value.
+ *
+ * Validated rather than defaulted. A missing key would otherwise reach
+ * setTimeout as NaN, which fires on the next tick — turning the guard into a
+ * machine that aborts every cell in the matrix instantly and calls each one a
+ * timeout. Failing loudly is the only reading of that state anyone can act on.
+ *
+ * Exported so the CLI can run it once, next to where `opts` is built, instead
+ * of leaving the first failure to surface per cell: under `improve` a per-cell
+ * throw is caught by the per-style handler and filed as a style failure, so a
+ * config typo reads like an optimizer crash; under `run` it lands as an
+ * unhandled rejection after an empty `results/<stamp>/` already exists.
+ * `runCell` still checks, as the backstop for direct callers such as the tests.
+ */
+export function cellLimitMs (maxCellSeconds) {
+  const ms = Number(maxCellSeconds) * 1000
+  if (!Number.isFinite(ms) || ms <= 0) {
+    throw new Error(`maxCellSeconds must be a positive number — got ${maxCellSeconds}`)
+  }
+  return ms
+}
+
+/**
  * Run one cell of the matrix: (style x variant x model x case x repeat).
  * Returns the transcript entry that the scorer consumes.
  *
@@ -104,22 +127,28 @@ async function runTurn ({ prompt, ws, env, model, opts, resume, controller, quer
  */
 export async function runCell ({ styleId, styleText, variant, model, caseDef, repeat, opts, deps = {} }) {
   const { query: queryFn = query } = deps
-  // Validated rather than defaulted, and before the workspace is built. A
-  // missing key would otherwise reach setTimeout as NaN, which fires on the
-  // next tick — turning the guard into a machine that aborts every cell in the
-  // matrix instantly and calls each one a timeout. Failing loudly on the first
-  // cell is the only reading of that state anyone can act on.
-  const limitMs = Number(opts.maxCellSeconds) * 1000
-  if (!Number.isFinite(limitMs) || limitMs <= 0) {
-    throw new Error(`maxCellSeconds must be a positive number — got ${opts.maxCellSeconds}`)
-  }
+  // Before the workspace is built, so a bad config cannot leave a directory
+  // behind on its way out. The CLI checks the same value once at startup.
+  const limitMs = cellLimitMs(opts.maxCellSeconds)
   const wsp = buildWorkspace({ styleText, variant })
   const controller = new AbortController()
   let timedOut = false
   const timer = setTimeout(() => { timedOut = true; controller.abort() }, limitMs)
+  // Started with the timer rather than at the top of the function, so the number
+  // recorded on the row measures the same window the guard bounds. Comparing an
+  // `elapsedMs` that included the workspace build against `maxCellSeconds` would
+  // be comparing two different spans.
+  const startedAt = Date.now()
+  // Declared outside the try so the catch can still see the turns that finished.
+  // Aborting mid-stream either throws or ends the iterator quietly, and with
+  // `turns` scoped to the try the throwing path returned empty arrays: a
+  // multi-turn case whose turns 1 and 2 completed and whose turn 3 wedged lost
+  // both transcripts, while the quiet path kept them. Same event, two different
+  // rows, decided by SDK internals.
+  const turns = []
+  const base = { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat }
   try {
     const prompts = caseDef.multiTurn ?? [caseDef.prompt]
-    const turns = []
     let resume
 
     for (const p of prompts) {
@@ -130,12 +159,7 @@ export async function runCell ({ styleId, styleText, variant, model, caseDef, re
     }
 
     return {
-      styleId,
-      variantId: variant.id,
-      model,
-      caseId: caseDef.id,
-      split: caseDef.split,
-      repeat,
+      ...base,
       // Style adherence is judged on the LAST turn: that is where drift shows.
       // Two views of it are saved, and each check and each case rubric names the
       // one it grades — see CHECKS[].reads and caseDef.judgeOn. `text` is the
@@ -146,12 +170,32 @@ export async function runCell ({ styleId, styleText, variant, model, caseDef, re
       allTurns: turns.map(t => t.trace),
       allFinals: turns.map(t => t.final),
       toolCalls: turns.flatMap(t => t.toolCalls),
+      elapsedMs: Date.now() - startedAt,
       error: timedOut ? 'error_timeout' : (turns.find(t => t.error)?.error ?? null)
     }
   } catch (err) {
-    return { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat, text: '', trace: '', allTurns: [], allFinals: [], toolCalls: [], error: timedOut ? 'error_timeout' : String(err.message ?? err) }
+    return {
+      ...base,
+      // '' rather than the last completed turn's text, matching the quiet path:
+      // there, the wedged turn returns an empty turn object and `text` is its
+      // empty final. The turn that failed produced nothing, and saying so is the
+      // same answer on both paths.
+      text: '',
+      trace: '',
+      allTurns: turns.map(t => t.trace),
+      allFinals: turns.map(t => t.final),
+      toolCalls: turns.flatMap(t => t.toolCalls),
+      elapsedMs: Date.now() - startedAt,
+      error: timedOut ? 'error_timeout' : String(err.message ?? err)
+    }
   } finally {
     clearTimeout(timer)
+    // Measured on a real 3s-limit cell: one `claude` subprocess outlives this
+    // call holding the just-unlinked workspace as its cwd, and is gone by two
+    // seconds later. No workspace leaks (the count returns to baseline
+    // immediately) and cells never share a directory, so the window is visible
+    // but inert. Waiting for the child would cost every timed-out cell that
+    // delay for no measured gain.
     wsp.cleanup()
   }
 }
