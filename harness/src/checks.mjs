@@ -27,6 +27,10 @@ const IRREGULAR_PP = 'been|done|made|found|seen|taken|given|written|built|run|se
 
 const EMOJI = /\p{Extended_Pictographic}/u
 
+// Counts a reply can state out loud when it enumerates alternatives. Only
+// three and up: "two options" is the rule being followed, not broken.
+const OPTION_WORDS = { three: 3, four: 4, five: 5, six: 6, 3: 3, 4: 4, 5: 5, 6: 6 }
+
 // ---------- text utilities ----------
 
 export function stripCode (text) {
@@ -287,17 +291,36 @@ export const CHECKS = {
     // A reply that leads with the recommendation and names both alternatives in
     // prose satisfies the style's actual rule, and scoring the label instead of
     // the structure penalised exactly that — the better reply.
+    //
+    // That stayed true, but nothing replaced the cap for unlabelled replies, so
+    // three alternatives walked through in prose scored a clean 1.0. The cap now
+    // reads the signals a sprawling reply carries anyway: a stated count ("three
+    // ways"), or the pivots that introduce each alternative past the first
+    // ("another option", "alternatively", "or you could", "a third approach").
+    // Whichever estimate is largest — those or the literal labels — is the count.
+    //
+    // What this deliberately does NOT do is identify alternatives semantically.
+    // A reply naming three approaches with no stated count and no pivot is still
+    // invisible to this check and is the judge's to catch. Counting nouns or
+    // sentences would re-break the reply above, which is the trade the original
+    // comment refused and this one keeps refusing.
     run: text => {
       const t = text.toLowerCase()
       const labelled = new Set([...t.matchAll(/option\s+([a-d1-4])/g)].map(m => m[1]))
+      const stated = /\b(three|four|five|six|3|4|5|6)\s+(?:\w+\s+){0,2}?(?:options|ways|approaches|choices|alternatives|paths|routes)\b/.exec(t)
+      const pivots = [...t.matchAll(/\banother\s+(?:option|approach|choice|alternative|way|route|path)\b|\balternatively\b|\bor\s+(?:you|we)\s+(?:could|can)\b|\b(?:a|the|my)\s+(?:second|third|fourth|fifth)\s+(?:option|approach|choice|alternative|way|route|path)\b/g)]
+      // Each pivot introduces one alternative beyond the one the reply opened
+      // with, so a reply with no pivots reads as one option, not zero.
+      const counted = Math.max(labelled.size, stated ? OPTION_WORDS[stated[1]] : 0, pivots.length + 1)
       const hasReco = /recommend|i'd pick|my pick|i suggest|go with|do (a|b)\b/.test(t)
       const hasTradeoff = /trade-?off|faster|slower|cheaper|cost|risk|quality|instead of|\bvs\.?\b/.test(t)
       let score = 0
-      if (labelled.size <= 2) score += 0.3
+      if (counted <= 2) score += 0.3
       if (hasReco) score += 0.4
       if (hasTradeoff) score += 0.3
       const ev = []
       if (labelled.size > 2) ev.push(`${labelled.size} labelled options (cap is 2)`)
+      else if (counted > 2) ev.push(`~${counted} options presented in prose (cap is 2)`)
       if (!hasReco) ev.push('no recommendation')
       if (!hasTradeoff) ev.push('no trade-off comparison')
       return { score: Math.min(1, score), evidence: ev }
