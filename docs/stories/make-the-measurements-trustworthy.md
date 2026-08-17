@@ -14,6 +14,8 @@ tasks:
   - cos-19
   - cos-20
   - cos-21
+  - cos-24
+  - cos-22
 generated:
   by: lore/0.3.0
   at: 2026-08-17T03:50:43.715Z
@@ -163,6 +165,8 @@ expensive and worthless.
 | [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |
 | [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | To Do |
 | [COS-21](../../backlog/tasks/cos-21%20-%20Re-test-the-variant-sweep-the-reinforcement-ADR-rests-on.md) | Re-test the variant sweep the reinforcement ADR rests on | To Do |
+| [COS-24](../../backlog/tasks/cos-24%20-%20Stop-the-CLI-silently-substituting-defaults-for-malformed-flags.md) | Stop the CLI silently substituting defaults for malformed flags | To Do |
+| [COS-22](../../backlog/tasks/cos-22%20-%20Harden-the-fixture-guard-COS-13-added.md) | Harden the fixture guard COS-13 added | To Do |
 <!-- lore:tasks:end -->
 
 ## Notes
