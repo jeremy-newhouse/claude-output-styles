@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 01:21'
+updated_date: '2026-08-17 01:38'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies: []
@@ -142,4 +142,27 @@ What has to happen before AC #4 is attemptable again, in order:
 2. **The conversational half is a length problem, which is COS-4's.** Length is the binding constraint on both cases, and COS-8 reached the same conclusion from the opposite direction. Attempting COS-1 again before COS-4 moves reply length would repeat what pass 2 already paid for.
 
 Do not re-open this with an `improve` run. That was true before this session on the grounds that the loop can only re-express existing rules; it is now also true that the rules exist and the loop still has nothing to add, because what fails is length and an instrument defect, neither of which the optimizer can see.
+
+**Branch review (`/code-review high`) — 11 findings, all real. Corrections and fixes below.**
+
+Numeric errors in my own prose, all traced to one mistake: I counted over-cap replies with a raw word split instead of the harness's `total_length` check, which scores `words(stripCode(text))` and therefore excludes code fences.
+
+- Over-cap share is **9/12, 17/24, 19/23** (75.0%, 70.8%, 82.6%), not 9/12, 19/24, 19/23. The shipped-text arm sits *below* the range I published as '75% to 83% in every arm', and the sequence does **not** rise monotonically — I had claimed it did. Corrected in FINDINGS.md, the story and the tracker to 70.8-82.6%, with the monotonic claim withdrawn. The conclusion it supports — length is the binding constraint, and no arm comes near the cap — is unaffected.
+- Agentic cells over cap on the saved text: **12 of 18**, not 14. The companion figure (10 of 18 counting only from the beat label) reproduces exactly, so only the contaminated-side number was wrong, and it made the contamination look two cells worse than it was.
+- Intermediate reply range in `00-48-49` is **77-268** words, not 77-276. Beginner's 101-256 was right.
+- The ledger's `01-03-21` row quoted 43.6 without saying it excluded the errored cell; the unfiltered figure is 45.9. Now labelled, in the one file most likely to be recomputed from.
+
+**Withdrawn claim.** 'reserve-agentic-session drew 8-10 tool calls, so it does force the longer session it was written for' is not supported: `agentic-fix-verify` runs 5-13 with a median of 8 across the COS-1 runs, so 8-10 sits inside its range, and the comparison was confounded (new case Sonnet-only, the range pooling Opus and Sonnet). Withdrawn from the ledger and from AC #3's evidence.
+
+**A defect I introduced, found by the review and fixed.** Putting a second agentic case on the `reserve` split placed the most abort-prone case type in the project inside `improve`'s adoption gate, which compared `summary.overall` — an average that pools errored rows at total = judgeWeight (0.3-0.5) against a reserve mean nearer 0.65. At 36 reserve cells a side that is ~0.01 of delta per one-sided abort, against a `minReserveDelta` of -0.02: two aborts could flip ACCEPT to REJECT, or hide a real regression. This is the same error bias the diff documented in three places and left in the code.
+
+Fixed narrowly, in the gate only: new `comparableRows()` pairs the two sides by `caseId` and drops any case that errored on either side from **both**, so the means are always over the same case set; `meanTotal()` replaces `summary.overall` in the comparison; the reserve record gains `comparedCells` and `droppedCases`, the run logs which cases it dropped, and an all-errored reserve now **rejects** rather than adopting on a mean of nothing. `renderVerdict` prints the exclusion so a weaker verdict cannot read as a full one. Six new tests including a scenario where one abort would otherwise have flipped a sound candidate (candidate 0.6 vs baseline 0.5 becomes 0.45 vs 0.5 when pooled). Suite 58 → 64. The wider bias in `summarize()` is deliberately untouched and stays raised.
+
+**Run `2026-08-17T01-33-41` — 6 cells, $0.3493, answering the review's question about the untested model.** `01-12-03` had only measured the new case on Sonnet, and Opus produced this session's only abort. Haiku is the model that actually aborts, so it was measured: **`reserve-agentic-session` aborts 3 of 6 on Haiku.** The three cells that finished used 13, 17 and 17 tool calls against the one `agentic-fix-verify` Haiku cell that ever finished, at 9 (`22-59-53`, 5 of 6 aborted) — suggestive that the case is longer, n=3 against n=1, and not claimed as established. That it is abort-prone **is** established, and it is why the gate fix was not optional.
+
+**Accepted and acted on, lower severity:** the split guard was one-way (a typo'd split kept it green while the case dropped out of every optimizer split) — containment now asserted in both directions; and the enlarged default matrix now carries a cost note in `harness/README.md` (the two new cases add 180 cells to a bare `run`, and reserve grows 24 → 36 cells a side per adopting style).
+
+**Accepted, not fixed:** the fixture's `pricing.test.mjs` asserts 850 while its own comment computes 849, so a model that rounds correctly breaks a passing test and must decide unaided whether to edit it. Pre-existing, and changing it would move published agentic numbers, so it is raised rather than patched — the same handling as the seam.
+
+Session spend now **$13.6567**.
 <!-- SECTION:NOTES:END -->
