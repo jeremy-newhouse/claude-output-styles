@@ -1,11 +1,11 @@
 ---
 id: COS-25
 title: Remove cost and budget tracking from the harness and its record
-status: In Progress
+status: Done
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 14:43'
-updated_date: '2026-08-17 14:52'
+updated_date: '2026-08-17 15:07'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -25,13 +25,13 @@ Done Backlog task bodies are deliberately out of scope: they are the immutable e
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No dollar figure, cost column, or budget framing remains in docs/, FINDINGS.md, README.md, or harness/README.md
-- [ ] #2 The campaign tracker doc-1 carries no spend figures or no-spend/cost annotations in its cursor, queue, resolved, or session-log sections
-- [ ] #3 costUsd, totalCostUsd, spentUsd and spendOf are gone from harness/src and harness/test; no rows.json, summary.json, run.json or report output carries a cost field
-- [ ] #4 matrix.json no longer sets maxBudgetUsd and run.mjs no longer passes it to the SDK
-- [ ] #5 A per-cell wall-clock timeout replaces it as the runaway guard, driven by an AbortController, configured in matrix.json, and proven to actually abort a cell by an executed test
-- [ ] #6 Sample-size claims that were priced (the 146-cell figure and its siblings) keep their statistical basis and lose only the dollar annotations
-- [ ] #7 npm --prefix harness test passes, node src/cli.mjs audit exits 0, and lore check exits 0
+- [x] #1 No dollar figure, cost column, or budget framing remains in docs/, FINDINGS.md, README.md, or harness/README.md
+- [x] #2 The campaign tracker doc-1 carries no spend figures or no-spend/cost annotations in its cursor, queue, resolved, or session-log sections
+- [x] #3 costUsd, totalCostUsd, spentUsd and spendOf are gone from harness/src and harness/test; no rows.json, summary.json, run.json or report output carries a cost field
+- [x] #4 matrix.json no longer sets maxBudgetUsd and run.mjs no longer passes it to the SDK
+- [x] #5 A per-cell wall-clock timeout replaces it as the runaway guard, driven by an AbortController, configured in matrix.json, and proven to actually abort a cell by an executed test
+- [x] #6 Sample-size claims that were priced (the 146-cell figure and its siblings) keep their statistical basis and lose only the dollar annotations
+- [x] #7 npm --prefix harness test passes, node src/cli.mjs audit exits 0, and lore check exits 0
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -62,4 +62,34 @@ New harness/test/run.test.mjs drives runCell to a real abort through an injected
 Suite 124 -> 126 (removed 2 cost-only tests, added 4 guard tests). audit exit 0.
 
 End-to-end on real saved data, no new cells: score --rows on the published 12-44-03 arm reproduces 81.0% exactly and the cost line is gone from the output. improve --cases=__none__ --iterations=0 runs the whole loop path at 0 cells and prints 'measured 0 cells' / '0 saved cells'. Written run.json and summary.json carry no cost field.
+
+Verification of every criterion, run rather than inspected.
+
+AC #1/#2 — 0 dollar figures across docs/, FINDINGS.md, README.md, harness/README.md and doc-1. The one $ left in FINDINGS.md (line 647, 'under $75k') is a case-fixture example of style content, not a testing figure. Verbatim user quotes in the tracker were left intact: altering an attributed quote falsifies the record, and two of them are the decisions that set the campaign's scope.
+
+AC #3 — costUsd/totalCostUsd/spentUsd/spendOf return zero hits across harness/src and harness/test. Verified on written output, not just source: writeResults on a real row produced rows.json, summary.json, run.json and report.md with no cost/spend/$ match in any of the four.
+
+AC #4 — maxBudgetUsd count is 0 in matrix.json and 0 in run.mjs. The single repo-wide mention left is the comment in run.test.mjs explaining what the guard replaced.
+
+AC #5 — harness/test/run.test.mjs, 4/4 passing, driving runCell to a real abort through an injected query seam. Sabotage-verified: removing the timedOut authority reds exactly the quiet-abort test and nothing else; replacing the config validation with a silent default reds exactly the config test and nothing else.
+
+AC #6 — the 146-cell figure survives in all four places that carried it (FINDINGS.md, the ledger, and two stories), now stated as what a 95% half-width of +/-4 points requires at SD 24.6 rather than as a price.
+
+AC #7 — npm --prefix harness test 126/126; node src/cli.mjs audit exit 0; lore check exit 0 across 24 files, 0 errors, 0 warnings.
+
+Story coupling: left uncoupled deliberately, on the precedent the tracker set for COS-23. No story covers removing a decision-irrelevant metric from the record, and filing it under measurement trustworthiness would misdescribe it — cost never entered any score, so removing it moved no figure. lore orphans reports it alongside COS-23; lore check is unaffected and exits 0.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Removed cost and budget tracking from the harness, the published record and the campaign tracker, and replaced the maxBudgetUsd runaway guard with a wall-clock one.
+
+The dollar figures were never money. They came from the Agent SDK's total_cost_usd, a list-price valuation of tokens the SDK emits whether the caller is on per-token billing or a subscription, and this project runs on a subscription. Cost never entered a style's score either — checks.mjs plus the judge do that — so every figure was telemetry about the test rig that invited budget reasoning into decisions statistical power should drive.
+
+The one part that was not telemetry was matrix.json's run.maxBudgetUsd: it was passed live to the SDK and hard-stopped a runaway cell. Of the three bounds the SDK exposes, only abortController is a true circuit breaker — maxTurns bounds tool rounds but not the time inside one, and taskBudget only tells the model its remaining tokens and asks it to pace itself, which is what a wedged loop will not do. The guard is now run.maxCellSeconds (600), covering the whole cell rather than each turn so a multi-turn case cannot run N times the limit; a tripped cell returns error_timeout and is excluded from every mean like any other errored cell.
+
+Two hazards surfaced while building it. undefined * 1000 is NaN and setTimeout treats NaN as 0, so a config missing the key would have aborted every cell in the matrix instantly and labelled each one a timeout — runCell now throws rather than defaulting. And an abort can end the SDK iterator quietly rather than throwing, which would return a scoreable row with no reply, so a timedOut flag is the authority on the error rather than the thrown exception.
+
+Verified by running, not reading: harness/test/run.test.mjs drives runCell to real aborts through an injected query seam, and both mechanisms were sabotaged on purpose to prove the tests go red. Suite 124 -> 126 (2 cost-only tests removed, 4 guard tests added); audit exit 0; lore check exit 0. Re-scoring the published 12-44-03 arm offline still returns 81.0%, so no published score moved.
+<!-- SECTION:FINAL_SUMMARY:END -->
