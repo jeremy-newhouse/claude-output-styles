@@ -738,14 +738,25 @@ comparisons below, the other 30 in a rejected second authoring pass:**
 
 | | five shared cases, 10 pairs | six reserve cases, 12 pairs |
 |---|---|---|
-| deterministic rules | +5.2 [+0.0, +10.4] | **+7.7 [+5.3, +10.1]**, t=7.06 |
+| deterministic rules | +5.2 [+0.0, +10.4] | **+7.7 [+5.3, +10.1]**, t=7.06 |¹
 | reply words | **−42.0 [−78.2, −5.9]** | **−55.7 [−83.2, −28.1]**, t=−4.41 |
 | composite | +3.3 [−6.1, +12.6] | **+7.4 [+0.8, +14.0]**, t=2.52 |
 | LLM judge | +1.3 [−15.0, +17.6] | +7.1 [−7.0, +21.2] |
 
+¹ **Both rules deltas shift slightly under COS-15**, which taught `no_jargon` to
+forgive a glossed first use. Six of 651 saved rows move, five of them in these
+arms. Recomputed under one method in that session: the reserve delta reads +7.8
+[+5.3, +10.2] t=7.02 on the old scorer and **+7.3 [+4.7, +9.9] t=6.28** on the
+new; the shared-five delta reads +5.0 [−0.1, +10.0] and **+5.2 [−0.0, +10.5]**.
+The published intervals are left as they were because that recomputation does not
+reproduce them to the last digit — the computation behind the originals is not
+recorded anywhere in the repo, which is COS-27. Both conclusions are unchanged:
+rules moved on the reserve set and the shared-five interval still touches zero.
+
 Over-cap share on the shared five fell from 40.0% to 14.3% and mean reply length
-from 103 to 61 words. Rules on the shipped text read 98.5 on Opus and 97.4 on
-Sonnet — the highest beginner has recorded, against 90.9–92.3 in the four-tier
+from 103 to 61 words. Rules on the shipped text read 98.5 on Opus and **97.7** on
+Sonnet — 97.4 before COS-15 taught `no_jargon` to forgive a glossed first use —
+the highest beginner has recorded, against 90.9–92.3 in the four-tier
 baseline. `three_question_structure` held at 100.0, so telling the model not to
 force the three beats onto an explanation did not cost the beats where they
 belong.

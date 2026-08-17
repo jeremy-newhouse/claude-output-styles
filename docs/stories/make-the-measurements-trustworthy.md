@@ -19,7 +19,7 @@ tasks:
 generated:
   by: lore/0.3.0
   at: 2026-08-17T03:50:43.715Z
-lore_task_status: todo
+lore_task_status: in-progress
 ---
 
 # Make the measurements trustworthy
@@ -112,7 +112,26 @@ temp-file rename so a kill mid-write cannot truncate the measured data. Verified
 SIGKILLing a real four-cell run after two cells: both survivors re-scored
 offline, and `score` prefixed them with `PARTIAL run — 2 cells of 4 expected`.
 
-**Underneath all four sits a sample-size problem that COS-4 measured.** Per-cell
+**And the contract could not say "unless" — fixed under COS-15.** Two style
+rules stated a conditional their contract had no field to hold, and both scored.
+Beginner says "Never show code **unless they ask**", which parsed to a flat 0,
+matched `maxCodeLines: 0`, and was reported as *agreement* while
+`code_block_size` scored a requested snippet 0 at weight 2. Beginner also tells
+the writer to gloss a term it must keep — "I updated the API (the messenger that
+lets two programs talk)" is the file's own worked example — while `no_jargon`
+matched the bare term, so following the example cost the heaviest-weighted check
+in the contract. The instrument was extended rather than the styles edited: the
+gloss is conditioned on the reply, which a check already reads, so `no_jargon`
+now grades first use and forgives a gloss; "unless they ask" is conditioned on
+the request, which no check can see, so the condition lives in `codeOnRequest` on
+the contract and `requestsCode` on the case, and the audit fails a prose
+conditional with no matching contract field. Re-scoring all 63 saved runs old
+code against new moved 6 of 651 rows, every one a genuine gloss, and no
+conclusion. Fixing the guard also exposed a defect in the guard: testing a
+`/g`-flagged pattern with `.test()` advanced its `lastIndex`, which `matchAll`
+then copied, so the second parse of a file skipped its own opening lines.
+
+**Underneath all five sits a sample-size problem that COS-4 measured.** Per-cell
 judge SD on the shipped beginner text is 24.6 — 24.1 Opus, 22.8 Sonnet — so the
 ten-cell arms every per-model judge figure in this project rests on carry 95%
 intervals about 30 points wide. The demonstration is not theoretical: beginner on
@@ -166,7 +185,7 @@ run spent on nothing.
 | [COS-11](../../backlog/tasks/cos-11%20-%20Stop-errored-cells-from-biasing-every-score-the-project-quotes.md) | Stop errored cells from biasing every score the project quotes | Done |
 | [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | Done |
 | [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | Done |
-| [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | To Do |
+| [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | In Progress |
 | [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |
 | [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | Done |
 | [COS-21](../../backlog/tasks/cos-21%20-%20Re-test-the-variant-sweep-the-reinforcement-ADR-rests-on.md) | Re-test the variant sweep the reinforcement ADR rests on | To Do |

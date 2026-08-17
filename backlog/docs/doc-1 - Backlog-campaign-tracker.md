@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 18:00'
+updated_date: '2026-08-17 18:59'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-15** — queue order for campaign 2 confirmed by the user on
+**Next issue: COS-16** — queue order for campaign 2 confirmed by the user on
 2026-08-17, who chose the "Fix tools first, then everything" option from a
 presented comparison over a shorter path that went straight to the two missed
 bars: "15 sessions. Repairs the measuring tools before spending on any test,
@@ -26,8 +26,8 @@ and cheaper, and COS-19 can reuse its data."
 
 Do not re-ask before taking the next item.
 
-Campaign 2 items 1 to 7 (COS-12, COS-10, COS-11, COS-13, COS-14, COS-9, COS-20)
-are resolved; the cursor has advanced to item 8.
+Campaign 2 items 1 to 8 (COS-12, COS-10, COS-11, COS-13, COS-14, COS-9, COS-20,
+COS-15) are resolved; the cursor has advanced to item 9.
 
 **Session 15 took COS-25, not the cursor item, at the user's direction.** The
 user judged that the project's cost and budget tracking was meaningless — the
@@ -84,7 +84,7 @@ before taking one.
 | 5 | COS-14 | config | **Resolved, session 14.** `improve` now runs `matrix.improve.models`; `run`'s list is no longer reachable from that path. Needed no optimizer run. |
 | 6 | COS-9 | checks | **Resolved, session 17.** Restored the option cap for replies that never write a label, without re-breaking the reply the label-blindness was written to protect. Re-scored all 62 saved runs: one row of 96 moved, no published figure. |
 | 7 | COS-20 | judge | **Resolved, session 18.** Built the missing re-judge path, then spent 720 judge calls on 60 saved replies and no cells. The judge is 17% of the per-cell variance, the reply 83%, so the sample sizes did not fall — they were confirmed to within two cells and given a floor. Sonnet is the least repeatable of the four judge tiers, and a change of judge moves three published conclusions. |
-| 8 | COS-15 | contracts | The audit cannot express "unless they ask". Touches two style rules, so it measures. |
+| 8 | COS-15 | contracts | **Resolved, session 19.** The contract language was extended and no style file changed, so it measured nothing new: the gloss condition is on the reply and became a check, the "unless they ask" condition is on the request and became `codeOnRequest` + `requestsCode`. Re-scoring 63 saved runs old-code against new moved 6 of 651 rows, all genuine glosses, and five published rules figures by under a point. Opened COS-27 and COS-28. |
 | 9 | COS-16 | styles | The five contradictions COS-4 left. Each edit measured on its own this time. |
 | 10 | COS-18 | styles | Do intermediate and advanced carry beginner's four defects? Nobody has looked. |
 | 11 | COS-17 | measurement | Beginner on Haiku and Fable. Kept separate from COS-19 by the user's decision. |
@@ -96,6 +96,8 @@ before taking one.
 | 17 | COS-23 | protocol | `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
 | — | COS-25 | harness | **Resolved out of band, sessions 15 and 16.** Not a queue item: taken at the user's direction ahead of the cursor. Removed cost and budget tracking from the harness, the published record and this tracker, and replaced `maxBudgetUsd` with a wall-clock runaway guard. Session 15 implemented and reviewed it; session 16 fixed the review's findings and merged. Runs no cells. |
 | 18 | COS-24 | harness | The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. Runs no cells. |
+| 20 | COS-27 | measurement | The paired confidence intervals in `FINDINGS.md` have no recorded computation and cannot be reproduced to the last digit, so a scoring change cannot update them. Opened by session 19; **appended**. Runs no cells. |
+| 21 | COS-28 | styles | Advanced states "under 120, headers and code included" while `total_length` counts `stripCode(text)`. A basis mismatch, not a conditional, so COS-15 could not reach it. Opened by session 19; **appended**. Costs a run or a re-score, depending on which side moves. |
 | 19 | COS-26 | harness | The judge call in `judge.mjs` and the optimizer's `rewrite()` in `improve.mjs` take no `abortController` and no timeout, so either stalling hangs a run that has already bought hours of cells. `maxCellSeconds` bounds a cell, not a run, and `maxBudgetUsd` never covered these two either — the gap predates both guards. Opened by session 16 from COS-25's review; **appended after item 18 rather than slotted into the order the user confirmed.** Runs no cells. |
 
 The order is a valid topological sort of the recorded dependencies, and every
@@ -1228,3 +1230,17 @@ Both remaining issues carry known risk against that policy:
   judge run leaves whole balanced passes rather than a few replies judged many
   times — the same reasoning as COS-12, applied to a different loop.
   Suite 135 → **153**; `audit` exit 0; `lore check` exit 0.
+
+- 2026-08-17 — session 19: resolved COS-15 on `feature/COS-15`. No drift at restore: `dev`, `main` and both remotes level at `b2291ac`, no leftover branches, no open PRs.
+
+  **The design call went against editing the product.** AC #1 required the choice to be argued, and the two conditionals turned out to be conditioned on different things, which decided them separately rather than together. The gloss rule ("explain it right after in one short phrase", with "I updated the API (the messenger that lets two programs talk)" as the file's own example) is conditioned on the REPLY, which is the string a check already reads — and `no_jargon` was named "avoids unglossed jargon" from the start, so only the implementation was unconditional. It now grades first use and forgives two gloss forms. "Never show code unless they ask" is conditioned on the REQUEST, which no check can see; a regex over the prompt would put a guess inside the one instrument whose value is being deterministic, so the condition lives in `codeOnRequest` on the contract and `requestsCode` on the case. Restating the two style files was rejected on the principle that the style files are the shipped product and the harness is the instrument: both prose rules are correct guidance for a real reader, and editing a shipped artifact to fit a scorer would also have cost a 148-cell beginner arm to re-measure something the harness never exercises.
+
+  **The audit now fails a conditional in both directions.** Prose that lifts a cap with no matching contract field is drift, and so is a contract that lifts a cap the prose never grants — a reader of the style would never learn the permission exists. Only a READER'S REQUEST counts as a condition: advanced's "when they carry the point faster than prose" is a judgement the writer makes, and treating it as a condition would have demanded a `codeOnRequest` graded on every reply. The condition is read from the sentence that states the cap, not the whole file, because beginner says "Do not elaborate unless asked" three sections above its code rule.
+
+  **Fixing the guard exposed a defect in the guard.** The condition scan tested `PATTERNS` — which carry `/g` for `matchAll` — with `.test()`, which advances `lastIndex`; `matchAll` copies it, so the SECOND parse of a body skipped its own opening lines and reported a stated cap as `unstated`. It surfaced as one test failing on the advanced file and nothing else. Caught by idempotence, which is now a test: parsing the same body twice must give the same answer.
+
+  **AC #4 cost nothing to satisfy and everything to discharge honestly.** No style file changed, so there was nothing to measure. But the checks change moves saved scores, so all 63 saved runs were re-scored OLD CODE against NEW CODE — not saved-score against current code, which folds in every scorer change since. 651 rows graded, 72 skipped (all optimizer candidates and ad-hoc experiment styles with no contract). Exactly 6 rows moved, all `no_jargon`, all beginner; `code_block_size` moved zero because no case sets `requestsCode`. Every one of the 6 was hand-read and is a real gloss. Five published figures moved and were corrected: `02-12-24` opus rules 87.2 → 88.1, `02-15-14` sonnet 97.7 → 98.2, `02-20-01` sonnet 97.1 → 97.4, `14-48-09` train delta −0.029 → −0.035, and FINDINGS' shipped-text sonnet 97.4 → 97.7. No conclusion changed.
+
+  **What could not be corrected, and why that is now its own task.** The paired figures in FINDINGS (+7.7 [+5.3, +10.1] t=7.06 on the reserve six, +5.2 [+0.0, +10.4] on the shared five) sit on arms that moved. Recomputing them from the saved rows reproduces every ARM MEAN in the ledger to the last digit but not the intervals: +7.8 [+5.3, +10.2] t=7.02 old against the published +7.7/t=7.06. Arm means matching exactly is what makes that a method difference rather than a data difference, so the published intervals were footnoted with the measured movement rather than silently replaced by a second method. That is **COS-27**. The by-hand read AC #2 demanded also found advanced's "under 120, headers and code included" against `total_length`'s `stripCode` — a basis mismatch, not a conditional, outside these ACs — which is **COS-28**. Intermediate's "under about 100 words when things are normal" was examined and judged NOT a defect: `total_length` gives full credit at the cap and decays to 0 at twice it, so a soft cap is graded as one.
+
+  Six mutations, each asserted to have landed before its red was believed, each red only on its intended test: two on `contracts.json` at the CLI (audit exit 1, restored to exit 0) and four on `checks.mjs`. Suite 159 → 175.
