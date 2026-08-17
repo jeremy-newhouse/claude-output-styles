@@ -12,7 +12,7 @@ tasks:
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: todo
+lore_task_status: in-progress
 ---
 
 # Harden the optimizer loop
@@ -63,7 +63,7 @@ added late.
 | [COS-2](../../backlog/tasks/cos-2%20-%20Hold-a-case-pool-out-of-every-optimizer-split.md) | Hold a case pool out of every optimizer split | Done |
 | [COS-3](../../backlog/tasks/cos-3%20-%20Persist-transcripts-from-improve-runs.md) | Persist transcripts from improve runs | Done |
 | [COS-14](../../backlog/tasks/cos-14%20-%20Give-matrix.improve-its-own-model-list.md) | Give matrix.improve its own model list | Done |
-| [COS-9](../../backlog/tasks/cos-9%20-%20Make-two_options_max-see-prose-option-sprawl.md) | Make two_options_max see prose option sprawl | To Do |
+| [COS-9](../../backlog/tasks/cos-9%20-%20Make-two_options_max-see-prose-option-sprawl.md) | Make two_options_max see prose option sprawl | In Progress |
 <!-- lore:tasks:end -->
 
 ## Outcome
