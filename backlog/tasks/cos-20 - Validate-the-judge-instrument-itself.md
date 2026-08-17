@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:47'
-updated_date: '2026-08-17 17:11'
+updated_date: '2026-08-17 18:02'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -130,4 +130,6 @@ The ratio, not the seconds, is the reusable part. It flips where a cell is genui
 **Moved: any per-case conclusion drawn from `conv-followup-drift`.** Rank correlation with Sonnet is 0.007 for Haiku and 0.280 for Opus; the judges are not measuring the same thing on that case.
 
 **Survives: the style ranking.** Advanced > intermediate > beginner holds under all four judges. The intermediate-to-beginner gap — the one large gap in the table — is 25.2 points under Sonnet, 22.4 Opus, 16.5 Fable, 13.0 Haiku: it narrows under every other judge but never closes or reverses.
+
+**Correction to the AC #4 timings above.** The 10.5s figure is the mean over all five cases of `results/2026-08-17T17-09-49-361Z`, which includes `agentic-read-report` at 14.0s. The conversational-only mean is **9.6s** over four cases (5.4, 12.4, 5.5, 15.1). Stated both ways because a Sonnet judge call is 6.1s median and 13.9s mean over 180 calls, so a cell is 0.7 to 1.6 judge calls whichever statistic is picked — the conclusion does not turn on the choice, and the crossover is 10.9 either way. The docs and the commit message carry the corrected figures.
 <!-- SECTION:NOTES:END -->
