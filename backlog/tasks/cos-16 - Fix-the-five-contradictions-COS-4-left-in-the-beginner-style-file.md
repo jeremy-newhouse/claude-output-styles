@@ -4,7 +4,7 @@ title: Fix the five contradictions COS-4 left in the beginner style file
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-17 03:51'
+updated_date: '2026-08-17 19:12'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -47,3 +47,14 @@ Note the trap COS-1 and COS-4 both hit: adding rules to this file has repeatedly
 - [ ] #5 Validated on the six reserve cases at the same sample size, before and after
 - [ ] #6 node src/cli.mjs audit exits 0 and the shipped file is verified byte-identical to the measured text by checksum
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+NOTE FROM COS-15 (session 19), not yet acted on. Two figures this task quotes moved when COS-15 taught `no_jargon` to forgive a glossed first use:
+
+- AC #4's bar, 'at or above the 98.5/97.4 the current file reaches', is now **98.5 / 97.7** on the same saved rows. The Sonnet half rose 0.3. Read the bar as 98.5/97.7 or restate it; do not measure against 97.4.
+- Defect #5 in the description is half closed. The CONTRACT side was COS-15's: `no_jargon` grades first use and forgives a gloss, so 'I updated the API (the messenger that lets two programs talk)' now scores **1.0**, not 0.667. The PROSE question this task owns is unchanged — whether the file's worked example should use a banned term at all — but the scoring consequence quoted in the description no longer holds, so it cannot be used as the reason.
+
+Nothing else in this task is affected: no style file changed under COS-15.
+<!-- SECTION:NOTES:END -->
