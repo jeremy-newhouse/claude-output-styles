@@ -193,15 +193,17 @@ they are glued together without so much as a space — a saved transcript reads
 `sentences()` splits on `[.!?]` *followed by whitespace* and `paragraphs()`
 splits on a blank line, so the run-on scores as one very long sentence inside one
 paragraph. Prevalence, measured by searching for a no-whitespace seam after
-sentence-ending punctuation:
+sentence-ending punctuation. Cells are split by whether the model actually made a
+tool call, not by which case they ran — that is the condition that produces
+multiple text blocks, and one conversational Sonnet cell reached for a tool:
 
 | cells | with a seam |
 |---|---|
-| conversational, all four tiers | **0 of 131** |
-| agentic — Opus | 3 of 6 |
-| agentic — Sonnet | 1 of 7 |
-| agentic — Haiku | 10 of 12 |
-| agentic — Fable, shared five | 5 of 6 |
+| **no tool call**, all four tiers | **0 of 131** |
+| ≥1 tool call — Opus | 3 of 6 |
+| ≥1 tool call — Sonnet | 1 of 7 |
+| ≥1 tool call — Haiku | 10 of 12 |
+| ≥1 tool call — Fable, shared five | 5 of 6 |
 | Fable, `agentic-fix-verify` | 6 of 6 |
 
 The damage is concentrated where the model interleaves many tool calls with
