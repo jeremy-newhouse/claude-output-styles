@@ -44,6 +44,7 @@
 - 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:27:33-05:00 58f6cff8b6d343cd3cb11bcbdd6e3d4ccdeca462 chore(COS-13): record the branch's commits in the doc log
 - 2026-08-17T08:30:19-05:00 115fe50b53d5baa29abb29d8afbf4c14ac0061b0 chore(COS-13): record the review-pass commits in the doc log
+- 2026-08-17T08:35:40-05:00 36337ec9ba7ce9efbc0393b45d3b5a1044247b25 chore(COS-13): record the review-fix commit in the doc log
 
 ## docs/adr
 
