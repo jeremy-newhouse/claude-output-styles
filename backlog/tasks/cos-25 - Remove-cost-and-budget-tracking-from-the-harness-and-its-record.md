@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 14:43'
-updated_date: '2026-08-17 15:51'
+updated_date: '2026-08-17 16:00'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -155,6 +155,22 @@ Also cleared: harness/test/improve.test.mjs:411 still read 'nothing is spent on 
 Reviewer's note, considered and not acted on: the branch does trade away the only per-cell spend ceiling, and run.mjs still forwards process.env, so on an API-key environment a wedged cell now burns up to 600s of tokens rather than stopping at $2. That is the deliberate trade this task's description argues for and the user directed; it is recorded here rather than silently accepted.
 
 Gates: npm --prefix harness test 131/131, node src/cli.mjs audit exit 0, lore check exit 0 (24 files), and re-scoring the published 12-44-03 arm still returns 81.0%.
+
+FOURTH REVIEW ROUND — four findings, all real, all fixed. ZERO in the harness code: the reviewer read run.mjs, evaluate.mjs, improve.mjs, cli.mjs, results.mjs, report.mjs and run.test.mjs, traced cutShort across the quiet abort, throwing abort, turn-limit abort, multi-turn break and timer-fires-after-completion paths, confirmed abortController is a real SDK Options field, and confirmed no orphaned reader of any removed cost field survives outside archive/ and backlog/. All four findings were in the docs sweep.
+
+R4-1 (medium, docs/reference/experiment-ledger.md) — a BROKEN TABLE, and the most consequential of the four. The cost-column removal deleted a delimiter cell from a table two tables further down that never had a cost column: 5 header columns against 4 delimiters. Under GFM a delimiter row whose cell count differs from the header disqualifies the whole block, so all four rows rendered as literal pipe-delimited text — including the bolded 15.5 / 10.8 / 10.4 and 56.3% / 35.2% / 30.2% figures the entire sentence-cap re-segmentation story turns on. Fixed, and then generalised: an awk pass now checks header-vs-delimiter column counts for every markdown table in FINDINGS.md, README.md, harness/README.md and all of docs/. Every other table is well-formed.
+
+R4-2 (medium, docs/stories/extend-measurement-coverage.md Notes) — THE SAME RETRACTED CLAIM, REINSTATED IN THE SAME FILE THAT RETRACTS IT. Lines 84-88 say the 'order of magnitude more tokens' figure was a cost span misread as a token span; the Notes section 70 lines later stated it as fact. My round-three verification grep missed it because the phrase wraps across a line break ('roughly an order of' / 'magnitude more tokens') and a line-oriented grep cannot see that. Re-swept with the newlines squeezed out, across FINDINGS.md, README.md, harness/README.md, every file in docs/ and doc-1: every surviving instance is now either inside a quotation marking it retracted, or an 'order of magnitude larger' about cell counts, which is a different and sound claim.
+
+R4-3 (low, same file) — garbled substitution: 'it aborted 0 of 6 cells against Haiku's 5 of 6, at 4.8× a cell — 4.8× a conversational Fable cell.' The original read 'at $0.9681 a cell — 4.8× a conversational Fable cell', where the second clause glossed the first; swapping the dollar figure for the ratio left the sentence stating it twice with the first attachment undefined. FINDINGS.md's equivalent line had been rewritten cleanly and this one had not.
+
+R4-4 (low, docs/reference/experiment-ledger.md) — a completeness caveat that had become false. It claimed eleven cells were work 'the record cannot see', then the same paragraph gave a persisted total that includes them. The caveat was true when it was about costUsd — those cells spent real money no figure reflected — and with cost gone the only genuine gap is the COS-5 run --help invocation that wrote no rows.json. Rewritten to say the eleven rows ARE on disk and ARE inside the 640, and are excluded from means rather than from the count, which is COS-11's job.
+
+Then audited the whole class rather than waiting for a fifth round: every prose line the cost-strip commit wrote that carries a ratio was re-read. All the survivors — 4.8× a conversational Fable cell, 1.4× smallest to largest, long-prompt 3.9× baseline, all-fixes 1.4× — are WITHIN a model, same per-token price on both sides, which is exactly the condition that makes a cost-derived ratio valid. No further instances.
+
+Gates: npm --prefix harness test 131/131, node src/cli.mjs audit exit 0, lore check exit 0 (24 files), 12-44-03 re-scores to 81.0%.
+
+FOUR ROUNDS, TWENTY FINDINGS, ALL FIXED. The pattern worth carrying: rounds 1-2 found code defects, rounds 3-4 found only documentation, and both of round 4's mediums were mechanical damage from a search-and-replace sweep that every automated gate passed. A test suite, an audit and a link checker all read this branch as clean while a load-bearing table was rendering as plain text.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
