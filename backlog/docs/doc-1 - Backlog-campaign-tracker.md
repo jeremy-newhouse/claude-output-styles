@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 01:40'
+updated_date: '2026-08-17 02:37'
 ---
 # Backlog campaign tracker
 
@@ -15,33 +15,36 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-4** — queue order confirmed by the user on 2026-08-16, who
-chose the "Safety-first" option from a presented comparison: "COS-6 → COS-3 →
-COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4. Free doc task proves the loop,
-then harness plumbing, then the caps guard, then measurement, then the two hard
-style tasks last — after COS-2 has built the reserve split they need for honest
-validation."
+**Queue empty — the campaign is complete.** All eight issues COS-1 through COS-8
+have been taken, one per session, in the order the user confirmed on 2026-08-16:
+"COS-6 → COS-3 → COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4."
 
-COS-1 was taken in session 7 and did **not** reach its bar. Under the risk
-policy below it is parked in "Not queued" rather than resolved, and the cursor
-advances past it to COS-4, the last item in the confirmed order.
+Six resolved. Two — COS-1 and COS-4, the two hard style tasks the user
+deliberately sequenced last — met most of their criteria, shipped that work, and
+missed a measured judge bar. Both are parked under the risk policy below rather
+than closed, with the scores they actually reached recorded.
 
-Do not re-ask before taking the next item.
+There is no next issue. Starting a new campaign means re-running
+`/backlog-handover init` against whatever the user wants queued next; the
+candidates already written down are in "Raised, not queued" below.
 
 ## Queue (confirmed order)
 
-| # | Issue | Type | One-line note |
+Empty. The confirmed order ran to completion.
+
+| # | Issue | Type | Outcome |
 |---|---|---|---|
-| 8 | COS-4 | styles | Beginner prose. Judge bar 70%, currently 45.9/48.4. Hardest. ~$20. |
+| 1-6 | COS-6, COS-3, COS-2, COS-8, COS-5, COS-7 | mixed | Resolved, merged, all acceptance criteria met |
+| 7 | COS-1 | styles | ACs #1-#3 merged; AC #4 missed and parked |
+| 8 | COS-4 | styles | ACs #2-#3 met and merged; AC #1 missed and parked |
 
-Not queued yet: **COS-9** (raised session 3) and two harness defects raised in
-sessions 5 and 6 — see "Raised, not queued" below. Deliberately left out of the
-confirmed order, which is the user's to change.
+Not queued: **COS-9** (raised session 3) and the harness defects raised in
+sessions 5, 6, 7 and 8 — see "Raised, not queued" below. Deliberately left out of
+the confirmed order, which is the user's to change.
 
-Estimated remaining: ~$20, for COS-4 alone. Spent so far: **$34.31** — COS-6
-nothing, COS-3 $0.7500, COS-2 $1.1800, COS-8 $2.4152, COS-5 $1.8770, COS-7
-$14.4290 (the most expensive session, and the last measurement task), COS-1
-$13.6567 against a ~$15 budget.
+**Total campaign spend: $53.00** — COS-6 nothing, COS-3 $0.7500, COS-2 $1.1800,
+COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290, COS-1 $13.6567, COS-4 $18.6813
+against a ~$20 budget, the most expensive session of the eight.
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -94,6 +97,40 @@ IS counted above.
   AC #4. Do not re-open COS-1 with an `improve` run — the rules now exist and
   the loop still has nothing to add, because what fails is length and an
   instrument defect, neither of which the optimizer can see.
+
+- **COS-4** (session 8). ACs #2 and #3 met and merged; **AC #1 not met and
+  parked under the risk policy.** The style file was rewritten, measured over 144
+  cells across six arms and two disjoint case sets, $18.6813, 0 errored cells.
+
+  **The task's own headline figure was wrong before any work started.** Beginner
+  judge 45.9 / 48.4 came from run `12-44-03`, which predates COS-1's additions to
+  the file *and* was graded with the judge told a 15-word sentence cap no style
+  file states — 13 of that run's 64 beginner violations cite it by name. Commit
+  `3370e4d` re-graded the rules offline and could not re-grade the judge, because
+  a judge score cannot be recomputed without paying for the call again. A clean
+  before arm read 58.7 / 70.7.
+
+  **What shipped and what it did.** Beginner's rules contradicted each other in
+  three places and the file never said which of its shapes a reply should take.
+  Fixing that moved every deterministic measure and no judge measure. Paired by
+  case x model: rules +5.2 shared and **+7.7 [+5.3, +10.1]** on reserve; reply
+  words **−42.0** and **−55.7**; composite **+7.4 [+0.8, +14.0]** on reserve;
+  judge **+1.3 [−15.0, +17.6]**. Over-cap share 40.0% → 14.3%, mean reply 103 →
+  61 words. Rules on the shipped text are 98.5 / 97.4, the highest beginner has
+  ever recorded. This is the first change in the project to move reply length at
+  all.
+
+  **AC #1 misses and is not affordable to settle.** Judge 73.9 [66.0, 81.9] on
+  Opus and 58.1 [50.5, 65.6] on Sonnet at n=35 each; Sonnet's interval excludes
+  70 from below. A confirmation arm on byte-identical text (50 cells) corrected
+  this session's own first reading — a +7.1 judge delta computed at two cells per
+  pair became +1.3 at seven, and Sonnet read 70.7, 65.8, 74.1 and 55.0 across
+  four arms of the same five cases. Per-cell judge SD is 22-32, so clearing a 70%
+  bar with confidence needs ~151 cells per model, about $32 an arm.
+
+  What is left is a named negative: the remaining beginner gap is not length, not
+  rule coverage and not missing content. Anyone reopening this should price the
+  arm before agreeing to the bar.
 
 ## Raised, not queued — needs the user's call
 
@@ -159,6 +196,18 @@ IS counted above.
   says "never show code *unless they ask*"; `maxCodeLines: 0` cannot express the
   condition. Documented in `harness/README.md` as a limit of the instrument.
 
+- **A judge bar stated to the point is not affordable at this project's arm
+  sizes** (session 8, new, and it applies retroactively to two tasks). Per-cell
+  judge SD is 22 to 32 points, so the ten-cell arms every per-model judge figure
+  in this project rests on carry 95% intervals about 30 points wide. Beginner on
+  Sonnet, measured four times on the same five cases with only the repeat count
+  differing, read 70.7, 65.8, 74.1 and 55.0. Resolving 10 points needs ~25 cells
+  per model-arm (~$3), 7 points ~49 (~$5), 5 points ~97 (~$10), 4 points ~151
+  (~$16 per model-arm, ~$32 for both). COS-1's "> 65%" and COS-4's "> 70%" were
+  both written without this being known. Recorded in the ledger's noise-floor
+  section; whether to restate the two bars, or to score styles on rules and reply
+  length where the error bars are affordable, is the user's call.
+
 ## Risk policy (confirmed by the user on 2026-08-16)
 
 "Record and park." If COS-4 or COS-1 cannot reach its measured judge-score bar,
@@ -169,13 +218,14 @@ criteria, and no session stalls waiting for a human.
 
 Both remaining issues carry known risk against that policy:
 
-- **COS-4** asks beginner's judge score to exceed 70%. The best figure in the
-  per-model baseline is **53.9, on Fable** (session 6) — the other three tiers sit
-  at 37.5–48.4. Six optimizer rewrites have already failed at exactly this, so
-  achievability is unproven even though the criterion is objectively testable.
-  Session 6 also sharpened why it is hard: the most capable tier available does
-  not write better beginner prose from this file, so the gap is a content problem
-  and not a model one.
+- **COS-4 was taken in session 8 and the risk landed.** It asked beginner's judge
+  score to exceed 70% on Opus and Sonnet. The shipped rewrite reaches 73.9 and
+  58.1 at n=35 a model, so the bar is missed on Sonnet and the task is parked.
+  The prediction recorded here — that achievability was unproven — held, but not
+  for the reason given: the session established that the criterion is **not
+  objectively testable at this budget**, because a ten-cell judge arm carries a
+  30-point interval. Both hard style tasks were sequenced last on the user's
+  "safety-first" ordering, and both hit a judge bar rather than a content wall.
 - **No ruling is needed on which models the bars apply to, despite the owning
   story's looser phrasing.** COS-1's AC #4 and COS-4's AC #1 both name "opus and
   sonnet" explicitly, so the two tiers added by COS-5 and COS-7 do not move
@@ -418,3 +468,35 @@ Both remaining issues carry known risk against that policy:
   3 of 6 on Haiku. `audit` exit 0; `lore check` exit 0. Six paid runs, $13.6567
   against ~$15. Merged via PR #8 (rebase) as `1c35697`; `dev` and `main` both
   pushed at that SHA, no branch litter, no open PRs. Cursor advanced to COS-4.
+- 2026-08-17 — session 8: took COS-4, the last item in the confirmed order, on
+  `feature/COS-4`. No drift at restore: `dev`, `main` and both remotes level at
+  f792b32, no leftover branches, PRs #1-#8 all merged and pruned. **ACs #2 and #3
+  met and merged; AC #1 missed and parked**, so the task returned to To Do
+  unassigned. Six paid arms, 144 cells, **$18.6813**, 0 errored cells.
+
+  The session began by refusing the task's own baseline. 45.9 / 48.4 failed two
+  independent checks — it predates COS-1's additions to the file, and its judge
+  was told a 15-word sentence cap no style file states, cited by name in 13 of
+  that run's 64 beginner violations. `3370e4d` had re-graded the rules offline
+  and could not re-grade the judge. A clean before arm read 58.7 / 70.7.
+
+  The diagnosis was contradiction, not omission: an 80-word budget scoped to
+  status updates while the harness applied it to every reply, unbounded demands
+  for analogies and for explaining what a thing is, "skip all internal details"
+  quoted as a violation against the evidence beat 2 requires, and no statement
+  anywhere of which shape a reply should take — 8 of 24 judge violations on the
+  weakest cases demanded the three status beats on replies that are not status
+  updates. Fixing those moved rules +5.2 / +7.7 and reply words −42.0 / −55.7 on
+  two disjoint case sets, took over-cap share 40.0% → 14.3%, and left the judge
+  at +1.3 [−15.0, +17.6]. First change in the project to move reply length.
+
+  Two things this session got wrong and corrected itself. A second authoring pass
+  was measured and reverted in full — statistically identical to the first, and it
+  introduced a false premise on a tool-using case. And the session's own first
+  conclusion, a +7.1 judge gain agreeing across two case sets, did not survive a
+  50-cell confirmation arm on byte-identical text: at seven cells per pair the
+  same delta is +1.3. Sonnet read 70.7, 65.8, 74.1 and 55.0 across four arms of
+  the same five cases. That is now the ledger's judge noise floor, and it is the
+  most reusable thing the session produced.
+
+  Merged via PR #9 (rebase) as <MERGE_SHA>.
