@@ -83,7 +83,7 @@ export async function judge ({ views, caseDef, contract, model, styleBody }) {
       if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
     }
   } catch (err) {
-    // A judge failure must never kill a run that costs dollars. Score neutral
+    // A judge failure must never kill a run that took an hour to produce. Score neutral
     // and say so, so the row is visibly untrusted rather than silently wrong.
     return { score: 0.5, violations: [`judge call failed: ${String(err.message ?? err).slice(0, 120)}`] }
   }

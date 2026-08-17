@@ -223,7 +223,7 @@ test('judge refuses a view it does not recognise instead of scoring 1.0', async 
 
 test('judge defaults to the final message and honours an explicit trace', async () => {
   // No API call: an empty view short-circuits before the query, so this asserts
-  // the selection without spending.
+  // the selection without running a cell.
   const views = { final: '', trace: 'narration only' }
   assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r' }, contract: C }), { score: 1, violations: [] })
   assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r', judgeOn: 'final' }, contract: C }), { score: 1, violations: [] })

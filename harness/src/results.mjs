@@ -16,7 +16,7 @@ export const MANIFEST = 'run.json'
 /**
  * Write via a temp file and rename. A run is expected to end by being killed,
  * and a kill landing inside a plain writeFileSync would truncate the one file
- * that holds the cells the run paid for. rename(2) is atomic on POSIX, so a
+ * that holds the cells the run measured. rename(2) is atomic on POSIX, so a
  * reader sees either the previous flush or this one, never half of either.
  */
 export function writeAtomic (path, text) {
@@ -35,8 +35,8 @@ export function writeAtomic (path, text) {
  *
  * Rewriting the whole file per cell is quadratic in bytes written, which is
  * deliberate: the largest arm this project plans is 146 cells at a few KB each,
- * so the cumulative write is tens of megabytes against cells that cost real
- * money and take tens of seconds. Appending would be cheaper and would cost the
+ * so the cumulative write is tens of megabytes against cells that each take
+ * tens of seconds to produce. Appending would be faster and would give up the
  * property that makes this worth having — that the file on disk is always a
  * valid, complete-in-itself JSON array.
  *
@@ -51,8 +51,7 @@ export function writeResults ({ outDir, rows, stamp, kind = 'run', expected = nu
     stamp,
     complete,
     completed: rows.length,
-    expected,
-    costUsd: summary.totalCostUsd
+    expected
   }
   writeAtomic(join(outDir, 'rows.json'), JSON.stringify(rows, null, 2))
   writeAtomic(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))

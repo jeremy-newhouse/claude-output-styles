@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { improveStyle, spendOf, comparableRows, meanTotal, resolveImproveModels, DEFAULT_IMPROVE_MODELS } from '../src/improve.mjs'
+import { improveStyle, comparableRows, meanTotal, resolveImproveModels, DEFAULT_IMPROVE_MODELS } from '../src/improve.mjs'
 import { summarize } from '../src/evaluate.mjs'
 import { renderConsole, renderMarkdown, renderVerdict } from '../src/report.mjs'
 
@@ -26,10 +26,10 @@ const CFG = {
 }
 
 /** Stand-in for evaluate(): returns one scored row per case, at a fixed cost. */
-const fakeEvaluate = (score, costUsd) => async ({ cases }) => {
+const fakeEvaluate = (score) => async ({ cases }) => {
   const rows = cases.map(c => ({
     styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
-    split: c.split, repeat: 0, text: 'reply', costUsd, error: null,
+    split: c.split, repeat: 0, text: 'reply', error: null,
     rulesScore: score, checks: [], judgeScore: score, judgeViolations: [], total: score
   }))
   return { rows, summary: summarize(rows) }
@@ -73,7 +73,7 @@ const splitAwareEvaluate = table => async ({ cases, styles }) => {
     const total = table[c.split][side]
     return {
       styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
-      split: c.split, repeat: 0, text: 'reply', costUsd: 0.01, error: null,
+      split: c.split, repeat: 0, text: 'reply', error: null,
       rulesScore: total, checks: [], judgeScore: total, judgeViolations: [], total
     }
   })
@@ -92,7 +92,7 @@ const RESERVE_REGRESSES = { ...WINS_THE_LOOP, reserve: { baseline: 0.5, candidat
 test('every iteration writes its train and holdout transcripts', async () => {
   await withTmpDir(async dir => {
     await runLoop(dir, {
-      evaluate: fakeEvaluate(0.5, 0.01),
+      evaluate: fakeEvaluate(0.5),
       rewrite: async () => 'y'.repeat(300)
     })
     const written = readdirSync(dir).filter(f => f.endsWith('.json')).sort()
@@ -112,7 +112,7 @@ test('reverted iterations are persisted too, not just kept ones', async () => {
   await withTmpDir(async dir => {
     // A flat score means the candidate never beats the baseline, so it reverts.
     const r = await runLoop(dir, {
-      evaluate: fakeEvaluate(0.5, 0.01),
+      evaluate: fakeEvaluate(0.5),
       rewrite: async () => 'y'.repeat(300)
     })
     assert.equal(r.history.at(-1).kept, false)
@@ -121,29 +121,29 @@ test('reverted iterations are persisted too, not just kept ones', async () => {
   })
 })
 
-test('spend is the sum of the persisted rows, not a counter', async () => {
+test('the cell count is derived from the persisted rows, not a counter', async () => {
   await withTmpDir(async dir => {
     const r = await runLoop(dir, {
-      evaluate: fakeEvaluate(0.5, 0.01),
+      evaluate: fakeEvaluate(0.5),
       rewrite: async () => 'y'.repeat(300)
     })
     // 2 measurements per iteration x 1 case each x 2 iterations (v0, v1).
     assert.equal(r.rows.length, 4)
-    assert.equal(r.spentUsd, 0.04)
-    assert.equal(r.spentUsd, spendOf(r.rows))
+    assert.equal(r.cells, 4)
+    assert.equal(r.cells, r.rows.length)
   })
 })
 
 test('a rewrite that returns nothing stops the loop after the baseline', async () => {
   await withTmpDir(async dir => {
     const r = await runLoop(dir, {
-      evaluate: fakeEvaluate(0.5, 0.01),
+      evaluate: fakeEvaluate(0.5),
       rewrite: async () => ''
     })
     assert.deepEqual(readdirSync(dir).filter(f => f.endsWith('.json')).sort(),
       ['demo.v0.holdout.json', 'demo.v0.train.json'])
     assert.equal(r.rows.length, 2)
-    assert.equal(r.spentUsd, 0.02)
+    assert.equal(r.cells, 2)
   })
 })
 
@@ -156,28 +156,27 @@ test('a style that throws leaves its measured cells in the shared sink', async (
       // Baseline train and holdout land, then the candidate measurement dies.
       evaluate: async arg => {
         if (++calls > 2) throw new Error('judge exploded')
-        return fakeEvaluate(0.5, 0.01)(arg)
+        return fakeEvaluate(0.5)(arg)
       },
       rewrite: async () => 'y'.repeat(300)
     }), /judge exploded/)
     assert.equal(shared.length, 2)
-    assert.equal(spendOf(shared), 0.02)
     assert.deepEqual(shared.map(r => r.iteration), [0, 0])
   })
 })
 
 test('a style reports only its own rows out of a shared sink', async () => {
   await withTmpDir(async dir => {
-    const shared = [{ styleId: 'other', costUsd: 5, iteration: 0 }]
+    const shared = [{ styleId: 'other', iteration: 0 }]
     const r = await runLoop(dir, {
       rows: shared,
-      evaluate: fakeEvaluate(0.5, 0.01),
+      evaluate: fakeEvaluate(0.5),
       rewrite: async () => ''
     })
     assert.equal(shared.length, 3)
     assert.equal(r.rows.length, 2)
     assert.ok(r.rows.every(row => row.styleId === 'demo'))
-    assert.equal(r.spentUsd, 0.02)
+    assert.equal(r.cells, 2)
   })
 })
 
@@ -194,7 +193,7 @@ test('a reverted iteration briefs from the incumbent, not the failed candidate',
         const tag = call++ < 2 ? 'BASELINE-REPLY' : `CANDIDATE-${Math.floor(call / 2)}-REPLY`
         const rows = cases.map(c => ({
           styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
-          split: c.split, repeat: 0, text: tag, costUsd: 0.01, error: null,
+          split: c.split, repeat: 0, text: tag, error: null,
           rulesScore: 0.5, checks: [], judgeScore: 0.5, judgeViolations: [], total: 0.5
         }))
         return { rows, summary: summarize(rows) }
@@ -214,18 +213,13 @@ test('rows are flushed after every measurement, not once per style', async () =>
     const seen = []
     await runLoop(dir, {
       onRows: rows => seen.push(rows.length),
-      evaluate: fakeEvaluate(0.5, 0.01),
+      evaluate: fakeEvaluate(0.5),
       rewrite: async () => 'y'.repeat(300)
     })
     // Four measurements: v0 train, v0 holdout, v1 train, v1 holdout. An
     // interrupt after any one of them still leaves a readable rows.json.
     assert.deepEqual(seen, [1, 2, 3, 4])
   })
-})
-
-test('spendOf tolerates rows with no recorded cost', () => {
-  assert.equal(spendOf([]), 0)
-  assert.equal(spendOf([{ costUsd: 0.5 }, { error: 'timeout' }]), 0.5)
 })
 
 test('the loop never draws reserve cases into train or holdout', async () => {
@@ -302,7 +296,7 @@ const abortingEvaluate = (table, aborts, abortSide = 'candidate') => async ({ ca
     const total = aborted ? 0.3 : table[c.split][side]
     return {
       styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
-      split: c.split, repeat: 0, text: aborted ? '' : 'reply', costUsd: 0.01,
+      split: c.split, repeat: 0, text: aborted ? '' : 'reply',
       error: aborted ? 'Reached maximum number of turns (12)' : null,
       rulesScore: aborted ? 0 : total, checks: [], judgeScore: aborted ? 1 : total,
       judgeViolations: [], total
@@ -409,7 +403,7 @@ test('reserve rows are tagged with the iteration each one validates', async () =
     // v0 is the incumbent's reserve score, v1 the candidate's: the two halves of
     // the comparison, both re-scorable offline from rows.json.
     assert.deepEqual(reserveRows.map(row => row.iteration), [0, 1])
-    assert.equal(r.spentUsd, spendOf(r.rows))
+    assert.equal(r.cells, r.rows.length)
     assert.equal(r.rows.length, 6)
   })
 })
@@ -418,12 +412,12 @@ test('no reserve pass runs, and nothing is spent on it, when no rewrite was kept
   await withTmpDir(async dir => {
     // Flat scores: the candidate never beats the baseline, so there is no
     // adoption to validate and the extra measurement is not worth paying for.
-    const r = await runLoop(dir, { evaluate: fakeEvaluate(0.5, 0.01), rewrite: proposeCandidate })
+    const r = await runLoop(dir, { evaluate: fakeEvaluate(0.5), rewrite: proposeCandidate })
     assert.equal(r.best.iteration, 0)
     assert.equal(r.reserve, null)
     assert.ok(!readdirSync(dir).some(f => f.includes('.reserve.')))
     assert.ok(r.rows.every(row => row.split !== 'reserve'))
-    assert.equal(r.spentUsd, 0.04)
+    assert.equal(r.cells, 4)
   })
 })
 
@@ -506,7 +500,7 @@ test('an unmeasured reserve is never rendered as a pass', () => {
 // nothing — which is now correctly reported as unmeasured, not as `total`.
 const row = (styleId, iteration, split, total) => ({
   styleId, variantId: 'baseline', model: 'haiku', caseId: `c-${split}`,
-  split, repeat: 0, iteration, costUsd: 0.01, error: null,
+  split, repeat: 0, iteration, error: null,
   text: 'a reply', trace: 'a reply',
   rulesScore: total, checks: [], judgeScore: total, total
 })
@@ -534,7 +528,7 @@ test('two styles in one improve run keep separate traces', () => {
 test('summarize leaves byIteration empty for a plain run', () => {
   const s = summarize([{
     styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: 'c1',
-    split: 'train', repeat: 0, costUsd: 0.01, error: null,
+    split: 'train', repeat: 0, error: null,
     text: 'a reply', trace: 'a reply',
     rulesScore: 1, checks: [], judgeScore: 1, total: 1
   }])
@@ -551,7 +545,7 @@ test('an improve report is labelled a trace; a plain run report is not', () => {
 
   const plain = summarize([{
     styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: 'c1',
-    split: 'train', repeat: 0, costUsd: 0.01, error: null,
+    split: 'train', repeat: 0, error: null,
     text: 'a reply', trace: 'a reply',
     rulesScore: 1, checks: [], judgeScore: 1, total: 1
   }])
@@ -572,7 +566,7 @@ const perCaseEvaluate = (scores, aborts = {}) => async ({ styles, cases }) => {
     if (aborts[v]?.includes(c.id)) {
       return {
         styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
-        split: c.split, repeat: 0, text: '', trace: '', costUsd: 0.01,
+        split: c.split, repeat: 0, text: '', trace: '',
         error: 'error_max_turns', rulesScore: 0, checks: [], judgeScore: 1,
         judgeViolations: [], total: 0.3
       }
@@ -580,7 +574,7 @@ const perCaseEvaluate = (scores, aborts = {}) => async ({ styles, cases }) => {
     const s = scores[v][c.id]
     return {
       styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
-      split: c.split, repeat: 0, text: 'reply', trace: 'reply', costUsd: 0.01,
+      split: c.split, repeat: 0, text: 'reply', trace: 'reply',
       error: null, rulesScore: s, checks: [], judgeScore: s, judgeViolations: [], total: s
     }
   })
@@ -670,10 +664,10 @@ test('the author model is never briefed from an aborted transcript', async () =>
       evaluate: async ({ styles, cases }) => {
         const rows = cases.map(c => c.id === 'tr-hard'
           ? { styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id, split: c.split, repeat: 0,
-              text: 'ABORTED FRAGMENT', trace: 'ABORTED FRAGMENT', costUsd: 0.01, error: 'error_max_turns',
+              text: 'ABORTED FRAGMENT', trace: 'ABORTED FRAGMENT', error: 'error_max_turns',
               rulesScore: 0, checks: [], judgeScore: 1, judgeViolations: [], total: 0.3 }
           : { styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id, split: c.split, repeat: 0,
-              text: 'A GENUINELY POOR REPLY', trace: 'A GENUINELY POOR REPLY', costUsd: 0.01, error: null,
+              text: 'A GENUINELY POOR REPLY', trace: 'A GENUINELY POOR REPLY', error: null,
               rulesScore: 0.5, checks: [], judgeScore: 0.5, judgeViolations: [], total: 0.5 })
         return { rows, summary: summarize(rows) }
       },

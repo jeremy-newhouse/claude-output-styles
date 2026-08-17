@@ -75,7 +75,7 @@ export function describeManifest (manifest) {
 
 export function renderConsole (summary) {
   let out = isTrace(summary) ? `\n! ${TRACE_WARNING}\n` : ''
-  out += `\nOVERALL ${pct(summary.overall)}   ${sampleLine(summary)}   cost $${summary.totalCostUsd}\n`
+  out += `\nOVERALL ${pct(summary.overall)}   ${sampleLine(summary)}\n`
   out += table('BY MODEL', summary.byModel)
   out += table('BY VARIANT', summary.byVariant)
   out += table('BY STYLE x MODEL', summary.byStyleModel)
@@ -161,7 +161,7 @@ export function renderMarkdown (summary, meta = {}) {
     isTrace(summary) ? '# Optimizer trace' : '# Output style adherence report', '',
     ...(partial ? [`> **${describeManifest(meta.manifest)}**`, ''] : []),
     ...(isTrace(summary) ? [`> **${TRACE_WARNING}**`, ''] : []),
-    `**Overall:** ${pct(summary.overall)}  |  **Measured over:** ${sampleLine(summary)}  |  **Cost:** $${summary.totalCostUsd}` +
+    `**Overall:** ${pct(summary.overall)}  |  **Measured over:** ${sampleLine(summary)}` +
       (meta.when ? `  |  **Run:** ${meta.when}` : ''), '',
     md('By iteration', summary.byIteration ?? []),
     md('By model', summary.byModel),

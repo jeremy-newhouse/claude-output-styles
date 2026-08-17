@@ -20,7 +20,6 @@ const row = (over = {}) => ({
   text: 'I fixed the sign-in check. It works.',
   allTurns: ['I fixed the sign-in check. It works.'],
   toolCalls: [],
-  costUsd: 0.01,
   error: null,
   rulesScore: 0.9,
   checks: [],
@@ -43,7 +42,6 @@ test('writeResults writes the rows, the summary, the report and the manifest', (
     assert.equal(manifest.complete, false)
     assert.equal(manifest.completed, 2)
     assert.equal(manifest.expected, 8)
-    assert.equal(manifest.costUsd, 0.02)
   } finally {
     rmSync(out, { recursive: true, force: true })
   }
@@ -160,11 +158,11 @@ const CONTRACTS = { s: { defaultChecks: [], judgeWeight: 0.3 } }
 const CASES = [{ id: 'c1', split: 'train', prompt: 'p' }, { id: 'c2', split: 'train', prompt: 'p' }, { id: 'c3', split: 'train', prompt: 'p' }]
 const STYLES = [{ id: 's', text: 'style', body: 'style' }]
 const VARIANTS = [{ id: 'baseline' }]
-const OPTS = { repeats: 1, concurrency: 1, maxTurns: 4, maxBudgetUsd: 1, judge: false }
+const OPTS = { repeats: 1, concurrency: 1, maxTurns: 4, maxCellSeconds: 60, judge: false }
 
 const fakeRunCell = async ({ styleId, variant, model, caseDef, repeat }) => ({
   styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
-  text: 'ok', allTurns: ['ok'], toolCalls: [], costUsd: 0.01, error: null
+  text: 'ok', allTurns: ['ok'], toolCalls: [], error: null
 })
 
 test('evaluate fires onRows after every completed cell', async () => {
@@ -293,14 +291,6 @@ test('a cell that goes silent without an error flag is excluded on the same term
   assert.equal(withSilent.byModel[0].dropped, 1, 'dropped from the mean, not scored into it')
 })
 
-test('the cost of a cell that said nothing still counts against its arm', () => {
-  // The one figure that must keep pooling them: an aborted cell burned real
-  // tokens, and dropping its spend would understate what an arm cost to buy.
-  const s = summarize([good({ costUsd: 0.02 }), aborted({ caseId: 'agentic-fix-verify', costUsd: 0.05 })])
-  assert.equal(s.totalCostUsd, 0.07)
-  assert.equal(s.byModel[0].costUsd, 0.07)
-})
-
 test('an arm where nothing replied reports as unmeasured, not as a score', () => {
   const s = summarize([
     aborted({ caseId: 'agentic-fix-verify' }),
@@ -314,7 +304,6 @@ test('an arm where nothing replied reports as unmeasured, not as a score', () =>
   assert.equal(s.byModel[0].judge, null)
   assert.equal(s.byModel[0].n, 0)
   assert.equal(s.byModel[0].cells, 2)
-  assert.equal(s.totalCostUsd > 0, true, 'it still cost money')
 })
 
 test('neither renderer prints an unmeasured arm as 0.0%', () => {
@@ -383,9 +372,9 @@ test('a cell that aborted after emitting text is graded, but not pooled', async 
   const runCell = async ({ styleId, variant, model, caseDef, repeat }) => caseDef.id === 'c2'
     ? { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
         text: 'A clean fragment, no emoji.', trace: 'A clean fragment, no emoji.',
-        allTurns: [], toolCalls: [], costUsd: 0.02, error: 'error_max_turns' }
+        allTurns: [], toolCalls: [], error: 'error_max_turns' }
     : { styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
-        text: 'Done ✅', trace: 'Done ✅', allTurns: [], toolCalls: [], costUsd: 0.01, error: null }
+        text: 'Done ✅', trace: 'Done ✅', allTurns: [], toolCalls: [], error: null }
 
   const { rows, summary } = await evaluate({
     styles: STYLES, variants: VARIANTS, models: ['haiku'], cases, contracts,
@@ -402,7 +391,6 @@ test('a cell that aborted after emitting text is graded, but not pooled', async 
   assert.equal(summary.byModel[0].rules, 0)
   assert.equal(summary.byModel[0].n, 1)
   assert.equal(summary.byModel[0].dropped, 1)
-  assert.equal(summary.byModel[0].costUsd, 0.03, 'it was still paid for')
 })
 
 test('a silent cell is not graded at all, so it briefs nothing', async () => {
@@ -413,7 +401,7 @@ test('a silent cell is not graded at all, so it briefs nothing', async () => {
   const cases = [{ id: 'c1', split: 'train', prompt: 'p' }]
   const runCell = async ({ styleId, variant, model, caseDef, repeat }) => ({
     styleId, variantId: variant.id, model, caseId: caseDef.id, split: caseDef.split, repeat,
-    text: '', trace: '', allTurns: [], toolCalls: [], costUsd: 0.01, error: null
+    text: '', trace: '', allTurns: [], toolCalls: [], error: null
   })
   const { rows, summary } = await evaluate({
     styles: STYLES, variants: VARIANTS, models: ['haiku'], cases, contracts,
