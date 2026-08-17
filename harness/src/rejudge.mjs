@@ -322,20 +322,29 @@ export function analyzeJudgements (records, { reference = 'sonnet', halfWidths =
     }
   }
 
+  // Sized per style, not from the pooled decomposition, and the difference is
+  // not cosmetic. An arm is one style on one model; pooling styles pushes the
+  // spread *between* styles into the reply component — 27.56 points against
+  // beginner's 22.58 on the measured run — and a sizing table built on that
+  // asks for 208 cells where the arm needs 148. Pooling is only the basis when
+  // no single style has enough repeats to decompose.
   const ref = perJudge.find(j => j.judgeModel === reference) ?? perJudge[0] ?? null
-  const sizing = ref && ref.sdReply !== null
-    ? halfWidths.map(halfWidth => {
-      const at = k => cellsForHalfWidth({ sdReply: ref.sdReply, sdJudge: ref.sdJudge, halfWidth, judgeCalls: k })
-      return {
-        halfWidth,
-        k1: at(1),
-        k2: at(2),
-        k3: at(3),
-        k5: at(5),
-        floor: cellsForHalfWidth({ sdReply: ref.sdReply, sdJudge: 0, halfWidth })
-      }
-    })
-    : []
+  const perStyle = perJudgeStyle.filter(j => j.judgeModel === reference && j.sdReply !== null)
+  const bases = perStyle.length
+    ? perStyle.map(b => ({ basis: b.styleId, ...b }))
+    : (ref && ref.sdReply !== null ? [{ basis: 'all styles pooled', ...ref }] : [])
+  const sizing = bases.flatMap(b => halfWidths.map(halfWidth => {
+    const at = k => cellsForHalfWidth({ sdReply: b.sdReply, sdJudge: b.sdJudge, halfWidth, judgeCalls: k })
+    return {
+      basis: b.basis,
+      halfWidth,
+      k1: at(1),
+      k2: at(2),
+      k3: at(3),
+      k5: at(5),
+      floor: cellsForHalfWidth({ sdReply: b.sdReply, sdJudge: 0, halfWidth })
+    }
+  }))
 
   return {
     reference,
@@ -389,9 +398,9 @@ export function renderJudgeReport (analysis) {
   ))
 
   out.push(table(
-    'Cells per arm for a 95% half-width, by judge calls per cell',
-    ['half-width', 'k=1', 'k=2', 'k=3', 'k=5', 'k=inf (reply only)'],
-    sizing.map(s => [`+/-${s.halfWidth}`, s.k1, s.k2, s.k3, s.k5, s.floor])
+    `Cells per arm for a 95% half-width, by judge calls per cell (${reference} as judge)`,
+    ['basis', 'half-width', 'k=1', 'k=2', 'k=3', 'k=5', 'k=inf (reply only)'],
+    sizing.map(s => [s.basis, `+/-${s.halfWidth}`, s.k1, s.k2, s.k3, s.k5, s.floor])
   ))
 
   return out.join('\n')

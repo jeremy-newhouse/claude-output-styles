@@ -11,6 +11,7 @@ output-style harness
   node src/cli.mjs score     --rows=results/<stamp>/rows.json
   node src/cli.mjs judge     --rows=results/<stamp>/rows.json [--judges=sonnet,opus,haiku]
                              [--judge-repeats=3] [--reference=sonnet] [--styles=a,b] [--cases=id,id]
+  node src/cli.mjs judge     --judgements=results/<stamp>/judgements.json
   node src/cli.mjs audit     [--styles=a,b]
 
   run      evaluate the matrix and write results/<stamp>/{rows,summary,run,report.md},
@@ -21,7 +22,8 @@ output-style harness
            Runs matrix.improve.models, NOT matrix.models — one list per iteration per candidate
   score    re-score saved transcripts offline after changing checks.mjs
   judge    re-judge saved replies with several judge models, several times each, and
-           split judge-call variance from reply variance. Runs no cell — judge calls only
+           split judge-call variance from reply variance. Runs no cell — judge calls only.
+           --judgements re-derives a finished judge run's figures offline, spending nothing
   audit    check every style file's stated caps against contracts.json; exit 1 on disagreement
 
   --help   print this and exit, on any subcommand
