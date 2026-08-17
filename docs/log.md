@@ -51,6 +51,7 @@
 - 2026-08-17T09:06:31-05:00 e0bb46e530cf665bfc77b1d06222a6f11227abb3 Give improve its own model list instead of run's
 - 2026-08-17T09:17:26-05:00 e1119c96b5eaed892e15ae81d016523e2d079249 Open COS-24 from a sweep of the CLI's argument surface
 - 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T10:08:52-05:00 ae6db0f46b0ca69bc4319b4145aaa8ff6c2a82f7 Record the docs commit in the generated log
 
 ## docs/adr
 
