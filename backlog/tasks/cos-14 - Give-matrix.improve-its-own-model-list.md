@@ -4,12 +4,16 @@ title: Give matrix.improve its own model list
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:45'
-labels: []
+updated_date: '2026-08-17 03:52'
+labels:
+  - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
 references:
   - harness/config/matrix.json
   - harness/src/improve.mjs
   - harness/README.md
+documentation:
+  - docs/stories/harden-the-optimizer-loop.md
 ordinal: 14000
 ---
 

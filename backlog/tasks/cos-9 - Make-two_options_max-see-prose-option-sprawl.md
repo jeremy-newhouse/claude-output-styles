@@ -4,10 +4,13 @@ title: Make two_options_max see prose option sprawl
 status: To Do
 assignee: []
 created_date: '2026-08-16 20:54'
-labels: []
+updated_date: '2026-08-17 03:52'
+labels:
+  - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
 documentation:
   - harness/src/checks.mjs
+  - docs/stories/harden-the-optimizer-loop.md
 ordinal: 9000
 ---
 
