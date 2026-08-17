@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 13:07'
-updated_date: '2026-08-17 00:24'
+updated_date: '2026-08-17 00:29'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies: []
@@ -301,6 +301,29 @@ correct, and sharpened why: `harness/README.md`'s own quick-start line is
 invocation would have picked Fable up silently. It suggests `matrix.improve`
 take its own `models` key so the footgun is removed rather than documented —
 raised for the user, not taken here.
+
+## Two corrections made while writing the next session's handover
+
+Both were mine, both caught by checking the source rather than trusting the
+document I had just written.
+
+1. I recorded in the story and the tracker that 'on both models' in the
+   quality-gaps criteria needed a **user ruling** before COS-1 or COS-4 could be
+   scored. It does not. **COS-1's AC #4 and COS-4's AC #1 both name 'opus and
+   sonnet' explicitly.** The tasks are the binding text; the story's looser
+   phrasing predates the two extra tiers. Corrected in both places to say so, and
+   no bar was widened. I had manufactured a blocking question out of a document I
+   had not read against the tasks it governs.
+
+2. The handover's first draft said `conv-decision-holdout` is in the shared five
+   and therefore has current-text Opus and Sonnet figures. It is not, and it does
+   not. **Neither of COS-1's two target cases has an Opus or Sonnet measurement
+   on the style text that currently ships**: every cell for both comes from
+   `20-10-29` and `23-36-59`, which predate the advanced rewrite. The '~48%' in
+   COS-1's own description is therefore a figure on superseded text and cannot be
+   the baseline its AC is scored against. That is a real budget consequence for
+   the next session — it has to pay for the *before* as well as the *after* — and
+   it is now in the handover with the per-run numbers.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
