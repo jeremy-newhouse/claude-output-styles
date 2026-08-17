@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 14:43'
-updated_date: '2026-08-17 15:16'
+updated_date: '2026-08-17 15:28'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -99,6 +99,28 @@ FINDING 3 (low, run.mjs:119) — CONFIRMED. Nothing in the harness records how l
 FINDING 4 (low, run.mjs:112) — CONFIRMED. maxCellSeconds is validated per cell inside runCell rather than once at config load. Under improve the throw is swallowed by cli.mjs's per-style catch and recorded as a style failure once per style, leaving a complete:false improve.json that reads like an optimizer crash rather than a config typo; under run it surfaces as an unhandled top-level rejection after an empty results/<stamp>/ has already been created. Fix: validate alongside the opts construction at cli.mjs:78, keeping the runCell check as a backstop for direct callers such as the tests.
 
 FINDING 5 (low, run.mjs:155) — NOT ACCEPTED AS STATED; needs one command to settle. The claim is that wsp.cleanup() deletes the workspace before the SDK subprocess dies, orphaning subprocesses that write into deleted directories at concurrency 4. Evidence against it: the SDK's own spawnClaudeCodeProcess doc says the signal 'aborts only AFTER the SDK's stdin-EOF + ~2 s grace window', and this session's real-SDK probe returned at 5.0s for a 3s limit — 3s plus exactly that grace window — which indicates the async iterator stays open through shutdown, so finally runs after the child has had its graceful chance. The verification (count claude processes and osh-* workspaces before and after a timeout probe, and check for any process holding a deleted cwd) was interrupted before it ran. Settle it before acting; do not fix on the review's say-so alone.
+
+REVIEW FINDINGS RESOLVED. All five settled, each with evidence rather than assent.
+
+FINDING 1 (run.mjs, turns lost on the throwing abort path) — FIXED. `const turns = []` and a shared `base` row object are hoisted above the try, and the catch now populates allTurns/allFinals/toolCalls from them. text/trace stay '' on that path deliberately, matching the quiet path: there the wedged turn returns an empty turn object whose final is '', so both paths now say the same thing about the turn that failed and disagree only in that the quiet path carries a trailing empty entry the throwing path never received.
+New test 'a timeout keeps the turns that finished, on both abort paths' drives the same two-turn cell down both paths and asserts they report the same completed turns. Sabotage-verified: restoring the empty-array catch reds exactly that test and nothing else (6 pass / 1 fail in run.test.mjs).
+
+FINDING 2 (judge and rewrite unbounded) — SCOPE DECISION TAKEN BY THE USER. Asked and answered: narrow the wording here, file the fix. matrix.json's //run block, harness/README.md and docs/reference/harness-architecture.md now state that maxCellSeconds bounds a cell and not a run, name judge.mjs and improve.mjs's rewrite() as the two calls still unbounded, and record that the gap predates this guard because maxBudgetUsd never covered them either. Created COS-26 to close it, cited by key in all three places.
+
+FINDING 3 (numbers with nothing behind them) — FIXED by recording the measurement, not by softening the claim. Every row now carries elapsedMs, started with the timer rather than at the top of runCell so it measures the same span the guard bounds. Verified end to end, not just at runCell's return: a scripted evaluate -> writeResults run put elapsedMs on the row and in rows.json on disk. New test asserts it is a number on a completed cell and >= the limit on an aborted one; sabotage-verified by deleting the field, which reds exactly that test. The two unsupported claims are rewritten: matrix.json now says 600 is a backstop and to lower it against the elapsedMs durations once a run has produced some, and harness/README.md states outright that nothing recorded a cell duration before this field, so no earlier figure supports a tighter value.
+
+FINDING 4 (per-cell validation of a config key) — FIXED. Extracted `cellLimitMs(maxCellSeconds)` from runCell and exported it; cli.mjs calls it once at startup for `run` and `improve`, before either creates results/<stamp>/. `score` is exempt — it re-grades saved rows and never runs a cell, so holding it to a cell-guard key would be over-strict. runCell still calls it as the backstop for direct callers such as the tests. config.test.mjs now asserts the shipped matrix.json passes the shipped validator, so config and check cannot drift. Sabotage-verified: making cellLimitMs default to 600000 instead of throwing reds exactly the two tests that assert it throws.
+
+FINDING 5 (cleanup orphaning subprocesses) — MEASURED, REAL, AND SMALLER THAN CLAIMED. Settled with the probe the review's author never ran: baseline sample, one real 3s-limit Haiku cell, then five samples after runCell returned, counting claude processes, osh-* workspaces, and any process holding an osh-/deleted cwd.
+
+  BASELINE            claude_procs=22  osh_workspaces=5  deleted_or_osh_cwd=0
+  runCell returned    elapsed=5.0s  error=error_timeout  replyChars=0
+  T+0s                claude_procs=23  osh_workspaces=5  deleted_or_osh_cwd=1
+  T+2s / +5s / +10s / +20s   back to 22 / 5 / 0
+
+So one claude subprocess does outlive wsp.cleanup() holding the just-unlinked workspace as its cwd — the review was right that the window exists — but it is gone inside two seconds, no workspace leaks (the count returns to baseline immediately, so the rmSync succeeded), and cells never share a directory, so concurrency 4 does not compound it. No behaviour change: waiting for the child would cost every timed-out cell that delay for no measured benefit. The measurement is recorded as a comment on the cleanup call so the next reader does not re-derive it.
+
+Suite 126 -> 129. Gates re-run after all of it: npm --prefix harness test 129/129, node src/cli.mjs audit exit 0, lore check exit 0 across 24 files with 0 errors and 0 warnings.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

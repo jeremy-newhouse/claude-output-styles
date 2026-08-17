@@ -152,4 +152,9 @@ them unit-testable and reproducible; `test/checks.test.mjs` covers all of them.
 tool rounds but not the time inside one. `run.maxTurns` bounds those rounds,
 `run.concurrency` caps parallelism, and `--no-judge` drops the grader. Cell count
 is `styles x variants x models x cases x repeats`. A cell that trips the timeout
-returns `error: "error_timeout"` and is excluded from every mean.
+returns `error: "error_timeout"` and is excluded from every mean, and every row
+records `elapsedMs` so the ceiling can be tuned against measured durations.
+
+The guard bounds a cell, not a run. The judge call and the optimizer's rewrite
+call take no `abortController`, so either stalling still hangs the run; that gap
+predates the guard and is COS-26.

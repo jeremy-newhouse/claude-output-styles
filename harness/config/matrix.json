@@ -52,15 +52,20 @@
     }
   ],
   "//run": [
-    "maxCellSeconds is the runaway guard: a wall-clock ceiling on one cell,",
-    "enforced by an AbortController in run.mjs. It is the only hard stop the",
-    "SDK offers — maxTurns bounds tool rounds but not the time spent inside",
+    "maxCellSeconds is the cell's runaway guard: a wall-clock ceiling on one",
+    "cell, enforced by an AbortController in run.mjs. It is the only hard stop",
+    "the SDK offers — maxTurns bounds tool rounds but not the time spent inside",
     "one, and taskBudget only tells the model its remaining tokens and asks it",
     "to pace itself, which a wedged loop will not do. A cell that trips it",
     "comes back with error 'error_timeout' and is excluded from every mean,",
     "the same as any other errored cell.",
-    "600 is a backstop sized well above any cell observed here, not a tuned",
-    "figure. Lower it only against measured cell durations."
+    "It bounds a cell, not a run. The judge call in judge.mjs and the rewrite",
+    "call in improve.mjs take no abortController and no timeout, so a model",
+    "call that stalls on either path still hangs the run. That gap predates",
+    "this guard — maxBudgetUsd never covered them either — and closing it is",
+    "COS-26.",
+    "600 is a backstop, not a tuned figure. Every row now records elapsedMs,",
+    "so lower it against those durations once a run has produced some."
   ],
   "run": {
     "repeats": 2,
