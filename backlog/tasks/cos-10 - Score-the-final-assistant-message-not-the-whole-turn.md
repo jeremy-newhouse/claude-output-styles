@@ -4,7 +4,9 @@ title: 'Score the final assistant message, not the whole turn'
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:44'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
 references:
   - harness/src/run.mjs
@@ -13,6 +15,7 @@ references:
 documentation:
   - docs/reference/experiment-ledger.md
   - docs/reference/harness-architecture.md
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 10000
 ---
 

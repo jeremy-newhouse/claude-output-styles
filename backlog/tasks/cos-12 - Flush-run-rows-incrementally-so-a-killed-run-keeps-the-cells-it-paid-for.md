@@ -4,12 +4,16 @@ title: Flush run rows incrementally so a killed run keeps the cells it paid for
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:45'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
 references:
   - harness/src/run.mjs
   - harness/src/cli.mjs
   - harness/src/improve.mjs
+documentation:
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 12000
 ---
 

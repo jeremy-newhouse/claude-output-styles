@@ -4,7 +4,9 @@ title: Validate the judge instrument itself
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:47'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
 references:
   - harness/src/judge.mjs
@@ -12,6 +14,7 @@ references:
 documentation:
   - docs/reference/experiment-ledger.md
   - docs/adr/score-styles-with-deterministic-checks-plus-a-style-aware-judge.md
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 20000
 ---
 

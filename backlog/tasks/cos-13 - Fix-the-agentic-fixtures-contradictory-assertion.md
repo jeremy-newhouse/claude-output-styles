@@ -4,12 +4,16 @@ title: Fix the agentic fixture's contradictory assertion
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:45'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
   - COS-10
 references:
   - harness/fixtures/repo/test/pricing.test.mjs
   - harness/fixtures/repo
+documentation:
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 13000
 ---
 

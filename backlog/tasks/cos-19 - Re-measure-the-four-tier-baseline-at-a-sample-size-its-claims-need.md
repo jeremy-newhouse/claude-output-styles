@@ -4,7 +4,9 @@ title: Re-measure the four-tier baseline at a sample size its claims need
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:47'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
   - COS-10
   - COS-11
@@ -17,6 +19,7 @@ documentation:
   - FINDINGS.md
   - docs/reference/experiment-ledger.md
   - docs/epics/plain-english-output-styles.md
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 19000
 ---
 

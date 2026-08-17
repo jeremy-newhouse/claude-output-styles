@@ -4,13 +4,16 @@ title: Stop errored cells from biasing every score the project quotes
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:44'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
 references:
   - harness/src/evaluate.mjs
   - harness/src/report.mjs
 documentation:
   - docs/reference/experiment-ledger.md
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 11000
 ---
 

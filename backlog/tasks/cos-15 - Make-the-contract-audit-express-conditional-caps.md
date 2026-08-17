@@ -4,7 +4,9 @@ title: Make the contract audit express conditional caps
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:45'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
 references:
   - harness/src/contract-audit.mjs
@@ -12,6 +14,7 @@ references:
   - harness/src/checks.mjs
 documentation:
   - docs/specs/style-contracts-by-audience-level.md
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 15000
 ---
 

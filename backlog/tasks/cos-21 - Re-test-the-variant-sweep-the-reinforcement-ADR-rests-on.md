@@ -4,7 +4,9 @@ title: Re-test the variant sweep the reinforcement ADR rests on
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:48'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
   - COS-10
   - COS-11
@@ -15,6 +17,7 @@ references:
 documentation:
   - docs/adr/reject-harness-level-reinforcement-of-style-rules.md
   - FINDINGS.md
+  - docs/stories/make-the-measurements-trustworthy.md
 ordinal: 21000
 ---
 
