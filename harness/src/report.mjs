@@ -1,13 +1,23 @@
-const bar = s => '█'.repeat(Math.round(s * 20)).padEnd(20, '░')
-const pct = s => `${(s * 100).toFixed(1)}%`
+// summarize() reports an unmeasured figure as null rather than 0. Both renderers
+// have to say so: `(null * 100).toFixed(1)` is "0.0%", which is not a missing
+// value but the worst possible score, and an arm where every cell aborted would
+// publish as total failure of the style rather than as a failure to measure it.
+const UNMEASURED = 'n/a'
+const bar = s => s == null ? 'unmeasured'.padEnd(20, '·') : '█'.repeat(Math.round(s * 20)).padEnd(20, '░')
+const pct = s => s == null ? UNMEASURED : `${(s * 100).toFixed(1)}%`
+
+// `n` is the sample the figures rest on; `cells` is the arm as requested. They
+// differ whenever a cell said nothing, and the gap is the reader's warning that
+// the mean beside it covers less than the label suggests.
+const counts = r => `n=${String(r.n).padStart(3)}` +
+  (r.noReply ? `  no reply=${r.noReply}/${r.cells}` : '')
 
 function table (title, rows) {
   if (!rows.length) return ''
   const w = Math.max(...rows.map(r => String(r.key).length), 4)
   const lines = rows.map(r =>
     `  ${String(r.key).padEnd(w)}  ${bar(r.score)} ${pct(r.score).padStart(6)}  ` +
-    `rules ${pct(r.rules).padStart(6)}  judge ${pct(r.judge).padStart(6)}  n=${String(r.n).padStart(3)}` +
-    (r.errors ? `  errors=${r.errors}` : '')
+    `rules ${pct(r.rules).padStart(6)}  judge ${pct(r.judge).padStart(6)}  ${counts(r)}`
   )
   return `\n${title}\n${lines.join('\n')}\n`
 }
@@ -21,6 +31,18 @@ const TRACE_WARNING =
   'table, where v0 is the measured baseline.'
 
 const isTrace = summary => (summary.byIteration ?? []).length > 0
+
+/**
+ * What the headline figure was measured over. The overall score is the number
+ * most often quoted on its own, so the sample behind it is stated beside it
+ * rather than left to be reconstructed from the tables below.
+ */
+function sampleLine (summary) {
+  const cells = summary.cells ?? summary.n
+  if (!summary.noReply) return `${cells} cell${cells === 1 ? '' : 's'}`
+  const verb = summary.n === 0 ? 'no cell produced a reply' : `${summary.noReply} produced no reply`
+  return `${summary.n} of ${cells} cells scored — ${verb}`
+}
 
 /**
  * One line saying what a reader is holding, rendered from a run's `run.json`.
@@ -45,7 +67,7 @@ export function describeManifest (manifest) {
 
 export function renderConsole (summary) {
   let out = isTrace(summary) ? `\n! ${TRACE_WARNING}\n` : ''
-  out += `\nOVERALL ${pct(summary.overall)}   cost $${summary.totalCostUsd}\n`
+  out += `\nOVERALL ${pct(summary.overall)}   ${sampleLine(summary)}   cost $${summary.totalCostUsd}\n`
   out += table('BY MODEL', summary.byModel)
   out += table('BY VARIANT', summary.byVariant)
   out += table('BY STYLE x MODEL', summary.byStyleModel)
@@ -80,7 +102,10 @@ export function renderVerdict (r, reserveSplit = 'reserve') {
   const headline = rejected
     ? `v${r.reserve.iteration} REJECTED on ${r.reserve.split} — keeping v0`
     : `adopted v${r.best.iteration}`
-  const lines = [`${r.styleId}: ${headline}  (train ${r.best.train} holdout ${r.best.holdout})`]
+  // An unmeasured split reaches here as null, and `train null` reads as a bug
+  // rather than as the statement it is.
+  const split = v => v == null ? UNMEASURED : v
+  const lines = [`${r.styleId}: ${headline}  (train ${split(r.best.train)} holdout ${split(r.best.holdout)})`]
 
   if (r.reserve) {
     const d = r.reserve.delta
@@ -106,9 +131,13 @@ export function renderVerdict (r, reserveSplit = 'reserve') {
 }
 
 export function renderMarkdown (summary, meta = {}) {
+  // Three count columns, not one. `n` is what the three figures to its left were
+  // averaged over, `cells` is the arm that was requested, and `no reply` is the
+  // difference. A single `n` column cannot say which of the two it means, and
+  // this table is where quoted figures are read off.
   const md = (title, rows) => rows.length
-    ? `\n### ${title}\n\n| | score | rules | judge | n | errors |\n|---|---|---|---|---|---|\n` +
-      rows.map(r => `| ${r.key} | ${pct(r.score)} | ${pct(r.rules)} | ${pct(r.judge)} | ${r.n} | ${r.errors} |`).join('\n') + '\n'
+    ? `\n### ${title}\n\n| | score | rules | judge | n | cells | no reply |\n|---|---|---|---|---|---|---|\n` +
+      rows.map(r => `| ${r.key} | ${pct(r.score)} | ${pct(r.rules)} | ${pct(r.judge)} | ${r.n} | ${r.cells} | ${r.noReply} |`).join('\n') + '\n'
     : ''
 
   // A partial report.md is a new thing in this project — before rows were
@@ -121,7 +150,7 @@ export function renderMarkdown (summary, meta = {}) {
     isTrace(summary) ? '# Optimizer trace' : '# Output style adherence report', '',
     ...(partial ? [`> **${describeManifest(meta.manifest)}**`, ''] : []),
     ...(isTrace(summary) ? [`> **${TRACE_WARNING}**`, ''] : []),
-    `**Overall:** ${pct(summary.overall)}  |  **Cost:** $${summary.totalCostUsd}` +
+    `**Overall:** ${pct(summary.overall)}  |  **Measured over:** ${sampleLine(summary)}  |  **Cost:** $${summary.totalCostUsd}` +
       (meta.when ? `  |  **Run:** ${meta.when}` : ''), '',
     md('By iteration', summary.byIteration ?? []),
     md('By model', summary.byModel),

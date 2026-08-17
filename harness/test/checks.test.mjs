@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf } from '../src/checks.mjs'
+import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf, producedReply } from '../src/checks.mjs'
 import { splitTurn } from '../src/run.mjs'
 import { judge } from '../src/judge.mjs'
 
@@ -227,4 +227,29 @@ test('judge defaults to the final message and honours an explicit trace', async 
   const views = { final: '', trace: 'narration only' }
   assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r' }, contract: C }), { score: 1, violations: [] })
   assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r', judgeOn: 'final' }, contract: C }), { score: 1, violations: [] })
+})
+
+test('producedReply separates a cell that said something from one that did not', () => {
+  // The flag is the common way a cell goes silent, not the only one.
+  assert.equal(producedReply({ error: 'error_max_turns', text: '', trace: '' }), false)
+  assert.equal(producedReply({ error: null, text: '', trace: '' }), false, 'silent without a flag is still silent')
+  assert.equal(producedReply({ error: null, text: '   \n  ', trace: '  ' }), false, 'whitespace is not a reply')
+  assert.equal(producedReply({ error: null, text: 'I fixed it.', trace: 'I fixed it.' }), true)
+
+  // An error flag beats surviving text: a turn that aborted part-way holds a
+  // fragment of a reply, not a reply, and scoring the fragment against a rate
+  // check grades the style on how far it got before the harness stopped it.
+  assert.equal(producedReply({ error: 'error_max_turns', text: 'I fixed', trace: 'I fixed' }), false)
+})
+
+test('producedReply reads the whole turn, not just the final message', () => {
+  // A cell that narrated and then ended on a tool call has an empty `final` and
+  // a real `trace`. That is measurable behaviour and belongs in the mean; it is
+  // a different question from a cell that produced nothing at all.
+  assert.equal(producedReply({ error: null, text: '', trace: 'Let me read the file.' }), true)
+
+  // A pre-COS-10 row has no `trace` key at all and must fall back to `text`
+  // rather than read as silent — every row in the ledger's saved runs is one.
+  assert.equal(producedReply({ error: null, text: 'the glued turn' }), true)
+  assert.equal(producedReply({ error: null, text: '' }), false)
 })

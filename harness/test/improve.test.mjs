@@ -312,8 +312,8 @@ const abortingEvaluate = (table, aborts, abortSide = 'candidate') => async ({ ca
 }
 
 test('comparableRows drops a case that errored on either side, from both sides', () => {
-  const a = [{ caseId: 'x', error: null, total: 0.5 }, { caseId: 'y', error: null, total: 0.5 }]
-  const b = [{ caseId: 'x', error: null, total: 0.6 }, { caseId: 'y', error: 'abort', total: 0.3 }]
+  const a = [{ caseId: 'x', error: null, text: 'r', total: 0.5 }, { caseId: 'y', error: null, text: 'r', total: 0.5 }]
+  const b = [{ caseId: 'x', error: null, text: 'r', total: 0.6 }, { caseId: 'y', error: 'abort', text: '', total: 0.3 }]
   const { a: left, b: right } = comparableRows(a, b)
   assert.deepEqual(left.map(r => r.caseId), ['x'])
   assert.deepEqual(right.map(r => r.caseId), ['x'])
@@ -323,6 +323,17 @@ test('comparableRows drops a case that errored on either side, from both sides',
   assert.deepEqual(flipped.b.map(r => r.caseId), ['x'])
   assert.equal(meanTotal(left), 0.5)
   assert.equal(meanTotal([]), 0)
+})
+
+test('comparableRows drops a case that went silent without an error flag', () => {
+  // The wider half of the same defect: no error flag, no text. Scored against
+  // the case it would compare a reply with nothing, and the gate exists to
+  // compare like with like.
+  const a = [{ caseId: 'x', error: null, text: 'r', total: 0.5 }, { caseId: 'y', error: null, text: 'r', total: 0.5 }]
+  const b = [{ caseId: 'x', error: null, text: 'r', total: 0.6 }, { caseId: 'y', error: null, text: '   ', total: 0.95 }]
+  const { a: left, b: right } = comparableRows(a, b)
+  assert.deepEqual(left.map(r => r.caseId), ['x'])
+  assert.deepEqual(right.map(r => r.caseId), ['x'])
 })
 
 test('one aborted reserve cell cannot flip a sound candidate to rejected', async () => {
@@ -490,9 +501,13 @@ test('an unmeasured reserve is never rendered as a pass', () => {
   assert.doesNotMatch(unvalidated, /REJECTED/)
 })
 
+// `text` is not decoration: summarize() pools a row into its means only if the
+// cell produced a reply, and a fixture with no text models a cell that said
+// nothing — which is now correctly reported as unmeasured, not as `total`.
 const row = (styleId, iteration, split, total) => ({
   styleId, variantId: 'baseline', model: 'haiku', caseId: `c-${split}`,
   split, repeat: 0, iteration, costUsd: 0.01, error: null,
+  text: 'a reply', trace: 'a reply',
   rulesScore: total, checks: [], judgeScore: total, total
 })
 
@@ -520,6 +535,7 @@ test('summarize leaves byIteration empty for a plain run', () => {
   const s = summarize([{
     styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: 'c1',
     split: 'train', repeat: 0, costUsd: 0.01, error: null,
+    text: 'a reply', trace: 'a reply',
     rulesScore: 1, checks: [], judgeScore: 1, total: 1
   }])
   assert.deepEqual(s.byIteration, [])
@@ -536,6 +552,7 @@ test('an improve report is labelled a trace; a plain run report is not', () => {
   const plain = summarize([{
     styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: 'c1',
     split: 'train', repeat: 0, costUsd: 0.01, error: null,
+    text: 'a reply', trace: 'a reply',
     rulesScore: 1, checks: [], judgeScore: 1, total: 1
   }])
   assert.match(renderMarkdown(plain), /^# Output style adherence report/)

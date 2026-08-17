@@ -1,4 +1,4 @@
-import { scoreDeterministic, viewsOf } from './checks.mjs'
+import { scoreDeterministic, viewsOf, producedReply } from './checks.mjs'
 import { judge, JUDGE_VIEW_DEFAULT } from './judge.mjs'
 import { runCell, pool } from './run.mjs'
 
@@ -55,21 +55,29 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
     // Each check reads the view it declares and the judge reads the one this
     // case's rubric names; see CHECKS[].reads and caseDef.judgeOn.
     const views = viewsOf(run)
-    const rules = run.error && !run.text
-      ? { total: 0, checks: [] }
-      : scoreDeterministic(views, contract, cell.caseDef)
+    // A silent cell is not scored on either half. `checks: []` is the part that
+    // matters beyond the row: summary.failures is built from checks[], and
+    // grading an empty string against every ban check would file a perfect score
+    // on rules the cell never met, or a zero backed by evidence that quotes
+    // nothing. Neither belongs in the brief the optimizer rewrites from.
+    const replied = producedReply(run)
+    const rules = replied
+      ? scoreDeterministic(views, contract, cell.caseDef)
+      : { total: 0, checks: [] }
 
-    const judged = opts.judge && !run.error
+    const judged = opts.judge && replied
     const j = judged
       ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })
       : { score: 1, violations: [] }
 
     const wJudge = contract.judgeWeight ?? DEFAULT_JUDGE_WEIGHT
     const total = Number((rules.total * (1 - wJudge) + j.score * wJudge).toFixed(3))
-    // judgeReads is null when the judge never ran, so a --no-judge row and an
-    // errored row cannot be read as judged rows that happened to score 1.0. The
-    // substituted 1.0 is the bias COS-11 owns; the point of recording the view
-    // is provenance, and provenance for a call that did not happen is a lie.
+    // judgeReads is null when the judge never ran, so a --no-judge row and a
+    // silent row cannot be read as judged rows that happened to score 1.0. The
+    // substituted 1.0 survives on the row because `total` is computed from it,
+    // but summarize() no longer pools either number into any mean — see
+    // producedReply. The point of recording the view is provenance, and
+    // provenance for a call that did not happen is a lie.
     const row = { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeReads: judged ? (cell.caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT) : null, judgeViolations: j.violations, total }
     landed[idx] = row
     onProgress?.(++done, cells.length, { ...run, total })
@@ -82,8 +90,26 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
 
 const mean = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
 
+/**
+ * A mean that refuses to invent one. `null`, not 0, for an empty set: an arm
+ * where nothing replied has no score, and 0 is a score — the worst one — which
+ * is how "we measured nothing" gets published as "it failed everything".
+ */
+const meanOrNull = xs => xs.length ? Number(mean(xs).toFixed(3)) : null
+
+/**
+ * Every figure this project quotes comes from here.
+ *
+ * Means are taken over the cells that produced a reply, and never over the ones
+ * that did not. Alongside each figure the group states how many cells stand
+ * behind it (`n`), how many said nothing (`noReply`), and how big the arm was
+ * (`cells`), so a partial arm cannot be read as a full one. `costUsd` is the
+ * exception and covers every cell: a cell that aborted was still paid for.
+ */
 export function summarize (rows) {
-  const byScore = (a, b) => b.score - a.score
+  // Unmeasured sorts last rather than first. `b.score - a.score` on a null
+  // coerces to 0 and would seat an unmeasurable arm mid-table among real scores.
+  const byScore = (a, b) => (b.score ?? -1) - (a.score ?? -1)
   const by = (keyFn, sort = byScore) => {
     const g = new Map()
     for (const r of rows) {
@@ -92,15 +118,21 @@ export function summarize (rows) {
       g.get(k).push(r)
     }
     return [...g.entries()]
-      .map(([k, rs]) => ({
-        key: k,
-        n: rs.length,
-        score: Number(mean(rs.map(r => r.total)).toFixed(3)),
-        rules: Number(mean(rs.map(r => r.rulesScore)).toFixed(3)),
-        judge: Number(mean(rs.map(r => r.judgeScore)).toFixed(3)),
-        costUsd: Number(rs.reduce((a, r) => a + r.costUsd, 0).toFixed(4)),
-        errors: rs.filter(r => r.error).length
-      }))
+      .map(([k, rs]) => {
+        const said = rs.filter(producedReply)
+        return {
+          key: k,
+          n: said.length,
+          noReply: rs.length - said.length,
+          cells: rs.length,
+          score: meanOrNull(said.map(r => r.total)),
+          rules: meanOrNull(said.map(r => r.rulesScore)),
+          judge: meanOrNull(said.map(r => r.judgeScore)),
+          // Over every cell, not just the replying ones. An aborted cell burned
+          // real tokens and its spend belongs against the arm that bought it.
+          costUsd: Number(rs.reduce((a, r) => a + r.costUsd, 0).toFixed(4))
+        }
+      })
       .sort(sort)
   }
 
@@ -108,9 +140,16 @@ export function summarize (rows) {
   // the useful reading is the optimizer's trace in order, not a leaderboard.
   const hasIterations = rows.some(r => r.iteration !== undefined)
 
+  const replied = rows.filter(producedReply)
+
   // Which specific rules fail, and where. This is what drives the optimizer.
   const failures = new Map()
   for (const r of rows) {
+    // Explicit rather than leaning on a silent row carrying `checks: []`. Rows
+    // saved before this fix were graded against an empty string and kept the
+    // resulting checks, and re-scoring an old run must not brief the optimizer
+    // from rules that a cell which said nothing appeared to break.
+    if (!producedReply(r)) continue
     for (const c of r.checks ?? []) {
       if (c.score >= 0.999) continue
       const k = `${r.styleId}|${r.model}|${c.id}`
@@ -127,7 +166,12 @@ export function summarize (rows) {
     // improve summary is not comparable with a run summary and must not be
     // quoted as one.
     kind: hasIterations ? 'improve' : 'run',
-    overall: Number(mean(rows.map(r => r.total)).toFixed(3)),
+    overall: meanOrNull(replied.map(r => r.total)),
+    // The three counts travel with `overall` for the same reason they travel
+    // with every group: the headline is the figure most often quoted alone.
+    n: replied.length,
+    noReply: rows.length - replied.length,
+    cells: rows.length,
     totalCostUsd: Number(rows.reduce((a, r) => a + r.costUsd, 0).toFixed(4)),
     byModel: by(r => r.model),
     byVariant: by(r => r.variantId),
