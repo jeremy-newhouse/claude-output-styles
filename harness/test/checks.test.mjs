@@ -100,6 +100,28 @@ test('two_options_max sees prose option sprawl without labels', () => {
   assert.ok(CHECKS.two_options_max.run(ordinal, C).score < 1)
 })
 
+// Both found by probing the new detection rather than by any failing test, so
+// both get one. A sprawl detector that fires on replies offering no choice at
+// all would cost the check more than the blind spot it was built to close.
+test('two_options_max does not read benefit lists or code as option sprawl', () => {
+  // "three ways" is the one count phrase that is usually a manner adverbial.
+  const benefits = 'I cut the retry storm. It helps in three ways: fewer retries, lower cost, and no drift. '
+    + 'Next: nothing for you.'
+  assert.equal(CHECKS.two_options_max.run(benefits, C).evidence.filter(e => /cap is 2/.test(e)).length, 0)
+  const diagnosis = 'There are three ways this query can go wrong, but only the missing index matters here. '
+    + 'I recommend adding it — faster and reversible.'
+  assert.equal(CHECKS.two_options_max.run(diagnosis, C).score, 1)
+  // Pointed at a course of action, the same phrasing is sprawl again.
+  assert.ok(CHECKS.two_options_max.run('Three ways to fix it. Index, cache, or vendor. I recommend the index. Cheaper.', C).score < 1)
+
+  // Code is not the reply offering the reader a choice.
+  const withCode = 'I recommend the index.\n\n```sh\n# or you can run this instead, as a third option\npsql -c "create index"\n```\n\n'
+    + 'Alternatively, raise the TTL. Cheaper, but it goes stale.'
+  assert.equal(CHECKS.two_options_max.run(withCode, C).score, 1)
+  const labelsInCode = 'Ship it. Faster. I recommend it.\n\n```\noption a\noption b\noption c\n```'
+  assert.equal(CHECKS.two_options_max.run(labelsInCode, C).score, 1)
+})
+
 test('code_block_size treats maxCodeLines 0 as "no code"', () => {
   const beginner = { ...C, maxCodeLines: 0 }
   assert.equal(CHECKS.code_block_size.run('```js\na\n```', beginner).score, 0)
