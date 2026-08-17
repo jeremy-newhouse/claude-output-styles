@@ -121,10 +121,11 @@ cell the loop measured. Each row carries the `iteration` that produced it — 0 
 baseline — and each iteration's cells are also written separately as
 `candidates/<style>.v<N>.<split>.json`. Reverted iterations are kept too: the
 rewrites that failed are the record of what the money bought. Rows are flushed
-after every measurement, so interrupting a long run still leaves everything it
-paid for readable. The run's total spend is the sum of those rows, not a side
-counter, so any number the loop reports can be recomputed from the files it left
-behind.
+after every measured split, so interrupting a long loop leaves everything it paid
+for readable except the split in flight. Its `run.json` carries no expected cell
+count, because how many iterations the loop buys is not known until it stops. The
+run's total spend is the sum of those rows, not a side counter, so any number the
+loop reports can be recomputed from the files it left behind.
 
 **An improve `report.md` is not a scorecard.** It pools the baseline with every
 candidate the loop tried and rejected, so its headline is their mean and belongs
@@ -369,7 +370,9 @@ summed spend understates what it actually burned whenever cells error.
 
 **Killing a run no longer forfeits it.** `run` used to write `rows.json` once, at
 the end, so a long arm that died at the last cell returned nothing for its whole
-spend. Both commands now re-write the run directory after every completed cell,
-so an interrupted arm keeps everything except the cell in flight. That cell is
-still lost money — flushing recovers transcripts, not tokens — so the cheapest
-way to avoid paying twice remains naming your axes before you start.
+spend. It now re-writes the run directory after every completed cell, so an
+interrupted arm keeps everything except the cell in flight. (`improve` flushes on
+the same writer but per measured split, as it has since COS-3, so a killed
+improve loses the split in flight.) The cell or split in flight is still lost
+money — flushing recovers transcripts, not tokens — so the cheapest way to avoid
+paying twice remains naming your axes before you start.
