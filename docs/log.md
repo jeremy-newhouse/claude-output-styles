@@ -60,6 +60,7 @@
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 - 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
 - 2026-08-17T11:25:34-05:00 bf88e43c21c3f5ed4034bf1622e10ef13d2a8410 Correct the re-score denominator, and record why the connectives went
+- 2026-08-17T11:28:03-05:00 5989c1e2d7bb39e5e07ebfb999374cb7e2cbe41d Settle the published figures by model instead of by provenance
 
 ## docs/adr
 
@@ -116,6 +117,7 @@
 - 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
 - 2026-08-17T11:19:51-05:00 1faabd518b036079be3a9f7e8fb17a48454573a9 Quote the moved reply verbatim, and record the review round
 - 2026-08-17T11:25:34-05:00 bf88e43c21c3f5ed4034bf1622e10ef13d2a8410 Correct the re-score denominator, and record why the connectives went
+- 2026-08-17T11:28:03-05:00 5989c1e2d7bb39e5e07ebfb999374cb7e2cbe41d Settle the published figures by model instead of by provenance
 
 ## docs/runbooks
 
