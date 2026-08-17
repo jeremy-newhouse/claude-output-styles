@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:45'
-updated_date: '2026-08-17 13:28'
+updated_date: '2026-08-17 13:35'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -129,6 +129,26 @@ That contradicts the decision they were protecting. AC #2 was settled by refusin
 Fixed by putting every protective statement in `harness/test/fixture.test.mjs`, which the model never sees, and leaving the fixture with only the arithmetic a real repo would carry (`// 500 * 2 = 1000, less 10% = 900, plus 7.25% tax = 965.25`). That still prevents the 966 error recurring — it was made by not showing the work — without telling the reader anything about the bug. The `BUG:` marker in `src/pricing.js` is unchanged in kind: the original already named the 15%-on-999 case, so making its arithmetic correct does not increase what is given away, which keeps the cases comparable with published runs.
 
 Falsification sweep re-run after the change, all four scenarios still caught: reintroduce 966, pin 850, fix the bug in the fixture, delete the fixture's tests — 2 failures each; restored 116/116.
+
+## Branch review (/code-review high) — 6 findings, all real, all resolved
+
+The review ran against `58f6cff`, before this session's last three commits, so its finding #1 (the fixture leaking its own protective reasoning) had already been fixed in `23ed4c6` — the session had caught that one independently. The other five were live and are fixed on the branch.
+
+**#2 (medium) — the corrected BUG comment sharpened a leak.** The rewrite read 'a 15% discount on 999 cents keeps 850 where rounding to the nearest cent keeps 849': the file, the repro case and both values, which is the exact payload the guard's own fourth test forbids in the test file on leak grounds. The original conveyed 'truncates instead of rounding' and 'off-by-one appears at 15% on 999' but **not** the two values, so the rewrite had added information rather than only removing a contradiction. Trimmed to the original's content minus the contradiction: `// BUG: truncates instead of rounding, so an off-by-one appears at 15% on 999.` Removing the marker entirely was rejected — it is what `agentic-read-report` reads, and dropping it would move case difficulty away from every published run.
+
+**#3 (medium) — the guard's verdict was reporter-dependent.** `reported` was parsed from `/^ℹ pass (\\d+)$/m`, which only the spec reporter emits, while `env` scrubbed `NODE_TEST_CONTEXT` but not `NODE_OPTIONS`. Reproduced: `NODE_OPTIONS=--test-reporter=tap npm --prefix harness test` reported **fail 2** against a perfectly green fixture, accusing it of the defect COS-13 had just fixed. Fixed by pinning `--test-reporter=spec` on the command line and deleting `NODE_OPTIONS` from the child environment. Verified: same command now reports `# fail 0`.
+
+**#4 (medium) — `npm test` never worked in a workspace, and still did not after the fix.** The fixture is copied to the workspace *root*, so it has no `package.json` above it the way it does in this repo; it had none of its own. Reproduced: `npm test` in a workspace copy exits with `npm error code ENOENT ... Could not read package.json`. This is the same class of defect as the reported one — an unexplained failure the model did not cause, on the most natural reading of 'run the tests' — sitting one command to the left of it, and `node --test` alone never sees it. Added `harness/fixtures/repo/package.json` (`private`, `type: module`, `test: node --test`) and a fifth guard assertion that runs `npm test` in a workspace-shaped copy. Verified: `tests 2 / pass 2 / fail 0`.
+
+**#5 (low) — the liveness count could fail open-loop.** `/^test\\(/gm` matches only at column 0, so indenting the cases inside `describe()` or switching to `it(` would drop the count to zero and fail a green fixture with the misleading 'does not run clean' message. Replaced with a count of `assert.` calls plus an explicit `fail 0` check. Verified both directions: renaming `test(` to `it(` and wrapping everything in a `describe()` both keep the suite green, while deleting the fixture's tests still fails it.
+
+**#6 (low) — raw filesystem path used as an ESM specifier.** Now `pathToFileURL(...).href`. The review's predicted repro did not reproduce here — Node 24 imported a space-containing path fine — so this is correctness rather than an observed break, and it still matters on Windows and for `#`/`%` paths.
+
+Falsification sweep re-run after all fixes, each scenario applied to the real fixture and reverted: reintroduce 966 -> 3 failures; pin 850 -> 2; 'fix' the bug in the fixture -> 2; delete the fixture's tests -> 2; **delete the fixture's package.json -> 1**; rename `test(` to `it(` -> 0; wrap in `describe()` -> 0; restored -> 117/117.
+
+The `npm test` defect is recorded in all five caveat locations alongside the other two, since every published agentic figure met it.
+
+Gates after the review pass: `npm --prefix harness test` **117**; `audit` exit 0; `lore check` exit 0.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
