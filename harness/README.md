@@ -88,7 +88,9 @@ judge is not itself under an output style.
   - `all-fixes` — all three together
 - **cases** — `cases/cases.json`. Conversational, agentic (against
   `fixtures/repo`), and multi-turn cases that specifically test drift. Each case
-  carries a `split`: `train`, `holdout`, or `reserve` (see below).
+  carries a `split`: `train`, `holdout`, or `reserve` (see below). A case whose
+  prompt asks for code sets `requestsCode: true`, which lifts the code ban on a
+  level whose contract sets `codeOnRequest` — no shipped case does yet.
 
 `config/contracts.json` holds the numeric thresholds per style level, so the
 same checks grade Beginner and Advanced against different caps.
@@ -312,9 +314,7 @@ mirror — a contract that lifts a cap the prose never lifts — is drift too:
 | the reader asks | "unless they ask", "unless asked", "only when asked", "when/if they ask" | `codeOnRequest` |
 
 ```
-FAIL plain-english-beginner  maxCodeLines  both say 0, but the file lifts the cap
-                                           "unless they ask" and contracts.json
-                                           sets no codeOnRequest
+  FAIL plain-english-beginner     maxCodeLines           both say 0, but the file lifts the cap "unless they ask" and contracts.json sets no codeOnRequest
 ```
 
 The condition is read from the sentence that states the cap, not from the whole

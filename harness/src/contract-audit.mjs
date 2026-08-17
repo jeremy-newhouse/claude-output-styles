@@ -156,7 +156,8 @@ export function auditStyle (styleId, body, contract) {
         status: 'unconfigured',
         detail: status === 'stated'
           ? `file says ${value}, contracts.json sets no ${field}`
-          : `neither the file nor contracts.json states ${field}`
+          : `neither the file nor contracts.json states ${field}`,
+        condition
       }
     }
     if (status !== 'stated') return { styleId, field, stated: null, configured, status, detail, condition }
@@ -241,7 +242,8 @@ export function auditAll (contracts, harnessRoot) {
         stated: null,
         configured: contract.styleFile,
         status: 'unreadable',
-        detail: `cannot read ${contract.styleFile}: ${err.code ?? err.message}`
+        detail: `cannot read ${contract.styleFile}: ${err.code ?? err.message}`,
+        condition: null
       }]
     }
     return auditStyle(styleId, body, contract)
