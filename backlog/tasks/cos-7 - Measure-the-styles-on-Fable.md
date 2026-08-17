@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 13:07'
-updated_date: '2026-08-17 00:11'
+updated_date: '2026-08-17 00:14'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies: []
@@ -205,6 +205,34 @@ every optimizer iteration for it — a cost footgun of the same shape as the
 cost and the two invocation traps (quote the `[1m]`, name `--variants`) are
 recorded in a `//models` note beside the list, in `harness/README.md` and in the
 story's notes instead.
+
+## Correction made before the PR, from re-deriving my own prose
+
+Two claims in the first draft did not survive checking against the saved rows,
+and both were the same mistake — a superlative asserted without a search.
+
+1. 'Fable's 53.9 is the best beginner judge score ever measured.' False.
+   Two-cell samples inside optimizer runs reach 70.0–100.0. It is the best in the
+   per-model baseline table, which is the only comparable claim, and that is what
+   is now published.
+2. 'The narration failure is worst at the top of the range.' False. Haiku scores
+   0.0 on `agentic-fix-verify` and on `reserve-agentic-write`. Replaced with the
+   like-for-like comparison that does exist: on `agentic-read-report`, the one
+   agentic case all four tiers ran under the current style text,
+   `leads_with_conclusion` is **sonnet 100.0, opus 50.0, haiku 16.7, fable 16.7**
+   — a stronger result than the one it replaces, because it is a four-way
+   measurement rather than an unbounded superlative.
+
+Two further arithmetic corrections in the same pass: the haiku rule gap is 1.9
+points against the best of the other three (1.8 is right only against the better
+of opus and sonnet, which is how COS-5 scoped it); and 'eight of twelve rules at
+97.8–100.0' paired the right count with the wrong floor — at 97.8 only five rules
+qualify, and the eight Fable does not drop bottom out at 96.7.
+
+Also corrected while reconciling: the campaign tracker's running spend total said
+$5.93 before this session, but the five per-session figures it states sum to
+$6.2222. The parts are each evidenced in their own Resolved row, so the sum was
+fixed. Campaign total is now $20.65.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -222,7 +250,7 @@ AC #3 — **word-cap overrun does not track model tier.** Mean reply words divid
 
 AC #4 — the one-file decision is **confirmed** at the top of the range. Fable drops the same rule subsets the others do, never more than 2.5 points behind the best of the other three, and the eight rules it does not drop scoring 96.7–100.0 on all four tiers at once. No rule is one tier's requirement and another's exception. One overstatement in the ADR was corrected while confirming it: the ranking of styles is identical on every model for rules, but the judge's top two swap (Haiku and Sonnet rank intermediate above advanced; Opus and Fable the reverse) — a swap already present in the three-model data.
 
-Two findings beyond the ACs. Fable aborts 0 of 6 cells on `agentic-fix-verify` where Haiku aborts 5 of 6, at $0.9681 a cell — but its own compliance falls from rules 94.1 / judge 66.6 to 79.5 / 41.2 there, with `leads_with_conclusion` at 16.7 because five of six replies open with 'I'll look at the file first.' The narration failure this project opens with is worst at the top of the range, which makes it a Claude Code habit rather than an Opus trait.
+Two findings beyond the ACs. Fable aborts 0 of 6 cells on `agentic-fix-verify` where Haiku aborts 5 of 6, at $0.9681 a cell — but its own compliance falls from rules 94.1 / judge 66.6 to 79.5 / 41.2 there, with `leads_with_conclusion` at 16.7 because five of six replies open with 'I'll look at the file first.' On `agentic-read-report`, the one agentic case all four tiers ran under the current style text, `leads_with_conclusion` is sonnet 100.0, opus 50.0, haiku 16.7, fable 16.7 — the top tier level with the cheapest, both far behind the middle two. Capability does not touch this rule, which makes pre-tool narration a Claude Code habit rather than an Opus trait.
 
 Reading those transcripts exposed a harness defect, raised and not patched: `run.mjs` concatenates assistant text blocks with no separator, so on agentic turns pre-tool narration is glued to the post-tool answer and `sentences()`/`paragraphs()` under-split. Present in 0 of 131 conversational cells and most agentic ones. The four-tier table is unaffected in practice (`paragraph_length` still 95.8–100.0 on the one agentic case, and the artifact is identical in all four columns), but `sentence_length` and `paragraph_length` are not quotable on agentic cells for any model, and no such figure is published here. Fixing it moves agentic numbers already in `docs/` and `FINDINGS.md`, so it is handled like COS-9.
 
