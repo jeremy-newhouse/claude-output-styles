@@ -20,7 +20,7 @@ const argv = (...parts) => {
   return out
 }
 
-test('--help on a paid subcommand asks for usage, not work', () => {
+test('--help on a work subcommand asks for usage, not work', () => {
   // The regression this guards: `run --help` used to launch the whole matrix.
   assert.equal(wantsHelp(argv('run', '--help')), true)
   assert.equal(wantsHelp(argv('improve', '--help')), true)

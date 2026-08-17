@@ -3,7 +3,7 @@ import { readFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { evaluate, summarize } from './evaluate.mjs'
-import { improveStyle, spendOf, resolveImproveModels } from './improve.mjs'
+import { improveStyle, resolveImproveModels } from './improve.mjs'
 import { loadStyle } from './style.mjs'
 import { renderConsole, renderVerdict } from './report.mjs'
 import { writeResults, writeAtomic, readManifest, describeManifest } from './results.mjs'
@@ -34,7 +34,7 @@ function newestRows () {
 const args = parseArgs(process.argv.slice(2))
 const cmd = args._[0] ?? 'help'
 
-// Must run before anything reads config or spends a token — see usage.mjs for
+// Must run before anything reads config or runs a cell — see usage.mjs for
 // why this guard exists.
 if (wantsHelp(args)) {
   console.log(USAGE)
@@ -98,9 +98,9 @@ if (cmd === 'run') {
   console.error(`cells: ${styles.length} styles x ${variants.length} variants x ${models.length} models x ${cases.length} cases x ${opts.repeats} repeats = ${expected}`)
   // Persist after every completed cell. A run is routinely ended by Ctrl-C, an
   // OOM or a laptop lid, and the cells it has already bought are the most
-  // expensive thing in this project — writing them once at the end throws away
-  // everything a killed run paid for. `improve` has always done this; this is
-  // the same flush on the path that spends the most.
+  // slowest thing in this project — writing them once at the end throws away
+  // everything a killed run measured. `improve` has always done this; this is
+  // the same flush on the path that measures the most.
   const flush = (rows, complete = false) => writeResults({ outDir, rows, stamp, kind: 'run', expected, complete })
   const { rows } = await evaluate({ styles, variants, models, cases, contracts, opts, onProgress: progress, onRows: rows => flush(rows) })
   process.stderr.write('\n')
@@ -113,8 +113,8 @@ if (cmd === 'run') {
   const variant = variants[0] ?? matrix.variants[0]
   mkdirSync(outDir, { recursive: true })
   const log = m => console.error(m)
-  // `models` above is run's list, and improve must not spend on it: every arm
-  // the loop measures is billed across its whole list, so one extra model in
+  // `models` above is run's list, and improve must not draw on it: every arm
+  // the loop measures runs across its whole list, so one extra model in
   // matrix.models used to multiply through all sixteen. Resolved here rather
   // than at the shared `pick` above, because `run` must keep seeing matrix.models.
   // A bare `--models` with no `=` parses to boolean true, which `pick` would turn
@@ -151,8 +151,8 @@ if (cmd === 'run') {
     } catch (err) {
       log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)
       // allRows already holds whatever this style measured before it threw, so
-      // the spend it burned is still attributable to it.
-      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], reserve: null, spentUsd: spendOf(allRows.slice(before)) })
+      // the cells it burned are still attributable to it.
+      results.push({ styleId: style.id, error: String(err.message ?? err), best: null, history: [], reserve: null, cells: allRows.slice(before).length })
     }
     // Persist after every style too: flush() during the loop only ran if the
     // style got as far as its first measurement.
@@ -165,12 +165,12 @@ if (cmd === 'run') {
   // out of evaluate leaves the last flush's `complete: false` standing.
   flush(results.every(r => !r.error))
   for (const r of results.filter(r => r.best)) console.log(`\n${renderVerdict(r, cfg.reserveSplit)}`)
-  console.log(`\ntotal spend $${spendOf(allRows)} across ${allRows.length} saved cells`)
+  console.log(`\n${allRows.length} saved cells`)
   console.log(`candidates in ${join(outDir, 'candidates')}`)
   console.log(`re-score offline with: node src/cli.mjs score --rows=${join(outDir, 'rows.json')}`)
 
 } else if (cmd === 'score') {
-  // Re-score saved transcripts without spending tokens. Use after editing checks.
+  // Re-score saved transcripts without re-running a cell. Use after editing checks.
   const rowsPath = args.rows ? resolve(args.rows) : newestRows()
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   console.error(`re-scoring ${rowsPath}`)

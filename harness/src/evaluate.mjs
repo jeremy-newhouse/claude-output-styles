@@ -3,7 +3,7 @@ import { judge, JUDGE_VIEW_DEFAULT } from './judge.mjs'
 import { runCell, pool } from './run.mjs'
 
 // Deterministic checks carry most of the weight by default: they are the style's
-// own stated rules, they cost nothing, and they never drift between iterations.
+// own stated rules, they run offline, and they never drift between iterations.
 // A style whose rules already pass but whose prose is weak needs the judge
 // weighted up, or the optimizer will trade real quality for rule points — set
 // `judgeWeight` on that style's contract.
@@ -14,10 +14,10 @@ const DEFAULT_JUDGE_WEIGHT = 0.3
  *
  * @param {(rows: object[]) => void} [onRows]  called after every completed cell
  *   with the rows finished so far, in matrix order. This is how a caller
- *   persists a run that is about to be killed; the cells are already paid for
+ *   persists a run that is about to be killed; the cells are already measured
  *   by the time it fires.
  * @param {object} [deps]  runCell, injectable so persistence can be tested
- *   without spending anything.
+ *   without running a cell.
  * @returns {{ rows: object[], summary: object }}
  */
 export async function evaluate ({ styles, variants, models, cases, contracts, opts, onProgress, onRows, deps = {} }) {
@@ -110,8 +110,7 @@ const meanOrNull = xs => xs.length ? Number(mean(xs).toFixed(3)) : null
  * Means are taken over the cells that produced a reply, and never over the ones
  * that did not. Alongside each figure the group states how many cells stand
  * behind it (`n`), how many said nothing (`dropped`), and how big the arm was
- * (`cells`), so a partial arm cannot be read as a full one. `costUsd` is the
- * exception and covers every cell: a cell that aborted was still paid for.
+ * (`cells`), so a partial arm cannot be read as a full one.
  */
 export function summarize (rows) {
   // Unmeasured sorts last rather than first. `b.score - a.score` on a null
@@ -134,10 +133,7 @@ export function summarize (rows) {
           cells: rs.length,
           score: meanOrNull(said.map(r => r.total)),
           rules: meanOrNull(said.map(r => r.rulesScore)),
-          judge: meanOrNull(said.map(r => r.judgeScore)),
-          // Over every cell, not just the replying ones. An aborted cell burned
-          // real tokens and its spend belongs against the arm that bought it.
-          costUsd: Number(rs.reduce((a, r) => a + r.costUsd, 0).toFixed(4))
+          judge: meanOrNull(said.map(r => r.judgeScore))
         }
       })
       .sort(sort)
@@ -179,7 +175,6 @@ export function summarize (rows) {
     n: replied.length,
     dropped: rows.length - replied.length,
     cells: rows.length,
-    totalCostUsd: Number(rows.reduce((a, r) => a + r.costUsd, 0).toFixed(4)),
     byModel: by(r => r.model),
     byVariant: by(r => r.variantId),
     byStyle: by(r => r.styleId),

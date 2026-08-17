@@ -34,7 +34,7 @@ Rewrite the body to fix those failures. Rules for the rewrite:
    long prompt get diluted.
 3. Delete instructions that the measurements show are already satisfied, and
    delete any instruction telling the model to verify, double-check, or
-   re-check its own work. Those compound with the model's own behavior and cost
+   re-check its own work. Those compound with the model's own behavior and burn
    tokens without improving results.
 4. Avoid "only", "just", and "be conservative". These are followed literally
    and produce less output than intended.
@@ -80,9 +80,9 @@ export function comparableRows (baselineRows, candidateRows) {
 const DEFAULT_MIN_RESERVE_DELTA = -0.02
 
 // The fallback when a config carries no improve.models. Deliberately the
-// cheapest tier and only the cheapest tier ($0.0232 a baseline cell against
-// opus's $0.1493 and fable's $0.2345): an absent key has to fail cheap. It is
-// not matrix.models, which is the whole point — see resolveImproveModels.
+// smallest tier and only the smallest tier: an absent key has to fail small,
+// because the loop runs its whole list on every arm. It is not matrix.models,
+// which is the whole point — see resolveImproveModels.
 export const DEFAULT_IMPROVE_MODELS = ['haiku']
 
 /**
@@ -90,10 +90,10 @@ export const DEFAULT_IMPROVE_MODELS = ['haiku']
  *
  * `run` and `improve` used to share one list: cli.mjs resolved
  * `pick(args.models, matrix.models)` once, before the subcommand branch, and
- * handed the same array to both. So every model added to matrix.models was
- * billed on every iteration of every optimizer loop run the documented way —
+ * handed the same array to both. So every model added to matrix.models ran on
+ * every iteration of every optimizer loop run the documented way —
  * README's quick-start line passes no --models — and the top tier had to be kept
- * out of the default matrix to contain a cost that only `improve` incurred.
+ * out of the default matrix to contain a load that only `improve` incurred.
  *
  * This function is not given matrix.models. Inheriting run's list is therefore
  * structurally impossible here rather than merely avoided, which is what the
@@ -114,11 +114,11 @@ export function resolveImproveModels ({ cliModels, cfg = {}, log = () => {} }) {
   // An explicit --models still wins: the flag is how a single loop is aimed at
   // one tier without editing the config it shares with everyone else.
   if (cliModels !== undefined) {
-    // A flag that was passed and then ignored is worse than no flag on a paid
-    // path. `--models=` and a bare `--models` both arrive here empty, and
-    // falling through to the config would buy the full configured list under a
+    // A flag that was passed and then ignored is worse than no flag on a path
+    // this long. `--models=` and a bare `--models` both arrive here empty, and
+    // falling through to the config would run the full configured list under a
     // log line naming the config as the source — indistinguishable from the
-    // narrowing the operator was asking for. `--models="$CHEAP"` with CHEAP
+    // narrowing the operator was asking for. `--models="$SMALL"` with SMALL
     // unset is the ordinary way to reach it.
     if (!cliModels.length) throw new Error('--models was passed with no models in it — drop the flag to use matrix.improve.models, or name at least one model')
     log(`models: ${cliModels.join(',')} (--models)`)
@@ -130,7 +130,7 @@ export function resolveImproveModels ({ cliModels, cfg = {}, log = () => {} }) {
     return cfg.models
   }
   // Named source in every branch, so a loop's own output says what it is about
-  // to be billed for. This one is a warning because it is the branch nobody
+  // to run. This one is a warning because it is the branch nobody
   // chose — and it says which of the two ways to land in it happened, because
   // "not set" over a `"models": "opus"` typo denies the key a reader is looking
   // straight at while the loop measures something else entirely.
@@ -227,11 +227,11 @@ async function rewrite ({ style, brief, model }) {
 
 export async function improveStyle ({ style, variant, models, cases, contracts, opts, cfg, outDir, log, rows = [], onRows, deps = {} }) {
   // evaluate and rewrite are the loop's only boundaries to the outside world.
-  // Injectable so the persistence below can be tested without spending anything.
+  // Injectable so the persistence below can be tested without running a cell.
   const { evaluate: evaluateFn = evaluate, rewrite: rewriteFn = rewrite } = deps
   // Callers pass a shared sink so that a style crashing mid-loop still leaves
-  // the cells it already paid for in the caller's hands. This loop has crashed
-  // a paid multi-style run before; the rows must not go with it.
+  // the cells it already measured in the caller's hands. This loop has crashed
+  // a long multi-style run before; the rows must not go with it.
   const start = rows.length
   const mine = () => rows.slice(start)
   const train = cases.filter(c => c.split === cfg.trainSplit)
@@ -250,9 +250,9 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   let unmeasurableBaseline = false
 
   // Every cell the loop measures is kept. Without this the loop's transcripts —
-  // most of the project's spend — vanish the moment the process exits: they
-  // cannot be re-scored after a check is fixed, and the only record of what the
-  // money bought is a summary number nobody can audit.
+  // most of the project's measurement — vanish the moment the process exits:
+  // they cannot be re-scored after a check is fixed, and the only record of what
+  // the loop observed is a summary number nobody can audit.
   const measure = async (styleText, caseSet, split, iteration) => {
     const r = await evaluateFn({
       styles: [{ id: style.id, text: styleText }],
@@ -264,7 +264,7 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     rows.push(...tagged)
     writeFileSync(join(outDir, `${style.id}.v${iteration}.${split}.json`), JSON.stringify(tagged, null, 2))
     // Flush now, not at the end of the style: Ctrl-C or an OOM part-way through
-    // a long paid run is the ordinary ending, and rows only `score` can read are
+    // a long run is the ordinary ending, and rows only `score` can read are
     // the ones worth keeping.
     onRows?.(rows)
     return r
@@ -283,12 +283,12 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   log(`[${style.id}] baseline train=${fmt(best.train)} holdout=${fmt(best.holdout)}`)
   // An unmeasured baseline is the one state this loop cannot recover from: every
   // later iteration is scored as a delta against it, and there is nothing to
-  // subtract from. Stop rather than warn — each further pass buys a rewrite call
+  // subtract from. Stop rather than warn — each further pass runs a rewrite call
   // plus a full train arm and a full holdout arm, and `keep` is false by
-  // construction, so every one of them is spend on a verdict already decided.
+  // construction, so every one of them is work done on a verdict already decided.
   if (best.train == null || best.holdout == null) {
     log(`[${style.id}] no baseline cell produced a reply on ${best.train == null ? cfg.trainSplit : cfg.holdoutSplit} — ` +
-        'nothing can be compared against, stopping before any candidate is bought')
+        'nothing can be compared against, stopping before any candidate is measured')
     unmeasurableBaseline = true
   }
 
@@ -449,14 +449,9 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
   }
 
   writeFileSync(join(outDir, `${style.id}.best.md`), best.text)
-  // Spend comes from the rows now on disk, not from a running counter: the
-  // number in the log can be recomputed by anyone holding the transcripts.
-  const spentUsd = spendOf(mine())
-  log(`[${style.id}] adopted v${best.iteration}, spent ${spentUsd.toFixed(2)}`)
-  return { styleId: style.id, best, history, reserve, spentUsd, rows: mine() }
-}
-
-/** Total cost of a set of persisted rows. The only source of truth for spend. */
-export function spendOf (rows) {
-  return Number(rows.reduce((a, r) => a + (r.costUsd ?? 0), 0).toFixed(4))
+  // The cell count comes from the rows now on disk, not from a running counter:
+  // the number in the log can be recomputed by anyone holding the transcripts.
+  const cells = mine().length
+  log(`[${style.id}] adopted v${best.iteration}, measured ${cells} cells`)
+  return { styleId: style.id, best, history, reserve, cells, rows: mine() }
 }
