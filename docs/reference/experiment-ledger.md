@@ -517,3 +517,10 @@ by at most two cells from what a single pooled SD gave. What the split adds is a
 one judge call each, 135 at two, 131 at three, and **never fewer than 123 however
 many times each cell is judged**. Buying precision past that point means buying
 cells.
+
+Those figures are beginner's, which is the pairing 24.6 was measured on, and they
+are the smallest of the three. Under the same judge, ±4 costs **169 cells on
+intermediate and 207 on advanced** — a judge that spreads replies further needs
+more of them to place the mean. Size on the style being measured. And size on one
+style at a time: pooling all three puts the gap *between* styles into the reply
+component, which reads as 208 cells for an arm that needs 148.

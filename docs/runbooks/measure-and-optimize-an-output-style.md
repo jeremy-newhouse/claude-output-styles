@@ -109,7 +109,9 @@ four cases (5.4s to 15.1s), a judge call 6.1s median and 13.9s mean over 180.
 That puts a cell between 0.7 and 1.6 judge calls whichever statistic you pick —
 nowhere near eleven.
 
-Cells per model for a 95% half-width, from the components COS-20 measured:
+Cells per model for a 95% half-width, from the components COS-20 measured on
+**beginner under the Sonnet judge** — the pairing COS-4's 24.6-point SD came
+from:
 
 | half-width | k=1 | k=2 | k=3 | floor (k→∞) |
 |---|---|---|---|---|
@@ -121,6 +123,13 @@ Cells per model for a 95% half-width, from the components COS-20 measured:
 Double for a difference *between* two arms. The floor column is the point of the
 table: 83% of the variance is the reply, so no number of judge calls per cell
 takes a ±4 arm below 123.
+
+**Size on the style you are measuring, not on this table.** The same run puts
+intermediate at 169 cells for ±4 and advanced at 207, because a judge that
+spreads replies further needs more of them to place the mean. The tool sizes per
+style for that reason, and pools only when no single style has the repeats to
+decompose — a pooled basis buries the gap *between* styles in the reply
+component and asks for 208 cells where beginner needs 148.
 
 The one place the answer flips is a cell that is genuinely expensive against the
 judge. An agentic cell that runs to the `maxCellSeconds` cap, graded by a fast

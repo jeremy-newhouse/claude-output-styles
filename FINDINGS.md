@@ -774,11 +774,13 @@ repeat-judging only pays when a cell costs eleven.
 
 What sample size does *not* give you is a score. Sonnet measures 58.1 on the
 shipped text; no arm size moves a point estimate, and none places it above 70.
-What it gives you is precision. Narrowing one arm's 95% half-width to ±10 points
-takes 24 cells per model, ±7 takes 49, ±5 takes 95 and ±4 takes 148 — and no
-number of judge calls per cell takes ±4 below 123. Detecting a real difference
-*between* two arms takes twice that: 48 cells per arm for 10 points, 97 for 7,
-189 for 5, 295 for 4.
+What it gives you is precision. On beginner, narrowing one arm's 95% half-width
+to ±10 points takes 24 cells per model, ±7 takes 49, ±5 takes 95 and ±4 takes 148
+— and no number of judge calls per cell takes ±4 below 123. Detecting a real
+difference *between* two arms takes twice that: 48 cells per arm for 10 points,
+97 for 7, 189 for 5, 295 for 4. Beginner is the cheapest of the three styles;
+under the same judge ±4 costs 169 cells on intermediate and 207 on advanced, so
+an arm is sized on the style it measures.
 
 **A bar is stated against a judge, and this project never named one.** Opus grades
 the same replies within noise of Sonnet (+2.4 [−1.4, +6.1]), but Haiku marks

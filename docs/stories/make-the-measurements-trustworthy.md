@@ -181,14 +181,19 @@ that on 2026-08-17 — everything gets tested — which is what makes this story
 tractable: the bars stand and the arms get sized to support them rather than the
 other way round.
 
-The working figure is **148 non-errored cells per model**, which is what a 95%
-half-width of ±4 points requires at the components COS-20 measured. Detecting a
-real difference *between* two arms takes double: 48 cells per arm for 10 points,
-97 for 7, 189 for 5, 295 for 4. COS-20 did not lower these — it confirmed them to
-within two cells and added a floor. Judging each cell three times instead of once
-takes ±4 from 148 cells to 131, and no number of judge calls takes it below 123,
-because the reply is 83% of the variance. Judging is also not the cheaper buy: a
-cell costs about one judge call in wall clock and the crossover is 10.9.
+The working figure is **148 non-errored cells per model on beginner**, which is
+what a 95% half-width of ±4 points requires at the components COS-20 measured.
+Detecting a real difference *between* two arms takes double: 48 cells per arm for
+10 points, 97 for 7, 189 for 5, 295 for 4. COS-20 did not lower these — it
+confirmed them to within two cells and added a floor. Judging each cell three
+times instead of once takes ±4 from 148 cells to 131, and no number of judge
+calls takes it below 123, because the reply is 83% of the variance. Judging is
+also not the cheaper buy: a cell costs about one judge call in wall clock and the
+crossover is 10.9.
+
+**148 is the cheapest of the three styles, not a project constant.** Under the
+same judge, ±4 costs 169 cells on intermediate and 207 on advanced. Any arm this
+story sizes has to be sized on the style it measures.
 
 Note what sample size does and does not give you. It narrows an interval; it does
 not move a point estimate. Beginner on Sonnet measures 58.1 against a 70% bar, and

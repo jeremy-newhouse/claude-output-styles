@@ -165,6 +165,13 @@ a ten-cell arm — the size every judge figure in this project rests on — carr
 four arms of the same five cases. Placing a style above a 70% bar with confidence
 does not place a score above a bar — Sonnet measures 58.1 and no arm size moves a
 point estimate. What it gives you is precision: narrowing one arm's 95%
-half-width to ±7 points takes 48 cells per model and ±4 takes 146; detecting a
-real 5-point difference between two arms takes 187 cells per arm. Any future bar
-of this kind should be sized before it is agreed.
+half-width to ±7 points takes 49 cells per model on beginner and ±4 takes 148;
+detecting a real 5-point difference between two arms takes 189 cells per arm.
+Any future bar of this kind should be sized before it is agreed.
+
+COS-20 recomputed those from measured variance components rather than one pooled
+SD, which moved them by at most two cells and added two qualifications. They are
+beginner's — ±4 costs 169 cells on intermediate and 207 on advanced. And the bar
+itself is judge-dependent: Haiku grades the same beginner replies +18.01 [+12.34,
++23.68] above Sonnet, against a Sonnet-to-bar gap of 11.9 points, so a bar has to
+name the judge it is stated against.
