@@ -54,8 +54,14 @@ runs belong in the optimizer table below.
 | `01-12-03` | 6 | $0.95 | all three styles, Sonnet, the two new reserve cases, 1 repeat | Validation that COS-1's new cases run. 0 errors, every cell scored. `reserve-agentic-session` drew 8-10 tool calls, which is **inside** `agentic-fix-verify`'s own 5-13 range — this run does not show the new case is the longer session, and Sonnet is not the model that aborts. See `01-33-41`. |
 | `01-13-15` | 30 | $0.73 | all three styles, Haiku, the five shared cases, 2 repeats | Regression check on the shipped text against `22-59-53` filtered to the same five cases and model. Every delta inside the three-point noise floor: rules −1.3/−1.1/+0.8, judge +0.9/−2.6/−0.2 for advanced/intermediate/beginner, n=10 each side. Haiku bought a same-model like-for-like before for $0.73; nothing is concluded from it beyond "nothing broke". |
 | `01-33-41` | 6 | $0.35 | all three styles, Haiku, `reserve-agentic-session` only, 2 repeats | Run because the branch review asked what the new case does on the model that aborts — `01-12-03` had only measured Sonnet. **It aborts 3 of 6 on the 12-turn limit.** The three cells that finished used 13, 17 and 17 tool calls, against the single `agentic-fix-verify` Haiku cell that ever finished, at 9 (`22-59-53`, 5 of 6 aborted). Suggestive that the new case really is the longer session, on n=3 against n=1 — not established, and Sonnet's 8-10 points the other way. What *is* established is that it is abort-prone, which is why the reserve gate was made error-aware in the same change. |
+| `02-10-45` | 20 | $2.18 | beginner only, both models, the five shared cases, 2 repeats | COS-4's before arm, and the first clean beginner measurement in the project. Rules 92.1 / 93.4, judge 58.7 / 70.7 — 12.8 and 22.3 points above the four-tier table's 45.9 / 48.4, which predates both COS-1's added sections and the contract fix at `3370e4d`. Per case the gap is in three shapes: conv-status-holdout 96.0, conv-status-auth 92.5, then agentic-read-report 45.0, conv-followup-drift 32.5, conv-explain-cache 27.5 on Opus. |
+| `02-12-24` | 12 | $1.87 | beginner only, both models, the six reserve cases, 1 repeat | The reserve before arm. Rules 87.2 / 86.4, judge 49.2 / 31.7, 0 errors. Verified uncontaminated by the style rewrite that followed: `cli.mjs` loads style text eagerly at process start, the run began 02:12:24Z and the file was not rewritten until 02:14:21Z. |
+| `02-15-14` | 20 | $2.15 | same as `02-10-45`, after COS-4's authoring pass 1 | Rules 98.0 / 97.7, judge 77.8 / 65.8. `total_length` 66.9 → 99.0 and `leads_with_conclusion` 90.0 → 100.0 carry most of the rules gain; `three_question_structure` held at 100.0, so the new shape router did not cost the beats on the cases that check for them. |
+| `02-16-47` | 12 | $1.92 | same as `02-12-24`, after pass 1 | The AC #3 validation. Rules 95.6 / 93.5, judge 45.3 / 49.7, 0 errors. Paired over the twelve cells this is the strongest arm in the task: rules **+7.7 [+5.3, +10.1]**, reply words **−55.7 [−83.2, −28.1]**, composite **+7.4 [+0.8, +14.0]**. |
+| `02-20-01` | 30 | $3.93 | same shared five, 3 repeats, after a second authoring pass | **Rejected and reverted.** Rules 98.7 / 97.1, judge 68.4 / 74.1 — arm mean 71.2 against pass 1's 71.8, statistically identical. Its five edits each quoted a pass-1 violation, but one introduced a false premise ("There was no job to report") on a tool-using case, and that case fell on both models. No bullet was kept: COS-1's precedent is that unmeasured text does not ship. |
+| `02-25-39` | 50 | $6.64 | same shared five, 5 repeats, byte-identical pass-1 text | **The arm that corrected this task's own conclusion.** Judge 72.4 Opus / **55.0 Sonnet**, against 77.8 / 65.8 from the same text at n=10. Pooled to n=35 a model the shipped text reads 73.9 [66.0, 81.9] and 58.1 [50.5, 65.6], and the paired judge delta against the before arm collapses from +7.1 to **+1.3 [−15.0, +17.6]**. Sonnet across four arms of the same five cases: 70.7, 65.8, 74.1, 55.0. |
 
-Total persisted: 490 cells, $64.65. Improve-loop spend before COS-3 is additional
+Total persisted: 634 cells, $83.33. Improve-loop spend before COS-3 is additional
 and was not tracked until late; from COS-3 onward it is carried on the rows.
 
 Two accounting caveats on that total. Cells that error carry `costUsd: 0` — the
@@ -291,3 +297,19 @@ about 0.03. Differences under three points are not real. `22-59-53` puts a
 sharper number on the same warning from the other direction: at four cells, a
 sentence-length mean was off by 4.5 words and an over-cap share by 17 points,
 both large enough to have supported a confident and wrong explanation.
+
+**The judge's noise floor is far wider than that, and COS-4 measured it.** Those
+figures are about deterministic checks, whose per-cell variance is small. The
+judge's is not: per-cell judge SD across COS-4's six arms is **22 to 32 points**,
+so a ten-cell arm — the size of every per-model judge figure in this project —
+carries a 95% interval about 30 points wide. Beginner on Sonnet, measured four
+times on the same five cases with only the repeat count differing, read 70.7
+(n=10), 65.8 (n=10), 74.1 (n=15) and 55.0 (n=25). A paired judge delta of +7.1
+computed at two cells per pair became **+1.3 [−15.0, +17.6]** at seven.
+
+Two rules follow. Pair by case × model and report the interval, never a bare
+arm mean. And price the arm before agreeing to a bar: at the measured SD and
+$0.107 a cell, resolving 10 points needs ~25 cells per model-arm (~$3), 7 points
+~49 (~$5), 5 points ~97 (~$10), and 4 points ~151 (~$16 per model-arm, ~$32 for
+both). A judge bar stated to the point is not affordable at this project's arm
+sizes, and two tasks have now been written against one.

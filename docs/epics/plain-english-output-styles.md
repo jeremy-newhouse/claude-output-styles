@@ -58,6 +58,16 @@ composite is not, because each style carries a different `judgeWeight`.
 | intermediate | 94.2 / 95.6 / 94.3 / 93.1 | 63.9 / 72.6 / 62.2 / 67.7 |
 | beginner | 91.5 / 92.3 / 90.9 / 91.4 | 45.9 / 48.4 / 37.5 / 53.9 |
 
+**The beginner row is a snapshot of a file that has since been rewritten, and its
+Opus and Sonnet judge figures carry a known defect.** They were graded with the
+judge told a 15-word sentence cap the file never stated — the same drift
+`3370e4d` fixed in the rules column, which could be re-graded offline for free
+where the judge could not. COS-4 then rewrote the file. On the shipped text,
+pooled over 35 cells a model, beginner reads **rules 98.5 / 97.4 and judge 73.9 /
+58.1** on Opus and Sonnet. Its Haiku and Fable columns have not been re-measured
+since the rewrite. Read the row as history; `FINDINGS.md` carries the current
+numbers.
+
 The four tiers span a tenfold cost range — $0.0232 to $0.2345 per cell, measured
 — and rule compliance holds across all of it, 90.9 to 97.9. Prose quality does
 not: the judge ranges 37.5 to 78.3 over the same twelve cells. That is the epic's
@@ -72,13 +82,23 @@ best to the cap is Sonnet.
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a
-countable word cap. Beginner and intermediate are unchanged from first release —
-six rewrites were generated for them and every one was rejected, either by the
-keep rule or by out-of-sample testing.
+countable word cap. Intermediate is unchanged from first release — six rewrites
+were generated for it and beginner and every one was rejected, either by the keep
+rule or by out-of-sample testing. Beginner has since been rewritten **by hand**,
+by COS-1 and then COS-4, which is the only route that has ever changed it.
 
 Rule compliance is high everywhere and prose quality is not. That is the shape of
 the remaining work: the styles are followed, and beginner in particular is not
 asking for the right things.
+
+COS-4 tested the strongest available version of that last sentence and got a
+split answer. Beginner's rules genuinely were not asking for the right things —
+three of them contradicted each other and the file never said which of its shapes
+a reply should take — and fixing that took rule compliance to 98.5 / 97.4 and cut
+mean reply length from 103 words to 61, the first movement on reply length the
+project has recorded. The judge did not follow: +1.3 [−15.0, +17.6] paired across
+ten case × model cells. So the remaining gap is real, it is not length, it is not
+rule coverage, and it does not yet have a name.
 
 ## Decisions
 

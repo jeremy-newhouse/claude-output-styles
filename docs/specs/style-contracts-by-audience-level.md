@@ -219,12 +219,34 @@ inside what the model already does is inert, and one that sits under it changes
 behaviour, so "the model ignores the cap" and "the cap was never binding" are
 distinguishable only by measuring the baseline first.
 
-The reply-length cap is the concrete case. It binds — beginner misses 80 words
-half the time — and it has never been swept, so whether 80 is achievable or
-merely aspirational is unknown.
+The reply-length cap is the concrete case. It binds — beginner missed 80 words
+half the time — and it has never been swept, so whether the *number* is right is
+still open.
+
+**Whether 80 is achievable is no longer open: it is.** COS-4 rewrote beginner's
+prose without touching `maxUpdateWords`, and mean reply length on the five shared
+cases fell from 103 words to 61, with the over-cap share going 40.0% to 14.3% and
+`total_length` from 66.9 to 99.0. Paired by case × model the drop is −42.0
+[−78.2, −5.9] on the shared set and −55.7 [−83.2, −28.1] on reserve. The file was
+not missing an instruction to be brief — it said so twice already. It was asking
+for content the budget could not fit: an unbounded "use everyday analogies" and
+an unbounded "explain what a thing IS before you say what happened to it", against
+a cap stated only for status updates while the harness applied it to every reply.
+Rationing the first two and generalising the third was enough.
+
+What that does *not* settle is whether 80 is the right number. Rules rose to 98.5
+and 97.4 while the judge stayed flat, so shorter replies bought compliance and
+not measurably better prose.
 
 The 0.7/0.3 default rules-to-judge split is likewise unswept.
 
 Beginner's contract may be incomplete rather than wrong. It follows every rule it
 states and still reads worst of the three, which suggests the rules do not
 capture what makes beginner prose good. Tracked as COS-4.
+
+COS-4 confirmed the first half and left the second open. The rules *were*
+incomplete — three of them contradicted each other and the file never said which
+of its shapes a reply should take — and completing them raised rule compliance to
+98.5 / 97.4 and halved reply length. The judge did not move (+1.3 [−15.0, +17.6]),
+so what it is responding to in beginner prose is still unnamed. The one thing now
+ruled out is that it is length.

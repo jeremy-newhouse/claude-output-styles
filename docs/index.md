@@ -50,6 +50,11 @@ following its own rules at over 90%. That gap is the shape of the remaining work
 and no model tier closes it — the best beginner judge score any of them reaches
 is 53.9%, against a 70% bar.
 
+Those beginner figures are from before COS-4 rewrote the file. On the shipped
+text beginner now scores rules 98.5 / 97.4 and judge 73.9 / 58.1 on Opus and
+Sonnet, over 35 cells a model. Rule compliance and reply length improved; the
+judge did not, and the bar is still missed on Sonnet.
+
 Three decisions came out of it, each measured rather than argued: styles are
 scored by [deterministic checks plus a style-aware judge](adr/score-styles-with-deterministic-checks-plus-a-style-aware-judge.md);
 [one file serves every model](adr/ship-one-style-file-for-every-model.md); and
