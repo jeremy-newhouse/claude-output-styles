@@ -43,7 +43,14 @@ export async function judge ({ views, caseDef, contract, model, styleBody }) {
   // would otherwise ship green and inflate every cell of that case.
   if (!VIEWS.includes(on)) throw new Error(`case ${caseDef.id}: judgeOn must be one of ${VIEWS.join('|')}, got ${JSON.stringify(on)}`)
   const text = views?.[on] ?? ''
-  if (!caseDef.judge || !text) return { score: 1, violations: [] }
+  // `ok` says whether a model call produced this number. The four returns that
+  // substitute one — no rubric, no text, a failed call, unparseable output — all
+  // land inside the range real scores occupy, so nothing downstream can tell
+  // them apart by value. Scoring weight does not care (evaluate.mjs computes
+  // `total` from whatever came back, as it always has), but a variance study
+  // does: a substituted 0.5 pooled with real scores reads as the judge
+  // disagreeing with itself.
+  if (!caseDef.judge || !text) return { score: 1, violations: [], ok: false }
 
   const user = [
     'STYLE GUIDE:',
@@ -85,18 +92,19 @@ export async function judge ({ views, caseDef, contract, model, styleBody }) {
   } catch (err) {
     // A judge failure must never kill a run that took an hour to produce. Score neutral
     // and say so, so the row is visibly untrusted rather than silently wrong.
-    return { score: 0.5, violations: [`judge call failed: ${String(err.message ?? err).slice(0, 120)}`] }
+    return { score: 0.5, violations: [`judge call failed: ${String(err.message ?? err).slice(0, 120)}`], ok: false }
   }
 
   const m = /\{[\s\S]*\}/.exec(out)
-  if (!m) return { score: 0.5, violations: ['judge returned unparseable output'] }
+  if (!m) return { score: 0.5, violations: ['judge returned unparseable output'], ok: false }
   try {
     const parsed = JSON.parse(m[0])
     return {
       score: Math.max(0, Math.min(1, Number(parsed.score) || 0)),
-      violations: (parsed.violations ?? []).slice(0, 4).map(String)
+      violations: (parsed.violations ?? []).slice(0, 4).map(String),
+      ok: true
     }
   } catch {
-    return { score: 0.5, violations: ['judge returned invalid JSON'] }
+    return { score: 0.5, violations: ['judge returned invalid JSON'], ok: false }
   }
 }

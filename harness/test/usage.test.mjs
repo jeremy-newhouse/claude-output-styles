@@ -26,6 +26,8 @@ test('--help on a work subcommand asks for usage, not work', () => {
   assert.equal(wantsHelp(argv('improve', '--help')), true)
   assert.equal(wantsHelp(argv('score', '-h')), true)
   assert.equal(wantsHelp(argv('audit', '--help')), true)
+  // judge spends a model call per record and is the same trap as run.
+  assert.equal(wantsHelp(argv('judge', '--help')), true)
 })
 
 test('bare and explicit help ask for usage', () => {
@@ -37,10 +39,11 @@ test('real invocations are not diverted to usage', () => {
   assert.equal(wantsHelp(argv('run', '--models=haiku')), false)
   assert.equal(wantsHelp(argv('audit')), false)
   assert.equal(wantsHelp(argv('score', '--rows=x.json')), false)
+  assert.equal(wantsHelp(argv('judge', '--rows=x.json')), false)
 })
 
 test('usage names every subcommand', () => {
-  for (const c of ['run', 'improve', 'score', 'audit']) assert.match(USAGE, new RegExp(`cli\\.mjs ${c}\\b`))
+  for (const c of ['run', 'improve', 'score', 'judge', 'audit']) assert.match(USAGE, new RegExp(`cli\\.mjs ${c}\\b`))
 })
 
 test('run --help prints usage, exits 0 and creates no results directory', () => {
