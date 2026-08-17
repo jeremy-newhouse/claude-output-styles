@@ -3,6 +3,8 @@ import { join, dirname } from 'node:path'
 import { summarize } from './evaluate.mjs'
 import { renderMarkdown } from './report.mjs'
 
+export { describeManifest } from './report.mjs'
+
 /**
  * The sibling file that says whether the rows beside it are the whole run.
  * `rows.json` stays a bare array — every saved run in the ledger is one, and
@@ -44,9 +46,6 @@ export function writeAtomic (path, text) {
  */
 export function writeResults ({ outDir, rows, stamp, kind = 'run', expected = null, complete = false }) {
   const summary = summarize(rows)
-  writeAtomic(join(outDir, 'rows.json'), JSON.stringify(rows, null, 2))
-  writeAtomic(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
-  writeAtomic(join(outDir, 'report.md'), renderMarkdown(summary, { when: stamp }))
   const manifest = {
     kind,
     stamp,
@@ -55,6 +54,12 @@ export function writeResults ({ outDir, rows, stamp, kind = 'run', expected = nu
     expected,
     costUsd: summary.totalCostUsd
   }
+  writeAtomic(join(outDir, 'rows.json'), JSON.stringify(rows, null, 2))
+  writeAtomic(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2))
+  // The report carries the manifest as a banner: it is the file the runbook
+  // sends a reader to first, and an unlabelled partial one reads as a finished
+  // arm.
+  writeAtomic(join(outDir, 'report.md'), renderMarkdown(summary, { when: stamp, manifest }))
   // Manifest last, deliberately. A kill between the rows and the manifest
   // leaves a manifest that undercounts what is on disk, which reads as "less
   // finished than it is". Writing it first would let a manifest claim cells
@@ -74,20 +79,3 @@ export function readManifest (rowsPath) {
   }
 }
 
-/**
- * One line saying what a reader is holding. Printed by `score` before any
- * figure, because a partial run's numbers are a valid description of the cells
- * that survived and an invalid description of the matrix that was asked for.
- */
-export function describeManifest (manifest) {
-  if (!manifest) {
-    return 'no run manifest beside these rows — completeness unknown. ' +
-      'Runs saved before manifests existed look like this; so does a rows.json copied out of its directory.'
-  }
-  const label = manifest.kind === 'run' ? 'run' : `${manifest.kind} run`
-  const cells = `${manifest.completed} cell${manifest.completed === 1 ? '' : 's'}`
-  if (manifest.complete) return `complete ${label} — ${cells}`
-  const missing = manifest.expected == null ? '' : ` of ${manifest.expected} expected (${manifest.expected - manifest.completed} never ran)`
-  return `PARTIAL ${label} — ${cells}${missing}. ` +
-    'This run did not finish. Every figure below describes the cells that survived, not the matrix that was requested.'
-}

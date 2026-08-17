@@ -99,7 +99,7 @@ Quoting any one of the three alone misrepresents what was measured.
 
 ### Optimizer runs
 
-Four `improve` invocations, eight candidate rewrites, one survivor.
+Five `improve` invocations, eight candidate rewrites, one survivor.
 
 | run | scope | outcome |
 |---|---|---|
@@ -107,6 +107,7 @@ Four `improve` invocations, eight candidate rewrites, one survivor.
 | second | intermediate then beginner, both models, patience 2 | Intermediate converged at v2 and was later rejected out of sample. Crashed into beginner on an unwrapped judge call at `maxTurns: 1`. |
 | third | beginner and advanced, both models, after the crash fix | Beginner converged at **v0** — both rewrites raised train ~6 and dropped holdout ~8, rejected twice. Advanced kept a v2 that was later rejected out of sample. |
 | `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells, $0.61. v1 reverted (train −0.029, holdout −0.193). On holdout the rewrite showed the usual signature — rules 70.8 → 83.3, judge 72.5 → **21.2** — while on train both halves fell. Scope too small to conclude anything about Haiku; the run existed to prove persistence. First improve run whose transcripts survive, and re-scoring them offline reproduced all four in-loop numbers exactly. |
+| `05-46-38` | beginner, Haiku only, `--iterations=0`, 1 train + 1 holdout case — under COS-12 | 4 cells, $0.09. Not a measurement and not an optimization: the loop measured its baseline and adopted v0. It exists because nothing else exercises `improve`'s persistence path, and COS-12 moved that path onto a shared writer. `run.json` reads `kind: "improve", complete: true, expected: null` — an improve loop's cell count is not known until it stops — and `report.md` still opens with the optimizer-trace warning. |
 
 ### What the sequence taught
 

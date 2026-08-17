@@ -230,6 +230,12 @@ snapshot of it.
 - `no run manifest beside these rows — completeness unknown` — a run saved
   before COS-12 added the manifest, or a `rows.json` copied out of its directory.
 
+That line goes to **stdout, with the tables**, not to stderr beside the progress
+chatter — `npm run score > figures.txt` has to carry the qualifier along with the
+numbers it qualifies. A partial `report.md` carries the same sentence as a
+blockquote under its title, for the same reason: since COS-12 a killed run leaves
+a report behind, and an unlabelled one reads exactly like a finished arm.
+
 Partial files are ordinary input: `score` reads them, exits 0, and says what it
 read. What it will not do is let a half-finished arm be quoted as a whole one.
 

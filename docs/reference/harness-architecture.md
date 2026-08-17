@@ -106,10 +106,13 @@ and a rename, so being killed — Ctrl-C, an OOM, a closed lid — costs at most
 one cell in flight rather than the entire arm. `improve` flushes on the same
 writer but at its own granularity, once per measured split rather than per cell,
 which is what it has done since COS-3; a killed improve loses the measurement in
-flight, not the loop. The price of flushing at all is a directory that can
-legitimately be incomplete, so `run.json` states it:
-`complete` is false until the command finishes, and `score` prints what the
-manifest says before it prints a single figure. `rows.json` stays a bare array,
+flight, not the loop. `improve` claims `complete` only when every style finished:
+a style that threw is caught and recorded, and its rows are the wreckage of an
+aborted optimization rather than a result. The price of flushing at all is a
+directory that can legitimately be incomplete, so `run.json` states it:
+`complete` is false until the command finishes, `score` prints what the manifest
+says on stdout above its tables, and a partial `report.md` opens with the same
+sentence as a blockquote. `rows.json` stays a bare array,
 because every saved run in the ledger is one and every offline re-derivation
 reads it as one; the completeness flag lives beside it rather than inside it.
 

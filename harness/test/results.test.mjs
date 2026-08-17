@@ -4,7 +4,8 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, readdirSync, rmSyn
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { writeResults, writeAtomic, readManifest, describeManifest, MANIFEST } from '../src/results.mjs'
-import { evaluate } from '../src/evaluate.mjs'
+import { renderMarkdown } from '../src/report.mjs'
+import { evaluate, summarize } from '../src/evaluate.mjs'
 
 const dir = () => mkdtempSync(join(tmpdir(), 'harness-results-'))
 const readJson = p => JSON.parse(readFileSync(p, 'utf8'))
@@ -83,6 +84,29 @@ test('writeAtomic replaces a file whole', () => {
   } finally {
     rmSync(out, { recursive: true, force: true })
   }
+})
+
+test('a partial report.md carries the completeness banner, a complete one does not', () => {
+  // report.md is the file the runbook sends a reader to first. Before rows were
+  // flushed per cell a killed run left no report at all; now it leaves one whose
+  // Overall figure looks exactly like a finished arm's.
+  const out = dir()
+  try {
+    writeResults({ outDir: out, rows: [row(), row()], stamp: 's', expected: 78 })
+    const partial = readFileSync(join(out, 'report.md'), 'utf8')
+    assert.match(partial, /^> \*\*PARTIAL run — 2 cells of 78 expected \(76 never ran\)\./m)
+    writeResults({ outDir: out, rows: [row(), row()], stamp: 's', expected: 2, complete: true })
+    assert.doesNotMatch(readFileSync(join(out, 'report.md'), 'utf8'), /PARTIAL/)
+  } finally {
+    rmSync(out, { recursive: true, force: true })
+  }
+})
+
+test('renderMarkdown says nothing about completeness when it is handed no manifest', () => {
+  // Every pre-COS-12 caller passes only { when }, and their reports must not
+  // grow a banner claiming anything either way.
+  const md = renderMarkdown(summarize([row()]), { when: 's' })
+  assert.doesNotMatch(md, /PARTIAL|completeness/)
 })
 
 test('the manifest marks a finished run complete', () => {
