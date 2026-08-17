@@ -114,11 +114,15 @@ same checks grade Beginner and Advanced against different caps.
 
 The loop bills `matrix.improve.models`, not `matrix.models`, so the quick-start
 line above is safe to copy without `--models`: what it costs is set by the
-`improve` block alone and cannot grow when a model is added for `run`. That list
-is paid once per candidate per iteration, so it multiplies — adding a tier there
-is a much larger commitment than adding one to the matrix. `--models` still
-overrides it for a single loop, and a config with no `improve.models` warns and
-falls back to the cheapest tier alone rather than silently inheriting `run`'s.
+`improve` block alone and cannot grow when a model is added for `run`. Every arm
+is billed across that whole list — two arms for the baseline, two per iteration
+(train and holdout), two more at the reserve gate, so 16 at `maxIterations: 6` —
+which makes adding a tier there a much larger commitment than adding one to the
+matrix. `--models` still overrides it for a single loop; `--models` with nothing
+in it is an error rather than a silent fall-back, since a flag that was passed
+and ignored buys the full list under a log line naming the config. A config with
+no usable `improve.models` warns and falls back to the cheapest tier alone,
+rather than silently inheriting `run`'s.
 
 Candidates land in `results/<stamp>/candidates/<style>.v<N>.md`, and the winner
 in `<style>.best.md`. Nothing is written back to the real style files — diff and

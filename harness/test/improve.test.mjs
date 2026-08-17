@@ -709,10 +709,14 @@ test('improve reads its own model list, not the matrix-wide one', () => {
   const lines = []
   const models = resolveImproveModels({ cfg: { ...CFG, models: ['haiku'] }, log: m => lines.push(m) })
   assert.deepEqual(models, ['haiku'])
-  // The signature is the guarantee: run's list is not a parameter here, so there
-  // is nothing to inherit even if a caller wanted to.
-  assert.ok(!('fallback' in resolveImproveModels), 'no run-list fallback path exists')
   assert.match(lines.join('\n'), /models: haiku \(matrix\.improve\.models\)/)
+  // cfg.models is the only list consulted. A config carrying run's list under
+  // any other name resolves to the default, not to that list — which is what
+  // "improve cannot inherit run's models" means operationally.
+  assert.deepEqual(
+    resolveImproveModels({ cfg: { ...CFG, matrixModels: ['opus', 'sonnet', 'haiku'] } }),
+    DEFAULT_IMPROVE_MODELS
+  )
 })
 
 test('--models still overrides the configured improve list', () => {
@@ -747,7 +751,34 @@ test('an empty improve.models is treated as absent, not as zero models', () => {
   // author model for its rewrites.
   const resolved = resolveImproveModels({ cfg: { ...CFG, models: [] }, log: m => lines.push(m) })
   assert.deepEqual(resolved, DEFAULT_IMPROVE_MODELS)
-  assert.match(lines.join('\n'), /improve\.models is not set/)
-  // Same for an empty --models=, which parses to [] after the filter in cli.mjs.
-  assert.deepEqual(resolveImproveModels({ cliModels: [], cfg: { ...CFG, models: ['opus'] } }), ['opus'])
+  // Named as the empty list it is rather than as an absent key, so the warning
+  // points at what the file actually says.
+  assert.match(lines.join('\n'), /improve\.models is not a non-empty array of model names \(got \[\]\)/)
+})
+
+test('a --models that carries no models is an error, not a fall-back', () => {
+  // `--models=` and a bare `--models` both arrive as []. Falling through to the
+  // config would buy the full configured list under a log line naming the config
+  // as the source — identical output to passing no flag at all, on the paid
+  // path, when the operator was asking to narrow it. `--models="$CHEAP"` with
+  // CHEAP unset is the ordinary way to get here.
+  assert.throws(
+    () => resolveImproveModels({ cliModels: [], cfg: { ...CFG, models: ['opus', 'sonnet', 'haiku'] } }),
+    /--models was passed with no models in it/
+  )
+})
+
+test('a malformed improve.models is not reported as an absent one', () => {
+  const lines = []
+  // `"models": "opus"` is the JSON typo this catches. The old message said the
+  // key "is not set" while the reader was looking straight at it, and the loop
+  // measured haiku instead of the opus they asked for.
+  const resolved = resolveImproveModels({ cfg: { ...CFG, models: 'opus' }, log: m => lines.push(m) })
+  assert.deepEqual(resolved, DEFAULT_IMPROVE_MODELS)
+  assert.match(lines.join('\n'), /improve\.models is not a non-empty array of model names \(got "opus"\)/)
+  assert.doesNotMatch(lines.join('\n'), /is not set/)
+  // A list holding a non-string is the same class of defect, not a usable list.
+  const lines2 = []
+  assert.deepEqual(resolveImproveModels({ cfg: { ...CFG, models: ['opus', 3] }, log: m => lines2.push(m) }), DEFAULT_IMPROVE_MODELS)
+  assert.match(lines2.join('\n'), /is not a non-empty array of model names/)
 })

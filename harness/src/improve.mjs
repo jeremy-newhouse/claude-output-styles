@@ -104,7 +104,8 @@ export const DEFAULT_IMPROVE_MODELS = ['haiku']
  * the substitution is visible in the run's own output instead of silent.
  *
  * @param {object} a
- * @param {string[]} [a.cliModels] parsed --models, when the caller passed one
+ * @param {string[]} [a.cliModels] parsed --models: undefined when no flag was
+ *   passed, `[]` when one was passed with nothing usable in it
  * @param {object} a.cfg matrix.improve
  * @param {(m: string) => void} [a.log]
  * @returns {string[]}
@@ -112,18 +113,31 @@ export const DEFAULT_IMPROVE_MODELS = ['haiku']
 export function resolveImproveModels ({ cliModels, cfg = {}, log = () => {} }) {
   // An explicit --models still wins: the flag is how a single loop is aimed at
   // one tier without editing the config it shares with everyone else.
-  if (cliModels?.length) {
+  if (cliModels !== undefined) {
+    // A flag that was passed and then ignored is worse than no flag on a paid
+    // path. `--models=` and a bare `--models` both arrive here empty, and
+    // falling through to the config would buy the full configured list under a
+    // log line naming the config as the source — indistinguishable from the
+    // narrowing the operator was asking for. `--models="$CHEAP"` with CHEAP
+    // unset is the ordinary way to reach it.
+    if (!cliModels.length) throw new Error('--models was passed with no models in it — drop the flag to use matrix.improve.models, or name at least one model')
     log(`models: ${cliModels.join(',')} (--models)`)
     return cliModels
   }
-  if (Array.isArray(cfg.models) && cfg.models.length) {
+  const usable = Array.isArray(cfg.models) && cfg.models.length && cfg.models.every(m => typeof m === 'string' && m)
+  if (usable) {
     log(`models: ${cfg.models.join(',')} (matrix.improve.models)`)
     return cfg.models
   }
   // Named source in every branch, so a loop's own output says what it is about
   // to be billed for. This one is a warning because it is the branch nobody
-  // chose.
-  log(`WARNING: improve.models is not set — using ${DEFAULT_IMPROVE_MODELS.join(',')}`)
+  // chose — and it says which of the two ways to land in it happened, because
+  // "not set" over a `"models": "opus"` typo denies the key a reader is looking
+  // straight at while the loop measures something else entirely.
+  const why = cfg.models === undefined
+    ? 'is not set'
+    : `is not a non-empty array of model names (got ${JSON.stringify(cfg.models)})`
+  log(`WARNING: improve.models ${why} — using ${DEFAULT_IMPROVE_MODELS.join(',')}`)
   return DEFAULT_IMPROVE_MODELS
 }
 
