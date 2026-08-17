@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:45'
-updated_date: '2026-08-17 13:57'
+updated_date: '2026-08-17 14:05'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -79,6 +79,18 @@ AC evidence.
 #4 — The new config.test.mjs case asserts improve.models is a non-empty array of non-empty strings, alongside the existing improve assertions at line 70.
 
 Gates: npm --prefix harness test 122/122; node src/cli.mjs audit exit 0. Total spend this task $0.
+
+Branch review (/code-review high, dev...HEAD) found four issues. All four fixed on the branch before the PR was opened; none changed the design.
+
+1. MEDIUM — an empty `--models=` was swallowed. `pick` turns it into [], which the resolver read as 'no flag' and fell through to matrix.improve.models, printing a log line naming the config as the source: byte-identical output to passing no flag at all. `--models="$CHEAP"` with CHEAP unset would buy the full three-model loop while the operator was asking to narrow it. Now an error. A bare `--models` (no =) parsed to boolean true and would have measured a model literally named 'true'; cli.mjs converts it to the same empty case, so it errors too. Verified live: both forms exit 1 with the message, `--models=haiku` still prints 'models: haiku (--models)'. NOTE: `run` still accepts a bare `--models` this way — pre-existing, untouched here because fixing it means changing the shared `pick`, which also governs --styles, --variants and --cases. Flagged for the user rather than silently expanded into this task.
+
+2. LOW — a malformed improve.models was reported as an absent one. `"models": "opus"` is a plausible JSON typo, and the warning said 'is not set' while the reader was looking straight at the key, with the loop measuring haiku instead. The warning now distinguishes absent from present-but-unusable and quotes what it found. A list containing a non-string is treated the same way.
+
+3. LOW — the new budgeting comment in matrix.json understated the loop's billed work: '3 models x 6 iterations is 18 measured arms'. An arm is one split measured once, and the loop buys two for the baseline, two per iteration (improve.mjs:306-307) and two more at the reserve gate (improve.mjs:381-382) — 16 at maxIterations 6, 14 before the gate. Corrected there and in the same halving repeated in harness/README.md. This is the file whose job is to let a reader budget a paid loop.
+
+4. LOW — assert.ok(!('fallback' in resolveImproveModels)) could never fail: `in` on a function object finds nothing named 'fallback' whatever the implementation does, so a test presented as the guarantee against inheriting run's list asserted nothing. Replaced with a resolution against a cfg carrying a run-shaped list under another name, which returns the default — the same claim, actually tested.
+
+Suite 122 -> 124; audit exit 0.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
