@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 02:37'
+updated_date: '2026-08-17 02:50'
 ---
 # Backlog campaign tracker
 
@@ -499,4 +499,16 @@ Both remaining issues carry known risk against that policy:
   the same five cases. That is now the ledger's judge noise floor, and it is the
   most reusable thing the session produced.
 
-  Merged via PR #9 (rebase) as <MERGE_SHA>.
+  Merged via PR #9 (rebase) as `31433b8`; `dev` and `main` both pushed at that
+  SHA, no branch litter, no open PRs.
+
+  Review: `/code-review high` raised 11 findings. Ten were real and fixed in
+  `ff4ec99` — eight wrong published figures, including a "128 cells" that appears
+  nowhere in the data, a per-cell cost taken from the cheapest arm, and a
+  sample-size claim that confused precision with a score. The central one was a
+  miscount: "8 of 24 violations" was eyeballed rather than computed, and counting
+  it gives 10 of 40. The eleventh finding's counter-claim was drawn from the
+  superseded run this very task exists to stop quoting, so it was recorded rather
+  than applied. Five defects in the shipped style text are recorded in the task
+  rather than fixed: the budget is spent and shipping unmeasured text is what
+  COS-1's precedent forbids.
