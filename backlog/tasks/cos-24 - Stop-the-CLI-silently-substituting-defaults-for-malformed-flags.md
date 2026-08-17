@@ -4,8 +4,9 @@ title: Stop the CLI silently substituting defaults for malformed flags
 status: To Do
 assignee: []
 created_date: '2026-08-17 14:13'
-updated_date: '2026-08-17 14:14'
-labels: []
+updated_date: '2026-08-17 14:16'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
 references:
   - harness/src/cli.mjs
