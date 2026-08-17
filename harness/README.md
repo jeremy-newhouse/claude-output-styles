@@ -70,7 +70,11 @@ judge is not itself under an output style.
 `config/matrix.json` crosses four axes:
 
 - **styles** — which style files to test
-- **models** — `opus`, `sonnet`, `haiku`
+- **models** — `opus`, `sonnet`, `haiku`. Fable is measured but deliberately not
+  in this list: it is the default for `improve` as well as `run`, so adding the
+  priciest tier would bill every optimizer iteration for it. Pass it explicitly,
+  and quote it — the `[1m]` is a glob pattern in most shells:
+  `--models='claude-fable-5[1m]'`. There is no bare `fable` alias.
 - **variants** — harness-level fixes tested *independently of the style text*,
   so you can tell whether a failure is the wording or the plumbing:
   - `baseline` — what a user gets today
@@ -270,12 +274,46 @@ contract while `audit` reports "both say 0". The conditional half of a rule is
 invisible to both instruments. Treat a clean audit as "the numbers agree", not as
 "the file and the contract mean the same thing".
 
+**`sentence_length` and `paragraph_length` are not quotable on agentic cells.**
+`runTurn` accumulates the assistant's visible text with `text += b.text`. A
+conversational turn has one text block, so nothing happens. An agentic turn has
+several, split around the tool calls, and they are concatenated with no
+separator — a saved transcript reads `"I'll look at the file first.The bug is in
+..."`. `sentences()` requires whitespace after the full stop to split and
+`paragraphs()` requires a blank line, so the run-on scores as one long sentence
+in one paragraph. Measured across four models, a no-whitespace seam appears in 0
+of 131 conversational cells and in most agentic ones; on Fable's
+`agentic-fix-verify`, where the model made ten tool calls per cell,
+`paragraph_length` reads 16.7 and is measuring this, not the style.
+
+`leads_with_conclusion`, `total_length` and the abort counts are unaffected — the
+first reads the genuine opening text, the second counts words, the third does not
+depend on segmentation. Fixing the seam moves agentic numbers already published
+in `FINDINGS.md` and the experiment ledger, so it is tracked as its own change
+rather than folded into a measurement run.
+
 ## Cost control
 
 `config/matrix.json` → `run.maxBudgetUsd` caps each cell; `run.concurrency`
-caps parallelism; `--no-judge` drops the LLM grader. A cell costs roughly
-$0.10–0.15 conversational, more when agentic. Cell count is
-`styles × variants × models × cases × repeats` — it multiplies fast.
+caps parallelism; `--no-judge` drops the LLM grader. Cell count is
+`styles × variants × models × cases × repeats` — it multiplies fast, and
+**every axis you do not name on the command line takes its full default.**
+Omitting `--variants` alone runs five variants instead of one; that turned a
+one-cell model-id probe into a five-cell $1.58 one under COS-7.
+
+Measured cost per baseline cell on the five shared cases:
+
+| model | $/cell | 30-cell run |
+|---|---|---|
+| `haiku` | 0.0232 | $0.70 |
+| `sonnet` | 0.1013 | $3.04 |
+| `opus` | 0.1493 | $4.48 |
+| `claude-fable-5[1m]` | 0.2345 | $7.04 |
+
+Agentic cells cost more than conversational ones, and write-then-verify cells
+cost far more: `agentic-fix-verify` runs $0.9681 per cell on Fable, four times
+its own conversational rate. The `long-prompt` variant is also about 3.9× the
+baseline variant on Fable ($0.7384 against $0.1910).
 
 Probe on Haiku to decide whether an experiment is worth running, but do not
 conclude from it — and **re-measure the probe's own baseline before you explain

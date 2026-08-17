@@ -72,10 +72,28 @@ five cases, never more than 1.8 points behind the better of Opus and Sonnet, and
 ahead of Opus on intermediate. One file does serve the third tier.
 
 What Haiku loses is prose quality, not rule-following — judge 37.5–62.2, last on
-all three styles — and per-model files would not address that, since the ranking
-of styles is identical on every model. It also exposed one failure no style file
-can reach: Haiku exhausts the 12-turn limit on fix-then-test work and returns
-nothing at all, on all three styles alike.
+all three styles. Per-model files would not address that: the *rules* ranking is
+advanced > intermediate > beginner on every model measured, so no model needs a
+different set of rules. It also exposed one failure no style file can reach:
+Haiku exhausts the 12-turn limit on fix-then-test work and returns nothing at
+all, on all three styles alike.
 
-The top of the range is still untested. Fable is not in the matrix, so "every
-model" remains verified for three tiers of four; COS-7 closes it.
+**The top of the range is now tested too, and the decision held there.** COS-7
+measured all three styles on Fable (`23-48-45`, 30 cells, no errors): rule
+compliance 91.4–97.9, never more than 2.5 points behind the best of the other
+three. Fable drops the same subsets the others do rather than different ones —
+`total_length` 75.0, `leads_with_conclusion` 83.3, `sentence_length` 90.6,
+`no_process_narration` 91.7, and every remaining rule 96.7–100.0. Eight of twelve
+rules score 97.8–100.0 on all four tiers at once. No rule is one tier's
+requirement and another's exception, which is this decision's actual test, and it
+now holds across a tenfold cost range.
+
+One earlier sentence here overstated the evidence and is corrected. It said the
+ranking of styles is identical on every model. That is true of the rules ranking
+and true of beginner placing last on the judge, but the judge's top two swap:
+Haiku and Sonnet rank intermediate above advanced, Opus and Fable rank advanced
+above intermediate. The swap was already visible in the three-model data. It does
+not argue for per-model files — it is about which audience level reads best, not
+about which rules a model needs — but the claim has to say what was measured.
+
+"Every model" is now verified for four tiers of four.
