@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 06:41'
+updated_date: '2026-08-17 12:52'
 ---
 # Backlog campaign tracker
 
@@ -15,7 +15,7 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-11** — queue order for campaign 2 confirmed by the user on
+**Next issue: COS-13** — queue order for campaign 2 confirmed by the user on
 2026-08-17, who chose the "Fix tools first, then everything" option from a
 presented comparison over a shorter path that went straight to the two missed
 bars: "15 sessions. Repairs the measuring tools before spending on any test,
@@ -26,8 +26,8 @@ and cheaper, and COS-19 can reuse its data."
 
 Do not re-ask before taking the next item.
 
-Campaign 2 items 1 and 2 (COS-12, COS-10) are resolved; the cursor has advanced
-to item 3.
+Campaign 2 items 1, 2 and 3 (COS-12, COS-10, COS-11) are resolved; the cursor
+has advanced to item 4.
 
 Campaign 1 is closed. Its cursor ran COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5
 -> COS-7 -> COS-1 -> COS-4; six resolved, two parked. Those two are now items 14
@@ -49,7 +49,7 @@ and 15 of campaign 2, because the blockers under them have owners.
 |---|---|---|---|
 | 1 | COS-12 | harness | **Resolved, session 9.** Flush rows so a killed run keeps what it paid for. Insurance before any large arm. Cost $0.1812 to prove, not the $0 planned. |
 | 2 | COS-10 | harness | **Resolved, session 10.** Score the final message, not the whole turn. Cost $0.4143 to prove the seam end-to-end. The fix does not reach backwards: saved agentic figures are labelled, not corrected. |
-| 3 | COS-11 | harness | Errored cells score 0 on rules and 1.0 on the judge. Both biases, one fix. |
+| 3 | COS-11 | harness | **Resolved, session 11.** Errored cells scored 0 on rules and 1.0 on the judge. Both biases, one fix, at the one place every figure comes from. $0 — re-scoring saved rows is free. Corrected one published conclusion (`14-48-09`). |
 | 4 | COS-13 | fixture | The fixture asserts 850 and computes 849. Needs COS-10. |
 | 5 | COS-14 | config | `matrix.improve` inherits `run`'s model list. Small, no spend. |
 | 6 | COS-9 | checks | `two_options_max` is blind to prose option sprawl. Re-scores saved rows, no new spend. |
@@ -91,7 +91,7 @@ real run to be killed rather than a unit test. Expect the same shape on the
 other instrument-repair items: a few cents to prove a behaviour end to end. The
 arm-sized spend still starts at item 8, and the largest single session is COS-19.
 
-**Campaign 2 spend so far: $0.1812** — COS-12 $0.1812 ($0.0682 the killed run, $0.0216 the completed one, $0.0914 an improve loop run to exercise the shared writer).
+**Campaign 2 spend so far: $0.5955** — COS-12 $0.1812 ($0.0682 the killed run, $0.0216 the completed one, $0.0914 an improve loop run to exercise the shared writer), COS-10 $0.4143, COS-11 **$0** (every acceptance criterion was satisfiable from saved rows; the first item in either campaign to cost nothing since COS-6).
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -126,6 +126,7 @@ IS counted above.
 |---|---|---|---|
 | 1 | COS-12 | Task Done — 2026-08-17, session 9 | All 4 ACs verified, and AC #4 required a real kill rather than a unit test. Two paid Haiku runs, **$0.0898**. `results/2026-08-17T05-29-31-663Z` (beginner, Haiku, baseline, 4 conversational cases, repeats 1, concurrency 1, judge on) was SIGKILLed — `kill -9`, no handler, no graceful shutdown — the moment `run.json` read `completed=2`. Both survivors came back fully scored: `conv-status-auth` rules 0.985 / judge 0.62 / total 0.802, `conv-decision-db` rules 1.0 / judge 0.58 / total 0.79, $0.0682 between them. The killed process never printed its `wrote` line, so nothing but the per-cell flush put those files on disk (**AC #1**). `run.json` read `complete: false, completed: 2, expected: 4` (**AC #2**), and `score --rows=` exited 0 printing `PARTIAL run — 2 cells of 4 expected (2 never ran)` above every table (**AC #3**). `results/2026-08-17T05-31-40-879Z`, the same configuration allowed to finish, writes `complete: true` and `score` says `complete run — 1 cell`. Design: `rows.json` stays a bare array — every run in the ledger is one and every offline re-derivation reads it as one — so completeness lives in a sibling `run.json`, and every file is written through a temp file and `rename(2)` so a kill mid-write cannot truncate the paid data. The manifest is written last on purpose: it can then only ever undercount what is on disk. New `harness/src/results.mjs` owns the directory; `evaluate()` gained `onRows` (per completed cell, indexed by cell so a partial file is ordered like the complete one it would have become) and an injectable `runCell`; `improve` uses the same writer. Regression check: re-scoring `12-44-03` still returns 81.0% at $7.517, so the flush moved no published figure. `/code-review high` raised four findings, all real and all fixed on the branch: a partial `report.md` was indistinguishable from a complete one (it now opens with the manifest sentence as a blockquote, the same device `report.mjs` already used for optimizer traces); the PARTIAL line went to stderr while every figure went to stdout, so `score > figures.txt` dropped it — and that was a *new* exposure, because a bare `score` resolves to the newest run and only now can the newest run be a partial one; `improve` stamped `complete: true` even when every style threw; and `improve.json` was written after the manifest, contradicting the manifest-last invariant this change itself asserts. `npm --prefix harness test` **64 → 79**; `audit` exit 0; `lore check` exit 0. Spend caveat now recorded in the ledger: the cell in flight when the kill lands has spent tokens no row will ever carry, so flushing recovers completed cells, not the interrupted one. Merged via PR #10 (rebase) as `b735501`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. |
 | 2 | COS-10 | Task Done — 2026-08-17, session 10 | All 5 ACs verified. Three paid Haiku/Opus/Sonnet cells, **$0.4143**. `run.mjs` no longer does `text += b.text`: it keeps the assistant's blocks in order and `splitTurn` derives `trace` (all text blocks joined by a blank line) and `final` (the blocks after the last tool call, falling back to the last block said if the turn ended on one — `''` would score 1.0 on every "no X found" check). The row carries `text` = final, `trace`, `allTurns` (per-turn trace) and `allFinals`. **AC #1 was measured, not read**: run `06-21-53` (2 cells, $0.38) caught an Opus cell making 8 tool calls and opening *"I'll look at the file first."* — `trace` 642 chars, `text` 612, the difference being exactly that narration. Segmented with the project's own `sentences()`, the glued string the old code would have saved reads one **22-word** opening sentence, over beginner's 20-word cap; `final` reads it at **17 words**, under it; `trace` reads the narration as its own 6-word sentence. One check changes answer on one cell — the whole defect in miniature. The Sonnet cell aborted on the turn limit and wrote `trace: ''`, exercising the error path; `06-21-03` (1 cell, $0.03, Haiku) made a tool call with *no* pre-tool text and returned the two views byte-identical, which is the case the fix has to leave alone. **AC #2**: every entry in `CHECKS` declares `reads: 'final' | 'trace'` and the value is copied onto each saved check row, so a figure lifted from `rows.json` says which string produced it. The line comes from the case rubrics, not taste — three of the four agentic rubrics say "the final message ... in style", so checks measuring how the answer is written read `final`; rules the style states as outright bans (narration, celebration, emoji) read `trace`, because those are violations wherever they appear. The judge reads `caseDef.judgeOn`: `agentic-read-report` → `trace` (its rubric grades narration of the search), the other three agentic cases → `final`. Both are enforced by tests, and the chosen judge view is saved as `judgeReads`. `scoreDeterministic` now throws a TypeError on a bare string so no caller could be missed silently. **AC #3/#4**: `sentences()` splits on a single newline; against HEAD's code the new tests move "Here's why:\nYou're paying twice." from 1 sentence to 2, a two-item list from 2 to 3, and `sentence_length` at an 8-word cap from 0.0 to 1.0 — and `splitTurn`/`viewsOf`/`VIEWS` do not exist on HEAD at all, so the whole new block fails to link against it. **AC #5 is the one that took the session.** All 61 saved runs were re-scored on both codebases and compared per run, per scope and per check. The seam half **cannot be applied backwards** — gluing is lossy — so every published agentic figure was re-scored to confirm the applicable half leaves it unchanged (`paragraph_length` on `agentic-read-report` 100.0/100.0/100.0/95.8 by tier; Fable `agentic-fix-verify` `paragraph_length` 16.7, `leads_with_conclusion` 16.7, rules 79.5; `leads_with_conclusion` on `agentic-read-report` 50.0/100.0/16.7/16.7) and then **explicitly labelled as measured on the glued turn** in `FINDINGS.md`, the ledger, `harness/README.md` and both story docs. The newline half *is* re-derivable and was: rule totals move at most +1.07 points on any run and scope, and 0.00–0.34 on every run behind a published four-tier figure — inside the noise floor — but segmentation figures move more and were corrected in place (FINDINGS' per-model table Opus 10.6→10.2w/7.9→6.3%, Fable 11.1→10.7/9.6→8.8%, Haiku 11.3→10.1/10.0→8.1%, Sonnet 13.4→12.9/20.3→19.5%, Haiku full-pool 11.5→9.6/10.6→7.0%; the ledger's probe table 16.6→15.5, 12.1→10.8, 12.2→10.4 words and 60.0→56.3%, 43.0→35.2%, 38.4→30.2%). **Every pre-fix figure reproduced exactly before its replacement was quoted**, which is what makes the deltas trustworthy. One published conclusion needed restating: the ledger argued the 12-word cap did nothing because the tightened arm's 40.5% over-12 share sat *inside* the untightened range 38.4–43.0%; re-segmented it reads 38.5% against 30.2–35.2%, i.e. **above** the range, and the paired CI moved from [0.06, 8.07] to [−0.17, 8.03] — from barely excluding zero to including it. The conclusion holds and is firmer; it was restated rather than left standing. `/code-review high` raised six findings, all real; five fixed on the branch. Two were ways a cell could earn free credit — `paragraph_length`'s list exemption saw only a paragraph's first character, so once bullets became sentences a five-item list failed a cap of four; and `code_block_size`/`no_jargon` read the final message despite being ban lists, so a 30-line diff dumped before the last tool call scored clean on the two heaviest beginner checks. A third, an unrecognised `judgeOn`, handed over the whole judge weight silently. The review also caught this session's own ledger sentence claiming the re-segmentation moved 'at most 1.07 points, all of it in `sentence_length`' — wrong on both counts, since `paragraph_length` and `active_voice` re-segment too. The sixth finding (a non-errored empty cell scoring 0.931 on rules) is pre-existing and byte-identical on `dev`; recorded for COS-11, and the README claim it contradicted was corrected here. `npm --prefix harness test` **79 → 94**; `audit` exit 0; `lore check` exit 0. |
+| 3 | COS-11 | Task Done — 2026-08-17, session 11 | All 5 ACs verified, **$0 spend** — every criterion was satisfiable from saved rows, and re-scoring is free. One predicate, `producedReply(row)` in `checks.mjs`, now decides both whether a cell may be scored and whether it may be pooled into a mean. It is keyed on the turn, not on the SDK error flag, which closes the wider version of the same bias COS-10's review found: a cell that goes silent *without* the flag scored 0.931 on rules for beginner on `agentic-fix-verify` — every "no X found" check finds no X — plus the free judge 1.0, landing near 0.95 for saying nothing. **AC #1/#4, the two biases in one run**: re-scoring `22-59-53` (78 Haiku cells, 6 turn-limit aborts, the run the AC names) moves haiku rules **84.2 → 91.2** and haiku judge **47.0 → 42.6** — up and down, same run, no cancellation. On the case that actually aborts, `agentic-fix-verify`, rules go 10.3 → 62.1 and judge 85.8 → 15.0 at n=1/6. Pinned by a test that asserts both directions at once rather than by that table. **AC #2**: a group with no replying cell reports `null`, not 0 — zero is a score, the worst one, and would publish "we could not measure this" as "it failed every rule". Seen live on `01-33-41`, where advanced @ haiku aborted 2 of 2 and now prints `unmeasured / n/a`. **AC #3**: every group in `summary.json` carries `n` (cells behind the figure), `noReply` and `cells`; `report.md` renders all three as columns and a **Measured over:** header; the console tables print `no reply=k/N`. `costUsd` deliberately still pools every cell — an aborted cell was paid for. **AC #5**: all 41 saved runs were swept, not just the one named. Five hold a silent cell (`14-48-09` 1/18, `22-59-53` 6/78, `01-03-21` 1/24, `01-33-41` 3/6, `06-21-53` 1/2) and in **all five the flag was set**, so the no-flag case still has never appeared in a saved run and changes no published figure today. Each published figure was then checked against the run behind it: the `22-59-53` ledger row and FINDINGS' four-tier table are unchanged (both quote the five shared conversational cases, where nothing errored); the ledger's `94.2 → 83.4 on advanced` reproduces exactly; `01-03-21`'s row already quoted "43.6 with the errored cell excluded (45.9 if it is pooled)" and needed no correction — it was written by a session that remembered the discipline. **One published conclusion moved**: `14-48-09`'s ledger row read "On holdout the rewrite showed the usual signature — rules 70.8 → 83.3, judge 72.5 → 21.2". One of its four v0 holdout cells was an `agentic-fix-verify` abort; excluded, v0 holdout is rules **94.3** and judge **63.3**, so rules fell too and both halves fell on both splits. The holdout delta is −0.265, not the −0.193 the loop recorded. The REVERT verdict is unchanged. Corrected in place, with the pooled figures kept, because they are what the loop actually decided on. The five consumers of `summarize()` were enumerated before anything was claimed (the COS-10 lesson): `evaluate()`, `results.mjs`, `cli.mjs run`, `cli.mjs score` and `improve.mjs` — the last reads `summary.overall` for KEEP/REVERT, and `null - 0.65` is `-0.65` in JS, so an unmeasurable arm would have read as a regression or a win by accident; an incomparable side is now always a REVERT. `cli.mjs score` branched on `r.text` where the live path branched on `error && !text`, so the two disagreed on a cell that errored while emitting text — both now use the one predicate, which is what makes AC #5's re-derivation a re-derivation. `npm --prefix harness test` **94 → 104**; `audit` exit 0; `lore check` exit 0. |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -762,3 +763,53 @@ Both remaining issues carry known risk against that policy:
   and the re-derivation was written as if it had one.
 
   `npm test` 79 → 94; `audit` exit 0; `lore check` exit 0. Spend $0.4143.
+
+- 2026-08-17 — session 11: **COS-11 resolved, $0.** Errored cells no longer bias
+  any figure the project quotes. One predicate, `producedReply(row)`, decides
+  both whether a cell may be scored and whether it may be pooled; `summarize()`
+  averages only the cells that replied and every figure states its own `n`,
+  `noReply` and `cells`. An arm where nothing replied reports `null` and both
+  renderers print `n/a` — zero is a score, and publishing "we could not measure
+  this" as "it failed every rule" is the failure this task exists to stop.
+
+  The predicate reads the turn, not the SDK error flag, which also closes the
+  wider case COS-10's review found and handed here: a cell that goes silent
+  without the flag scored 0.931 on rules plus a free judge 1.0, landing near 0.95
+  for saying nothing. All 41 saved runs were swept; five hold a silent cell and
+  in every one the flag was set, so the no-flag half changes no published figure
+  today and is closed before the abort-prone arms are bought.
+
+  The bias, measured on the run the AC names (`22-59-53`, 6 aborts in 78 Haiku
+  cells): haiku rules 84.2 → 91.2, haiku judge 47.0 → 42.6. On
+  `agentic-fix-verify` alone, rules 10.3 → 62.1 and judge 85.8 → 15.0. Opposite
+  directions, one run, no cancellation.
+
+  **The COS-10 lesson was applied rather than re-learned.** All five consumers of
+  `summarize()` were enumerated before anything was claimed, and the fifth was
+  the one that mattered: `improve.mjs` reads `summary.overall` for KEEP/REVERT,
+  and `null - 0.65` is `-0.65` in JS, so an unmeasurable arm would have scored as
+  a regression or a win by accident. An incomparable side is now always a REVERT.
+  A second divergence surfaced from the same sweep: `cli.mjs score` branched on
+  `r.text` while the live path branched on `error && !text`, so offline
+  re-scoring and live scoring could grade different sets of cells — which would
+  have quietly undermined every "re-scoring reproduces the published figure"
+  claim in the ledger. Both now use the one predicate.
+
+  **One published conclusion moved and was corrected in place.** `14-48-09`'s
+  ledger row read "On holdout the rewrite showed the usual signature — rules
+  70.8 → 83.3, judge 72.5 → 21.2". One of its four v0 holdout cells was an
+  abort; excluded, v0 holdout is rules 94.3 and judge 63.3, so rules fell as
+  well — both halves fell on both splits, and the holdout delta is −0.265 rather
+  than the −0.193 the loop recorded. The REVERT verdict is unchanged and was
+  never in doubt. The pooled figures were kept beside the corrected ones because
+  they are what the loop actually decided on.
+
+  Worth carrying forward: **a published figure written by a session that
+  remembered the discipline needs no correction, and finding that out is
+  cheap.** `01-03-21`'s row already read "43.6 with the errored cell excluded
+  (45.9 if it is pooled)"; checking it took one command and it reproduced
+  exactly. Four of the five affected runs needed nothing. Checking each figure
+  against the run behind it, one at a time, is what separated the one that moved
+  from the four that did not.
+
+  `npm test` 94 → 104; `audit` exit 0; `lore check` exit 0. Spend $0.
