@@ -57,7 +57,8 @@ author model from the failures, rewrite, re-measure, keep or revert.
 | `run.mjs` | one cell: multi-turn session via `resume`, collects visible text, tool calls, cost; also the concurrency pool |
 | `checks.mjs` | one function per style rule; pure, no model calls, unit-tested |
 | `judge.mjs` | rubric grading against the style body |
-| `evaluate.mjs` | crosses the matrix, combines the two scores by `judgeWeight`, summarizes |
+| `evaluate.mjs` | crosses the matrix, combines the two scores by `judgeWeight`, summarizes; calls back with the rows completed so far after every cell |
+| `results.mjs` | writes a run directory — rows, summary, report, and the `run.json` completeness manifest — atomically, and reads the manifest back |
 | `improve.mjs` | the optimizer loop, keep/revert rule, patience stop, reserve validation, spend tracking |
 | `report.mjs` | console and Markdown rendering |
 
@@ -98,6 +99,16 @@ whole history while judge scores do not. An improve run's rows carry the
 reported spend is the sum of those rows rather than a counter held only in
 memory — so the loop's own numbers can be recomputed by anyone holding the run
 directory.
+
+**A cell that has been paid for is on disk before the next one starts.** Both
+commands re-write the whole run directory after every completed cell, through a
+temp file and a rename, so being killed — Ctrl-C, an OOM, a closed lid — costs at
+most the one cell in flight rather than the entire arm. The price of that is a
+directory that can legitimately be incomplete, so `run.json` states it:
+`complete` is false until the command finishes, and `score` prints what the
+manifest says before it prints a single figure. `rows.json` stays a bare array,
+because every saved run in the ledger is one and every offline re-derivation
+reads it as one; the completeness flag lives beside it rather than inside it.
 
 **A grader failure must not kill a run.** Judge errors return a neutral 0.5 with
 the error on the row. An earlier version let the exception propagate and lost a

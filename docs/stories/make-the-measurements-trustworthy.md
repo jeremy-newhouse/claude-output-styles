@@ -50,9 +50,14 @@ quoted arm mean comes from, was not.
 that correctly fixes the rounding bug breaks a passing test and must decide
 unaided which to believe. That is scoring noise on every agentic case.
 
-**And a killed run loses every cell it paid for.** `run` writes `rows.json` only
-after the whole matrix completes. One session ran a $6.64 arm with that exposure
-live, and the arms this story requires are an order of magnitude larger.
+**And a killed run lost every cell it paid for — fixed under COS-12.** `run` used
+to write `rows.json` only after the whole matrix completed. One session ran a
+$6.64 arm with that exposure live, and the arms this story requires are an order
+of magnitude larger. `run` now re-writes `rows.json`, `summary.json`, `report.md`
+and a new `run.json` manifest after every completed cell, each through a
+temp-file rename so a kill mid-write cannot truncate the paid data. Verified by
+SIGKILLing a real four-cell run after two cells: both survivors re-scored
+offline, and `score` prefixed them with `PARTIAL run — 2 cells of 4 expected`.
 
 **Underneath all four sits a sample-size problem that COS-4 measured.** Per-cell
 judge SD on the shipped beginner text is 24.6 — 24.1 Opus, 22.8 Sonnet — so the
@@ -101,7 +106,7 @@ expensive and worthless.
 |---|---|---|
 | [COS-10](../../backlog/tasks/cos-10%20-%20Score-the-final-assistant-message-not-the-whole-turn.md) | Score the final assistant message, not the whole turn | To Do |
 | [COS-11](../../backlog/tasks/cos-11%20-%20Stop-errored-cells-from-biasing-every-score-the-project-quotes.md) | Stop errored cells from biasing every score the project quotes | To Do |
-| [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | To Do |
+| [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | Done |
 | [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | To Do |
 | [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | To Do |
 | [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |

@@ -36,12 +36,18 @@ the measured failures without shipping a rewrite that games the checks.
 node src/cli.mjs run --styles=plain-english-advanced --models=opus,sonnet
 ```
 
-Writes `results/<stamp>/rows.json`, `summary.json`, and `report.md`. Read the
-`WORST RULES` block first — it names the broken rule, the model, and quotes the
-offending text.
+Writes `results/<stamp>/rows.json`, `summary.json`, `report.md`, and `run.json`.
+Read the `WORST RULES` block first — it names the broken rule, the model, and
+quotes the offending text.
 
 Useful flags: `--variants`, `--cases`, `--repeats`, `--concurrency`,
 `--no-judge`.
+
+**Killing a run is safe.** All four files are re-written after every completed
+cell, so Ctrl-C costs the cell in flight and nothing else. `run.json` carries
+`complete: false` until the command finishes; a directory holding that flag is a
+real run that stopped early, not a corrupt one. Re-score it exactly as you would
+a finished run — `score` names the shortfall before it prints anything.
 
 ### Re-grade without spending
 
@@ -71,9 +77,10 @@ that trade one model's quality for another's.
 Candidates land in `results/<stamp>/candidates/`. Nothing is written back to the
 real style files — that is a deliberate manual step.
 
-The run also writes `rows.json`, `summary.json`, and `report.md` at
+The run also writes `rows.json`, `summary.json`, `report.md` and `run.json` at
 `results/<stamp>/`, exactly as a `run` does, with every cell tagged by the
-iteration that produced it. Re-score them later with
+iteration that produced it. An improve `run.json` carries no expected cell count,
+because how many iterations the loop buys is not known until it stops. Re-score them later with
 `node src/cli.mjs score --rows=results/<stamp>/rows.json`; the `BY ITERATION`
 table is the loop's trace, and the reverted iterations are in there too.
 
