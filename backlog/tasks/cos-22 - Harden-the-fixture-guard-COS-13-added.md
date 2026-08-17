@@ -4,7 +4,9 @@ title: Harden the fixture guard COS-13 added
 status: To Do
 assignee: []
 created_date: '2026-08-17 13:41'
-labels: []
+updated_date: '2026-08-17 14:16'
+labels:
+  - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
   - COS-13
 references:
