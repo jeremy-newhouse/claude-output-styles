@@ -65,7 +65,7 @@ one model, not a gradient.
 
 **Fable finishes the agentic work and stops obeying the style.** On
 `agentic-fix-verify` it aborted 0 of 6 cells against Haiku's 5 of 6, at $0.9681 a
-cell — four times a conversational Fable cell. Its own compliance falls from
+cell — 4.8× a conversational Fable cell. Its own compliance falls from
 rules 94.1 / judge 66.6 on the shared five to 79.5 / 41.2 there, with
 `leads_with_conclusion` at 16.7: five of six replies open with "I'll look at the
 file first." No amount of capability removed the narration habit.

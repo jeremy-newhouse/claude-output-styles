@@ -251,9 +251,10 @@ holds across a **tenfold cost range**: $0.0232 per cell on Haiku to $0.2345 on
 Fable, measured. Prose quality is not: beginner sits 15 to 28 points below
 advanced depending on the model, and it is the only style where the two halves
 disagree sharply. And the two ends of the range fail in opposite halves — Haiku is
-last on the judge for all three styles while never giving up more than 1.8 points
-of rule score, and Fable is last on *intermediate rules* (93.1) while leading the
-judge on two styles of three. Whatever a tier gives up, it is not rule-following.
+last on the judge for all three styles while never giving up more than 1.9 points
+of rule score against the best of the other three, and Fable is last on
+*intermediate rules* (93.1) while leading the judge on two styles of three.
+Whatever a tier gives up, it is not rule-following.
 
 The judge column is *not* a tier ranking. Fable leads on advanced and beginner,
 but Sonnet — three tiers down and a fifth of the price — beats it on intermediate,
@@ -271,7 +272,9 @@ models. That is the signature of a style whose stated rules do not capture what
 makes it good, which is why the optimizer could not fix it by rewording them.
 Four models across a tenfold cost spread reproduce the pattern exactly — so it is
 a property of the style file, not of any one model's taste. Fable's 53.9 is the
-best beginner judge score ever measured and still 16 points under the 70% bar.
+best beginner judge score in this table and still 16 points under the 70% bar.
+(Individual two-cell samples inside optimizer runs have scored higher; those are
+not comparable with a ten-cell baseline and are not a style's score.)
 
 ### Does word-cap overrun track model tier? No
 
@@ -395,9 +398,10 @@ Fable was run on the same case, three styles, two repeats (`23-53-02`):
 | opus | 0 of 6 |
 | fable | 0 of 6 |
 
-Those cells cost $0.9681 each, four times a conversational Fable cell and forty
-times a Haiku one. The top tier buys completion, and completion is the only thing
-it buys. Same model, same style files, same scorer, only the case changes:
+Those cells cost $0.9681 each — 4.8× a conversational Fable cell ($0.1998) and
+4.1× its five-case average. The top tier buys completion, and completion is the
+only thing it buys. Same model, same style files, same scorer, only the case
+changes:
 
 | Fable on | rules | judge |
 |---|---|---|
