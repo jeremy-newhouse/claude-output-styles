@@ -284,6 +284,21 @@ of them are agentic cells. Every agentic figure in this ledger and in
 `FINDINGS.md` is therefore still measured on the glued turn and is labelled where
 it appears. Replacing one costs a re-run, not a re-score.
 
+**A second caveat with the same shape: every agentic run in the table above met a
+fixture whose test suite failed on arrival.** `fixtures/repo` is copied into every
+workspace and three of the four agentic cases ask the model to run its tests.
+Until COS-13 the suite was red on a clean checkout, because the `priceOrder`
+assertion expected 966 — the value you get taxing *before* discounting — where
+the code returns 965. A second assertion expected 850, the truncating value,
+while its own comment computed 849, the rounded one, so a model that correctly
+fixed the bug broke a passing test. Neither failure is anything the style file
+governs, and both landed hardest on the models that did the most work. COS-13
+made the suite green before and after a correct fix. This caveat is weaker than
+the glued turn — it changes what the model met, not what the scorer read, so
+figures the fixture cannot reach (`agentic-read-report`, which never needs the
+tests, and every conversational case) are unaffected. But it is equally
+irreversible: no re-score can undo it, only a re-run.
+
 Re-scoring the saved rows on the post-COS-10 scorer does isolate the *other* half
 of that change — `sentences()` now splitting on a single newline — and that half
 was re-derived across all 61 saved runs. It moves rule totals by at most 1.50

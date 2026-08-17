@@ -582,6 +582,23 @@ touch these particular checks. Replacing an agentic figure with one measured on
 the final message costs a re-run of the cells, not a re-score, and no such run has
 been bought. `score` now prints how many rows it re-graded predate the fix.
 
+**Every agentic figure in this document is also measured on a fixture whose test
+suite failed on arrival.** Three of the four agentic cases ask the model to run
+the tests, and until COS-13 `harness/fixtures/repo` shipped a red suite: the
+`priceOrder` assertion expected 966 where the code returns 965, so every model
+that ran the tests met a failure it had not caused and that had nothing to do
+with the rounding bug it was sent to fix. A second assertion expected 850 while
+its own comment computed 849, so a model that *correctly* fixed the bug then
+broke a passing test and had to decide unaided whether the test or the code was
+wrong. Both are scoring noise on `agentic-fix-verify`, `reserve-agentic-write`
+and `reserve-agentic-session` — the more thoroughly a model worked, the more of
+this it met. COS-13 made the suite green both before and after a correct fix, so
+figures measured after it are not comparable to the ones above on this axis.
+Like the glued turn, it cannot be applied backwards: replacing one of these
+figures costs a re-run, not a re-score. `leads_with_conclusion`, `total_length`
+and the conversational figures are unaffected — the fixture only reaches cells
+that called a tool.
+
 ## A content gap that new content did not close
 
 COS-1 acted on the diagnosis above: it hand-wrote the two missing rules into all

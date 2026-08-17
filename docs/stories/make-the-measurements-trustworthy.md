@@ -70,10 +70,31 @@ plus the free judge 1.0. Re-deriving the fix across every saved run corrected on
 published conclusion: `14-48-09`'s holdout arm read "rules up, judge down" only
 because one of its four v0 cells had aborted.
 
-**The fixture the agentic cases run against contradicts itself.** It asserts that
-`applyDiscount(999, 15)` is 850 while its own comment computes 849, so a model
-that correctly fixes the rounding bug breaks a passing test and must decide
-unaided which to believe. That is scoring noise on every agentic case.
+**The fixture the agentic cases run against contradicted itself — fixed under
+COS-13.** It asserted that `applyDiscount(999, 15)` is 850 while its own comment
+computed 849, so a model that correctly fixed the rounding bug broke a passing
+test and had to decide unaided which to believe. Reading the rest of the fixture
+found two more of the same shape, both worse than the one that was reported. The
+`priceOrder` assertion expected 966 where the code returns 965 — 966 is what you
+get taxing *before* discounting, so the number contradicted the test's own name —
+which meant **the suite was red on a clean checkout**, and three of the four
+agentic cases ask the model to run it. Every model that did met a failure it had
+not caused and that had nothing to do with the bug it was sent to fix. The source
+comment naming the bug was self-contradicting too ("yields 670 instead of 670")
+and cited a case that does not exhibit the bug at all, since a 33% discount on
+1000 cents is exactly 330 under both truncation and rounding.
+
+The fix keeps the suite green *both* before and after a correct fix, which is the
+invariant that removes the adjudication: no assertion pins the fractional-cent
+behaviour any more, so fixing the bug cannot break a test, and the bug stays
+discoverable only by reading the code — which preserves the difficulty of
+`reserve-agentic-session`, the case that withholds both the bug and the file on
+purpose. Asserting the *corrected* value instead would have been the obvious
+move and was rejected for that reason: it makes the suite red on arrival with a
+failure that names the file and the expected value, handing that case its answer
+from one command. `harness/test/fixture.test.mjs` now enforces all of it — the
+defect was found by reading a transcript, not by a check, and nothing else in the
+suite executes the fixture.
 
 **And a killed run lost every cell it paid for — fixed under COS-12.** `run` used
 to write `rows.json` only after the whole matrix completed. One session ran a
@@ -132,7 +153,7 @@ expensive and worthless.
 | [COS-10](../../backlog/tasks/cos-10%20-%20Score-the-final-assistant-message-not-the-whole-turn.md) | Score the final assistant message, not the whole turn | Done |
 | [COS-11](../../backlog/tasks/cos-11%20-%20Stop-errored-cells-from-biasing-every-score-the-project-quotes.md) | Stop errored cells from biasing every score the project quotes | Done |
 | [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | Done |
-| [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | To Do |
+| [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | Done |
 | [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | To Do |
 | [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |
 | [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | To Do |
