@@ -4,7 +4,9 @@ title: Re-measure beginner on Haiku and Fable after the rewrite
 status: To Do
 assignee: []
 created_date: '2026-08-17 03:46'
-labels: []
+updated_date: '2026-08-17 03:51'
+labels:
+  - 'doc:stories/extend-measurement-coverage'
 dependencies:
   - COS-11
   - COS-16
