@@ -58,6 +58,7 @@
 - 2026-08-17T11:02:10-05:00 b83bb2079ad02396c81d23cb8d983f6bb4070c1d Say that the guard bounds a cell, not a run
 - 2026-08-17T11:02:10-05:00 c37049d16fdd7b5376ddc10c537f760d8579ca99 Record the COS-25 finalization in the generated log
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
+- 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
 
 ## docs/adr
 
@@ -111,6 +112,8 @@
 - 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
 - 2026-08-17T11:02:10-05:00 b83bb2079ad02396c81d23cb8d983f6bb4070c1d Say that the guard bounds a cell, not a run
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
+- 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
+- 2026-08-17T11:19:51-05:00 1faabd518b036079be3a9f7e8fb17a48454573a9 Quote the moved reply verbatim, and record the review round
 
 ## docs/runbooks
 
@@ -178,3 +181,4 @@
 - 2026-08-17T11:02:10-05:00 68d47d418080f1639e2744d070f8f1c2b5575c96 Correct the cost-to-token claim everywhere it lives, not just where it was found
 - 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
+- 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
