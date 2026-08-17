@@ -113,11 +113,17 @@ if (cmd === 'run') {
   const variant = variants[0] ?? matrix.variants[0]
   mkdirSync(outDir, { recursive: true })
   const log = m => console.error(m)
-  // `models` above is run's list, and improve must not spend on it: the loop
-  // pays for its list once per iteration per candidate, so one extra model in
-  // matrix.models used to multiply through the whole loop. Resolved here rather
-  // than at line 68 because `run` in the same file must keep seeing matrix.models.
-  const improveModels = resolveImproveModels({ cliModels: args.models === undefined ? undefined : models, cfg, log })
+  // `models` above is run's list, and improve must not spend on it: every arm
+  // the loop measures is billed across its whole list, so one extra model in
+  // matrix.models used to multiply through all sixteen. Resolved here rather
+  // than at the shared `pick` above, because `run` must keep seeing matrix.models.
+  // A bare `--models` with no `=` parses to boolean true, which `pick` would turn
+  // into a model named "true"; it carries no models, so it is passed as none.
+  const improveModels = resolveImproveModels({
+    cliModels: args.models === undefined ? undefined : (args.models === true ? [] : models),
+    cfg,
+    log
+  })
   const results = []
   const allRows = []
   // The transcripts live in rows.json, in the same shape and at the same path
