@@ -264,6 +264,12 @@ difference between the columns. No cell in any column errored.
 today's scorer throughout. Regrade with `node src/cli.mjs score --rows=…`, which
 is free, before concluding that a number here is wrong.
 
+**The beginner row is history, not a current measurement.** COS-4 rewrote
+`plain-english-beginner.md` after these runs. On the shipped file, pooled over 35
+cells a model, beginner reads rules 98.5 / 97.4 and judge 73.9 / 58.1 on Opus and
+Sonnet; Haiku and Fable have not been re-measured. The advanced and intermediate
+rows are unchanged and current.
+
 | style | rules haiku | rules sonnet | rules opus | rules fable | judge haiku | judge sonnet | judge opus | judge fable |
 |---|---|---|---|---|---|---|---|---|
 | advanced | 96.0 | 96.8 | 97.8 | 97.9 | 52.9 | 66.0 | 73.9 | **78.3** |

@@ -88,11 +88,13 @@ best score any model reached was Fable's 53.9 — the most capable tier availabl
 still 16 points under the bar. A more capable model does not write better beginner prose from
 this file, which is what would have to be true for the gap to be a model problem
 rather than a content one. COS-7 also measured the mechanism directly: on the
-five shared cases beginner averages 135 words on Opus, 132 on Fable, 113 on Haiku
-and 103 on Sonnet, against a stated cap of 80, while every tier writes
-comfortably *inside* the looser 120-word advanced cap. The caps are being read as
-an audience signal, and the signal points the wrong way — "explain this simply"
-is answered with more words, not fewer.
+five shared cases beginner averaged 135 words on Opus, 132 on Fable, 113 on Haiku
+and 103 on Sonnet, against a stated cap of 80, while every tier wrote comfortably
+*inside* the looser 120-word advanced cap. The caps were being read as an
+audience signal, and the signal pointed the wrong way — "explain this simply"
+answered with more words, not fewer. **COS-4 reversed that on Opus and Sonnet**
+without touching the cap: 61 words on the same five cases, 14.3% over. The two
+untested tiers are Haiku and Fable.
 
 ## Acceptance criteria
 
