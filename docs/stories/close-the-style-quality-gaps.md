@@ -34,7 +34,7 @@ files now state both, and the judge grades against them — it quotes the new
 sections by name. The score did not follow: 46.2 / 42.0 / 51.2 / 54.7 against a
 bar of 65 (run `00-48-49`). A second, more forceful pass scored *below* the
 original text and was reverted (run `01-03-21`). What the judge's violations
-show instead is that **reply length is the binding constraint** — 75–83% of cells
+show instead is that **reply length is the binding constraint** — 71–83% of cells
 overrun their style's word cap in every arm — and that the agentic half of this
 measurement is contaminated by the harness handing the judge the whole turn
 rather than the final message. Both are recorded in `FINDINGS.md` under *A

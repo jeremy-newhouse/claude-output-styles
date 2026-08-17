@@ -50,16 +50,17 @@ runs belong in the optimizer table below.
 | `23-53-02` | 6 | $5.81 | all three styles, Fable, `agentic-fix-verify` only, 2 repeats | The most expensive cells in the project: $0.9681 on average, $0.7970 to **$1.1315** across the six. Budget off the worst cell, not the mean. **Fable aborts 0 of 6** where Haiku aborts 5 of 6, so the top tier finishes write-then-verify work. It also stops obeying the style while doing it: rules 94.1 → 79.5 and judge 66.6 → 41.2 against its own shared-five figures, with `leads_with_conclusion` at 16.7. Reading these transcripts exposed the text-block seam described below. |
 | `00-44-03` | 12 | $2.40 | all three styles, both models, the two COS-1 target cases, 1 repeat | The first current-text baseline either case has ever had. Judge pooled across styles: `agentic-fix-verify` 50.0 Opus / 40.0 Sonnet, `conv-decision-holdout` 48.3 / 46.7. The "~48%" COS-1 was written against came from `20-10-29` and `23-36-59`, both on style text that no longer ships. |
 | `00-48-49` | 24 | $4.86 | same scope, 2 repeats, after COS-1's first authoring pass | **The shipped text.** 46.2 / 42.0 / 51.2 / 54.7 against a 65 bar — the gap is not closed. Arm mean judge 48.5 against the baseline's 46.2, inside the noise floor. Established that the judge does read the new rules: 13 violations across this run and `01-12-03` quote the new sections by name. |
-| `01-03-21` | 24 | $4.37 | same scope, after a second authoring pass | **Rejected and reverted.** Arm mean judge 43.6 — worse than the original text. Restating each style's own word cap, banning inter-tool narration and outlawing conditional recommendations lost ground on three of the four AC cells. Also produced the finding that an errored cell scores 0 on rules and **1.0 on the judge**. |
-| `01-12-03` | 6 | $0.95 | all three styles, Sonnet, the two new reserve cases, 1 repeat | Validation that COS-1's new cases run. 0 errors, every cell scored. `reserve-agentic-session` drew 8-10 tool calls per cell, so it does force the longer session it was written for. |
+| `01-03-21` | 24 | $4.37 | same scope, after a second authoring pass | **Rejected and reverted.** Arm mean judge 43.6 **with the errored cell excluded** (45.9 if it is pooled, which is the bias described below) — worse than the original text. Restating each style's own word cap, banning inter-tool narration and outlawing conditional recommendations lost ground on three of the four AC cells. Also produced the finding that an errored cell scores 0 on rules and **1.0 on the judge**. |
+| `01-12-03` | 6 | $0.95 | all three styles, Sonnet, the two new reserve cases, 1 repeat | Validation that COS-1's new cases run. 0 errors, every cell scored. `reserve-agentic-session` drew 8-10 tool calls, which is **inside** `agentic-fix-verify`'s own 5-13 range — this run does not show the new case is the longer session, and Sonnet is not the model that aborts. See `01-33-41`. |
 | `01-13-15` | 30 | $0.73 | all three styles, Haiku, the five shared cases, 2 repeats | Regression check on the shipped text against `22-59-53` filtered to the same five cases and model. Every delta inside the three-point noise floor: rules −1.3/−1.1/+0.8, judge +0.9/−2.6/−0.2 for advanced/intermediate/beginner, n=10 each side. Haiku bought a same-model like-for-like before for $0.73; nothing is concluded from it beyond "nothing broke". |
+| `01-33-41` | 6 | $0.35 | all three styles, Haiku, `reserve-agentic-session` only, 2 repeats | Run because the branch review asked what the new case does on the model that aborts — `01-12-03` had only measured Sonnet. **It aborts 3 of 6 on the 12-turn limit.** The three cells that finished used 13, 17 and 17 tool calls, against the single `agentic-fix-verify` Haiku cell that ever finished, at 9 (`22-59-53`, 5 of 6 aborted). Suggestive that the new case really is the longer session, on n=3 against n=1 — not established, and Sonnet's 8-10 points the other way. What *is* established is that it is abort-prone, which is why the reserve gate was made error-aware in the same change. |
 
-Total persisted: 484 cells, $64.30. Improve-loop spend before COS-3 is additional
+Total persisted: 490 cells, $64.65. Improve-loop spend before COS-3 is additional
 and was not tracked until late; from COS-3 onward it is carried on the rows.
 
 Two accounting caveats on that total. Cells that error carry `costUsd: 0` — the
 SDK's result message has no cost on a turn-limit abort — so `22-59-53`'s six
-failed cells and `01-03-21`'s one burned tokens that no row records. And one aborted invocation under
+failed cells, `01-03-21`'s one and `01-33-41`'s three burned tokens that no row records. And one aborted invocation under
 COS-5 (a `run --help` that the CLI treats as `run`, since there is no help flag
 on the subcommand) ran for about two minutes at concurrency 4 before being
 killed. It wrote no `rows.json`, so its spend is real but unquantified and is not
@@ -242,7 +243,7 @@ isolating the final update by its own `**What I did` label:
 |---|---|
 | cells carrying text before the final update | 16 of 18 |
 | of those, cells where a judge violation **quotes that pre-update text** | 16 of 16 |
-| over the style's word cap on the saved text | 14 of 18 |
+| over the style's word cap on the saved text | 12 of 18 |
 | over the cap counting **only from the label to the end** | 10 of 18 |
 
 The judge diagnosed the artifact itself without being asked, in a violation that
@@ -272,6 +273,18 @@ hit the 12-turn limit: `agentic-fix-verify` on Opus reads **44.2 with it and 33.
 without**. Pooling errors therefore inflates the judge while deflating rules, in
 the same run, and the two do not cancel. Filter on `!row.error` before quoting
 either.
+
+One consumer of this bias is now fixed, because COS-1 made it worse before it
+made it better. Adding a second agentic case to the `reserve` split put the most
+abort-prone case type in the project inside `improve`'s adoption gate, which
+compared `summary.overall` — an average that pools errored rows. At 36 reserve
+cells a side, each one-sided abort moved the delta by roughly 0.01 against a
+`minReserveDelta` of −0.02, so two of them could flip a verdict on the turn limit
+rather than on the rewrite. The gate now compares only cases that produced a
+reply on **both** sides, logs which cases it dropped, and rejects rather than
+adopts when nothing is comparable. `01-33-41` measured why this mattered: the new
+case aborts 3 of 6 on Haiku. The wider bias in `summarize()` is untouched and
+still raised.
 
 **Noise floor.** At one repeat and five cases, a single case moves the mean by
 about 0.03. Differences under three points are not real. `22-59-53` puts a

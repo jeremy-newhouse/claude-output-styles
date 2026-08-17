@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { improveStyle, spendOf } from '../src/improve.mjs'
+import { improveStyle, spendOf, comparableRows, meanTotal } from '../src/improve.mjs'
 import { summarize } from '../src/evaluate.mjs'
 import { renderConsole, renderMarkdown, renderVerdict } from '../src/report.mjs'
 
@@ -250,8 +250,8 @@ test('a candidate that holds up on the reserve is adopted, with both numbers rep
     const r = await runLoop(dir, { evaluate: splitAwareEvaluate(RESERVE_CLEARS), rewrite: proposeCandidate })
     assert.equal(r.best.iteration, 1)
     assert.deepEqual(r.reserve, {
-      split: 'reserve', cases: 1, baseline: 0.5, candidate: 0.6,
-      delta: 0.1, accepted: true, iteration: 1
+      split: 'reserve', cases: 1, comparedCells: 1, droppedCases: [],
+      baseline: 0.5, candidate: 0.6, delta: 0.1, accepted: true, iteration: 1
     })
     // Reported alongside train and holdout, not instead of them.
     assert.equal(r.best.train, 0.7)
@@ -278,6 +278,117 @@ test('a candidate that regresses on the reserve is rejected, not reported as the
     // The rejected rewrite is kept for the record, as rejected/ requires.
     assert.match(readFileSync(join(dir, 'demo.v1.md'), 'utf8'), /CANDIDATE/)
   })
+})
+
+// COS-1 put a second agentic case on the reserve split, and agentic cases are
+// the ones that abort on the 12-turn limit. An aborted cell is scored 0 on every
+// rule and 1.0 by the judge, so its `total` is the style's judgeWeight — well
+// below a normal reserve score. Averaged into one side of the comparison it
+// moves the delta on its own.
+const TWO_RESERVE = [
+  { id: 'tr-1', split: 'train', prompt: 'p' },
+  { id: 'ho-1', split: 'holdout', prompt: 'p' },
+  { id: 'rs-1', split: 'reserve', prompt: 'p' },
+  { id: 'rs-2', split: 'reserve', prompt: 'p' }
+]
+
+/** splitAwareEvaluate, but `aborts` case ids return no text on the named side. */
+const abortingEvaluate = (table, aborts, abortSide = 'candidate') => async ({ cases, styles }) => {
+  const side = styles[0].text.includes('CANDIDATE') ? 'candidate' : 'baseline'
+  const rows = cases.map(c => {
+    const aborted = side === abortSide && aborts.includes(c.id)
+    // Mirrors evaluate.mjs on an errored cell: rules 0, judge left at 1, and a
+    // `total` that is therefore the judge weight alone.
+    const total = aborted ? 0.3 : table[c.split][side]
+    return {
+      styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
+      split: c.split, repeat: 0, text: aborted ? '' : 'reply', costUsd: 0.01,
+      error: aborted ? 'Reached maximum number of turns (12)' : null,
+      rulesScore: aborted ? 0 : total, checks: [], judgeScore: aborted ? 1 : total,
+      judgeViolations: [], total
+    }
+  })
+  return { rows, summary: summarize(rows) }
+}
+
+test('comparableRows drops a case that errored on either side, from both sides', () => {
+  const a = [{ caseId: 'x', error: null, total: 0.5 }, { caseId: 'y', error: null, total: 0.5 }]
+  const b = [{ caseId: 'x', error: null, total: 0.6 }, { caseId: 'y', error: 'abort', total: 0.3 }]
+  const { a: left, b: right } = comparableRows(a, b)
+  assert.deepEqual(left.map(r => r.caseId), ['x'])
+  assert.deepEqual(right.map(r => r.caseId), ['x'])
+  // Symmetric: an error on the baseline side removes the case just the same.
+  const flipped = comparableRows(b, a)
+  assert.deepEqual(flipped.a.map(r => r.caseId), ['x'])
+  assert.deepEqual(flipped.b.map(r => r.caseId), ['x'])
+  assert.equal(meanTotal(left), 0.5)
+  assert.equal(meanTotal([]), 0)
+})
+
+test('one aborted reserve cell cannot flip a sound candidate to rejected', async () => {
+  await withTmpDir(async dir => {
+    // rs-1 clears the bar on both sides; rs-2 aborts on the candidate only.
+    // Averaged in, the candidate would read (0.6 + 0.3) / 2 = 0.45 against a
+    // baseline of 0.5 — a −0.05 delta past the −0.02 threshold, and a rejection
+    // caused entirely by the turn limit.
+    const r = await runLoop(dir, {
+      evaluate: abortingEvaluate(RESERVE_CLEARS, ['rs-2']),
+      rewrite: proposeCandidate,
+      cases: TWO_RESERVE
+    })
+    assert.equal(r.reserve.accepted, true)
+    assert.equal(r.reserve.delta, 0.1)
+    assert.equal(r.reserve.comparedCells, 1)
+    assert.deepEqual(r.reserve.droppedCases, ['rs-2'])
+    // The adopted style really is the candidate, not a rolled-back incumbent.
+    assert.equal(r.best.iteration, 1)
+    assert.match(readFileSync(join(dir, 'demo.best.md'), 'utf8'), /CANDIDATE/)
+  })
+})
+
+test('an aborted cell still cannot rescue a candidate that genuinely regresses', async () => {
+  await withTmpDir(async dir => {
+    const r = await runLoop(dir, {
+      evaluate: abortingEvaluate(RESERVE_REGRESSES, ['rs-2']),
+      rewrite: proposeCandidate,
+      cases: TWO_RESERVE
+    })
+    // Excluding the aborted case leaves the real comparison intact: 0.4 vs 0.5.
+    assert.equal(r.reserve.accepted, false)
+    assert.equal(r.reserve.delta, -0.1)
+    assert.equal(r.best.iteration, 0)
+  })
+})
+
+test('a reserve that errors on every cell rejects rather than adopting on no evidence', async () => {
+  await withTmpDir(async dir => {
+    const warnings = []
+    const r = await runLoop(dir, {
+      evaluate: abortingEvaluate(RESERVE_CLEARS, ['rs-1', 'rs-2']),
+      rewrite: proposeCandidate,
+      cases: TWO_RESERVE,
+      log: m => warnings.push(m)
+    })
+    assert.equal(r.reserve.comparedCells, 0)
+    assert.equal(r.reserve.accepted, false)
+    assert.equal(r.best.iteration, 0)
+    assert.doesNotMatch(readFileSync(join(dir, 'demo.best.md'), 'utf8'), /CANDIDATE/)
+    assert.ok(warnings.some(m => /cannot be validated/.test(m)), 'the run must say the candidate was never validated')
+  })
+})
+
+test('a verdict computed over fewer cases than the split holds says so', () => {
+  const line = renderVerdict({
+    styleId: 'demo',
+    best: { iteration: 1, train: 0.7, holdout: 0.5 },
+    history: [],
+    reserve: {
+      split: 'reserve', cases: 2, comparedCells: 1, droppedCases: ['rs-2'],
+      baseline: 0.5, candidate: 0.6, delta: 0.1, accepted: true, iteration: 1
+    }
+  })
+  assert.match(line, /1 case\(s\) errored and were excluded: rs-2/)
+  assert.match(line, /1 cells compared/)
 })
 
 test('reserve rows are tagged with the iteration each one validates', async () => {
