@@ -38,6 +38,7 @@
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
 - 2026-08-17T00:52:00-05:00 f6c098f122e15a8f07170ef424aea43ee42ba7d9 docs(COS-12): archive consumed backlog-campaign handover and record the merge
 - 2026-08-17T01:28:20-05:00 48e63b19d0389825267f4996f1d2e5069a917403 Re-derive every published figure the scorer change moves, and label the rest
+- 2026-08-17T01:32:17-05:00 83e7ad277183bd80d48b5ba6fb696fb746b1378b chore(COS-10): record the out-of-scope score crash in the doc log
 
 ## docs/adr
 
@@ -80,6 +81,7 @@
 - 2026-08-17T00:49:59-05:00 b7355016418f832464f8e463fdab4a86c50eeec4 Label a partial run everywhere it can be read, and fix improve's flush order
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
 - 2026-08-17T01:28:20-05:00 48e63b19d0389825267f4996f1d2e5069a917403 Re-derive every published figure the scorer change moves, and label the rest
+- 2026-08-17T01:40:32-05:00 ecfbb5bd226c9c5dc9c7377c4d9f4b5acf5d65c6 Correct the ledger's own claim about what the re-segmentation moved
 
 ## docs/runbooks
 
@@ -132,3 +134,4 @@
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
 - 2026-08-17T01:28:20-05:00 48e63b19d0389825267f4996f1d2e5069a917403 Re-derive every published figure the scorer change moves, and label the rest
 - 2026-08-17T01:30:49-05:00 375d9f91802833d82f54703a6d27e747645d60dd Correct the two live docs the re-segmentation also moved
+- 2026-08-17T01:40:32-05:00 ecfbb5bd226c9c5dc9c7377c4d9f4b5acf5d65c6 Correct the ledger's own claim about what the re-segmentation moved
