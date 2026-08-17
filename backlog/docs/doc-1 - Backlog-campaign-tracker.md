@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 13:58'
+updated_date: '2026-08-17 14:16'
 ---
 # Backlog campaign tracker
 
@@ -49,11 +49,13 @@ and 15 of campaign 2, because the blockers under them have owners.
 | 7 | COS-1 | styles | ACs #1-#3 merged; AC #4 missed and parked |
 | 8 | COS-4 | styles | ACs #2-#3 met and merged; AC #1 missed and parked |
 
-**Campaign 2: 17 issues.** Items 1-15 are the order the user confirmed on
-2026-08-17. Items 16 and 17 were opened later, by session 13, from a review that
-landed after COS-13 had already merged; they are **appended, not inserted**,
-because the order above is the user's and a session does not get to rewrite it
-quietly. Read the note under the phase list before taking one.
+**Campaign 2: 18 issues.** Items 1-15 are the order the user confirmed on
+2026-08-17. Items 16 to 18 were opened later, by the sessions that found them —
+16 and 17 by session 13 from a review that landed after COS-13 had already
+merged, 18 by session 14 from the COS-14 review plus its own probing. All three
+are **appended, not inserted**, because the order above is the user's and a
+session does not get to rewrite it quietly. Read the note under the phase list
+before taking one.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
@@ -74,6 +76,7 @@ quietly. Read the note under the phase list before taking one.
 | 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
 | 16 | COS-22 | harness | Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. No spend. |
 | 17 | COS-23 | protocol | `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. No spend. |
+| 18 | COS-24 | harness | The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. No spend. |
 
 The order is a valid topological sort of the recorded dependencies, and every
 phase boundary is a real constraint rather than a preference:
@@ -90,14 +93,22 @@ phase boundary is a real constraint rather than a preference:
   the headline table, and it must measure final text.
 - **14-15, the two parked bars**, each of which depends on work above it.
 
-**On items 16 and 17.** By nature both belong in the repair phase — they are
-cheap, they buy no cells, and COS-22 is literally tool repair. They sit at the
-end anyway because nothing downstream depends on either: COS-22 hardens a guard
-that already enforces the invariant it was written for, and COS-23 is a
-provenance defect in a generated log, not in any measurement. Neither blocks a
-single item from 5 to 15. A session that wants to promote them into the repair
-phase should say so to the user rather than assume, since that reorders a
+**On items 16 to 18.** By nature all three belong in the repair phase — they are
+cheap, they buy no cells, and COS-22 and COS-24 are literally tool repair. They
+sit at the end anyway because nothing downstream depends on any of them: COS-22
+hardens a guard that already enforces the invariant it was written for, COS-23 is
+a provenance defect in a generated log rather than in any measurement, and COS-24
+changes how the CLI rejects input, not what a correct invocation measures. None
+blocks a single item from 6 to 15. A session that wants to promote them into the
+repair phase should say so to the user rather than assume, since that reorders a
 sequence the user chose from a presented comparison.
+
+COS-24 has the strongest case of the three for being promoted, and the argument
+is worth stating rather than leaving implicit: every item from 7 onwards spends
+money through this CLI, and the defect's headline case is a mistyped flag that
+buys the full default matrix instead of the narrowed arm the operator asked for.
+It is a cost risk on work that has not happened yet, not a defect in work already
+done. That is a decision for the user, not for a session.
 
 Both came from the COS-13 branch review, which finished **after** the PR had
 merged — the review agent watched `dev..HEAD` go empty underneath it and
@@ -937,3 +948,26 @@ Both remaining issues carry known risk against that policy:
   117 → 122; `audit` exit 0; `lore check` exit 0. Two docs stated the coupling
   as fact and were corrected with it: `harness/README.md`'s models bullet and
   `docs/stories/extend-measurement-coverage.md`'s notes.
+
+  Afterwards, on the user's instruction to open follow-ups for anything missed,
+  the session probed the CLI's whole argument surface at $0 and opened
+  **COS-24** as queue item 18. The review had found one instance — `--models=`
+  swallowed — and fixing it for `improve` alone left the same defect in every
+  other flag, because `parseArgs` accepts any `--name` and `pick` accepts
+  whatever follows it. Nine more were verified by running them with
+  `--cases=__none__` or by calling the affected function directly. Two are worse
+  than the one that was found: `run --concurrency=abc` makes
+  `Array.from({ length: NaN })` empty, so `pool` starts zero workers, returns
+  `[null, null, null]` and the run dies in `summarize` with a null-property
+  error after measuring nothing; and `run --no-judge=false` turns the judge off,
+  because `'false'` is truthy, silently dropping the 30% judge component from
+  figures that then sit beside runs that kept it. The most expensive is the
+  plainest: an unknown flag such as `--modles=haiku` is ignored and the full
+  default matrix runs.
+
+  COS-23 also gained a fifth criterion from the same sweep. Its own merge is the
+  evidence: `docs/log.md` cites `374378a` twice, which the rebase rewrote to
+  `e0bb46e` and which is not an ancestor of `dev`, while `b0014af` and `2833a95`
+  — the review-fix and doc-log commits — appear zero times, because `lore sync`
+  has to run before a branch's last commits exist. The log is both unreachable
+  and incomplete, and a direction chosen for one should cover both.

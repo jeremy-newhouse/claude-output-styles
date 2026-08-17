@@ -4,6 +4,7 @@ title: Stop docs/log.md citing SHAs the rebase-merge destroys
 status: To Do
 assignee: []
 created_date: '2026-08-17 13:41'
+updated_date: '2026-08-17 14:15'
 labels: []
 dependencies: []
 references:
@@ -22,6 +23,7 @@ Confirmed on COS-13: `docs/log.md` cites `acadf1b99ac`, `e71e38c35d7` and `3d263
 This is systemic, not a COS-13 defect. Every campaign session since the switch to PR-based merging has the same shape, and every future session will unless the generation point or the merge strategy changes. Check how far back it goes before deciding: the earlier local-`merge --ff-only` sessions preserved SHAs, so there is likely a clean boundary.
 
 Three directions, all plausible, none yet chosen: regenerate the affected sections of `docs/log.md` after the merge rather than on the branch; drop SHAs from the log in favour of something stable; or change the merge strategy so SHAs survive. The first is smallest but adds a post-merge step to every session; the third conflicts with the linear-history convention the campaign chose deliberately. Whoever takes this should settle which of the three the project wants before editing anything, and record the reasoning.
+**A second defect in the same file, found by session 14 (COS-14) and verified on its own merge.** The log is not only unreachable, it is incomplete. `lore sync` records the commits that exist when it runs, and it has to run before the final commits of a branch — the review fixes, the doc-log commit itself, the handover archive. On COS-14's branch, `docs/log.md` cites `374378a` twice and that SHA is not an ancestor of `dev` (the rebase rewrote it to `e0bb46e`), while `b0014af` and `2833a95` — the review-fix commit and the doc-log commit, rewritten to `87c8e1a` and `cb638d4` — appear zero times. So the entry that is present is dead and the entries that would matter most to a reader are absent. Any direction chosen for the SHA problem should cover both, since regenerating post-merge fixes them together and dropping SHAs fixes only the first.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -30,4 +32,5 @@ Three directions, all plausible, none yet chosen: regenerate the affected sectio
 - [ ] #2 A direction is chosen between regenerating post-merge, dropping SHAs, and changing merge strategy, with the reasoning recorded
 - [ ] #3 Every SHA that docs/log.md cites resolves against origin, verified by a command run on a fresh clone or an equivalent reachability check
 - [ ] #4 The campaign protocol is updated so future sessions do not reintroduce the problem
+- [ ] #5 docs/log.md contains every commit a branch merged, not only those that existed when lore sync last ran — verified on a session whose review-fix and doc-log commits are absent today
 <!-- AC:END -->
