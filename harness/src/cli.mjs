@@ -4,6 +4,7 @@ import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { evaluate, summarize } from './evaluate.mjs'
 import { improveStyle, resolveImproveModels } from './improve.mjs'
+import { cellLimitMs } from './run.mjs'
 import { loadStyle } from './style.mjs'
 import { renderConsole, renderVerdict } from './report.mjs'
 import { writeResults, writeAtomic, readManifest, describeManifest } from './results.mjs'
@@ -83,6 +84,14 @@ const opts = {
   concurrency: Number(args.concurrency ?? matrix.run.concurrency),
   judge: args['no-judge'] ? false : matrix.run.judge
 }
+
+// Once, here, rather than per cell. runCell also checks, but by then the damage
+// to the reading is done: under `improve` the throw is caught by the per-style
+// handler and filed as a style failure, so a typo in matrix.json reads like an
+// optimizer crash; under `run` it surfaces after an empty results/<stamp>/ has
+// already been created. Fail before either directory exists. `score` re-grades
+// saved rows and never runs a cell, so it is not held to this.
+if (cmd === 'run' || cmd === 'improve') cellLimitMs(opts.maxCellSeconds)
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-')
 const outDir = join(ROOT, 'results', stamp)
