@@ -25,9 +25,11 @@ first thing you read in every message.
 Both numbers above are from run `20-10-29`, on an advanced style file that has
 since been replaced. Two later results qualify them, and neither softens the
 conclusion. On the shipped files Opus overruns 1.44× as often as Sonnet, not
-twice; and **neither failure is an Opus trait** — all four tiers, from Haiku to
-Fable, overrun the word cap and narrate before the first tool call. See the
-per-model baseline below.
+twice. And **neither failure is an Opus trait.** All four tiers overrun the word
+cap, on 30% to 43% of replies. Three of the four narrate before the first tool
+call — `leads_with_conclusion` scores 83.3 on Haiku, 83.3 on Fable and 90.0 on
+Opus, against Sonnet's 100.0 — so the top tier is joint worst at it and Sonnet,
+not Opus, is the outlier in both halves. See the per-model baseline below.
 
 ## Three separate causes
 
@@ -410,10 +412,24 @@ changes:
 
 `leads_with_conclusion` scores **16.7** across those six cells. Five of six
 replies open with a variant of *"I'll look at the file first."* before the first
-tool call — the exact failure this document opens with, measured at the top of
-the range and worse there than anywhere else. No amount of capability removed it,
-which makes it the strongest evidence in the project that this is a Claude Code
-narration habit rather than a model limitation.
+tool call — the exact failure this document opens with.
+
+The like-for-like version is `agentic-read-report`, the one agentic case all four
+tiers have run under the current style text:
+
+| model | `leads_with_conclusion` on `agentic-read-report` |
+|---|---|
+| sonnet | 100.0 |
+| opus | 50.0 |
+| haiku | 16.7 |
+| fable | **16.7** |
+
+The top tier is level with the cheapest, and both are far behind the two in the
+middle. Capability does not touch this rule, which is the strongest evidence in
+the project that pre-tool narration is a Claude Code habit rather than a model
+limitation. Note the direction is the opposite of the word cap: there Sonnet was
+the outlier that complied, here Sonnet complies perfectly again. Whatever these
+two rules have in common, tier is not it.
 
 **Two rules are not quotable on agentic cells, for a harness reason.**
 `run.mjs` accumulates assistant text blocks with `text += b.text` and no

@@ -17,6 +17,7 @@
 - 2026-08-16T18:40:23-05:00 82d32e5f105b05c18fabcac8af95fdd8cce58283 Archive session 5's handover and record COS-5's merge SHA
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
+- 2026-08-16T19:12:39-05:00 8546012ae659bd460c18e08c79314fe7d09ac637 Correct the campaign spend total, which never matched its own parts
 
 ## docs/adr
 
