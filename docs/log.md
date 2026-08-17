@@ -64,6 +64,7 @@
 - 2026-08-17T11:32:23-05:00 f442aa6579bbc0720f70f2d23caf5b72f4a72f50 Correct the re-score denominator, and record why the connectives went
 - 2026-08-17T13:02:26-05:00 e7d23c8b066a94886429138c303d98d8844d31b4 Record what 720 judge calls established about the judge
 - 2026-08-17T13:07:26-05:00 79070436b5d83c3851eb24383aed68fa37391623 Say which style the sample sizes are for, in all four places that quote them
+- 2026-08-17T13:12:05-05:00 6e3ba307b8966ce34b2d61d6991cf433500ad9ae Fix seven findings from the branch review
 
 ## docs/adr
 
