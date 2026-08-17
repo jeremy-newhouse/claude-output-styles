@@ -37,8 +37,9 @@
 - 2026-08-17T00:49:59-05:00 b7355016418f832464f8e463fdab4a86c50eeec4 Label a partial run everywhere it can be read, and fix improve's flush order
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
 - 2026-08-17T00:52:00-05:00 f6c098f122e15a8f07170ef424aea43ee42ba7d9 docs(COS-12): archive consumed backlog-campaign handover and record the merge
-- 2026-08-17T01:28:20-05:00 48e63b19d0389825267f4996f1d2e5069a917403 Re-derive every published figure the scorer change moves, and label the rest
-- 2026-08-17T01:32:17-05:00 83e7ad277183bd80d48b5ba6fb696fb746b1378b chore(COS-10): record the out-of-scope score crash in the doc log
+- 2026-08-17T01:42:11-05:00 0d94ed90742e7da3b552847809d8b212adccfe6b Re-derive every published figure the scorer change moves, and label the rest
+- 2026-08-17T01:42:11-05:00 2a354d3f07fec3782cac8a92642e69d22424728c chore(COS-10): record the review outcome in the campaign tracker
+- 2026-08-17T01:42:11-05:00 a00609741475a2a489b79cb6a1c933d8432cb371 chore(COS-10): record the out-of-scope score crash in the doc log
 
 ## docs/adr
 
@@ -80,8 +81,8 @@
 - 2026-08-17T00:49:59-05:00 275dcf1a3cc3ad6b64d3fabb8eddb0a3c035b15e Say which command flushes per cell and which per split
 - 2026-08-17T00:49:59-05:00 b7355016418f832464f8e463fdab4a86c50eeec4 Label a partial run everywhere it can be read, and fix improve's flush order
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
-- 2026-08-17T01:28:20-05:00 48e63b19d0389825267f4996f1d2e5069a917403 Re-derive every published figure the scorer change moves, and label the rest
-- 2026-08-17T01:40:32-05:00 ecfbb5bd226c9c5dc9c7377c4d9f4b5acf5d65c6 Correct the ledger's own claim about what the re-segmentation moved
+- 2026-08-17T01:42:11-05:00 0d94ed90742e7da3b552847809d8b212adccfe6b Re-derive every published figure the scorer change moves, and label the rest
+- 2026-08-17T01:42:11-05:00 1fc7fb1ab6baf260ed9b2cb9e7c8e0e7cd2e8412 Correct the ledger's own claim about what the re-segmentation moved
 
 ## docs/runbooks
 
@@ -106,7 +107,7 @@
 - 2026-08-16T19:26:40-05:00 f67772d495ad2f610615ec6c3087190030cc06b0 Carry the fourth tier into the audience-level spec
 - 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
-- 2026-08-17T01:30:49-05:00 375d9f91802833d82f54703a6d27e747645d60dd Correct the two live docs the re-segmentation also moved
+- 2026-08-17T01:42:11-05:00 3a6df76953415b5b2ad6c66e91a3d7f6c19117cc Correct the two live docs the re-segmentation also moved
 
 ## docs/stories
 
@@ -132,6 +133,6 @@
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 - 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
 - 2026-08-17T00:49:59-05:00 fc038753d9c8b810e1036e1cb7c2e45055358594 Record the per-cell flush in the docs bundle and the ledger
-- 2026-08-17T01:28:20-05:00 48e63b19d0389825267f4996f1d2e5069a917403 Re-derive every published figure the scorer change moves, and label the rest
-- 2026-08-17T01:30:49-05:00 375d9f91802833d82f54703a6d27e747645d60dd Correct the two live docs the re-segmentation also moved
-- 2026-08-17T01:40:32-05:00 ecfbb5bd226c9c5dc9c7377c4d9f4b5acf5d65c6 Correct the ledger's own claim about what the re-segmentation moved
+- 2026-08-17T01:42:11-05:00 0d94ed90742e7da3b552847809d8b212adccfe6b Re-derive every published figure the scorer change moves, and label the rest
+- 2026-08-17T01:42:11-05:00 1fc7fb1ab6baf260ed9b2cb9e7c8e0e7cd2e8412 Correct the ledger's own claim about what the re-segmentation moved
+- 2026-08-17T01:42:11-05:00 3a6df76953415b5b2ad6c66e91a3d7f6c19117cc Correct the two live docs the re-segmentation also moved

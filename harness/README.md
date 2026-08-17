@@ -325,20 +325,42 @@ them. `leads_with_conclusion`, `total_length` and the abort counts were never
 affected — the first reads the genuine opening text, the second counts words, the
 third does not depend on segmentation — and neither is any conversational figure.
 
-**Filter errored rows before quoting any mean.** A cell that errors and returns
-no text scores 0 on every rule *and* 1.0 on the judge — `evaluate.mjs` substitutes
-`{ total: 0, checks: [] }` for the rules and skips the judge call, substituting
-`{ score: 1 }`. The two biases run in opposite directions and do not cancel. One
-turn-limit abort in `01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge
-from 33.0 to 44.2.
+**A cell that said nothing is excluded from every mean, automatically.** This
+used to be a discipline — *filter `!row.error` before quoting anything* — and
+three sessions had to remember it, one of which forgot and published four wrong
+figures. Since COS-11 `summarize()` does it, so `report.md`, `summary.json`,
+`score` and the optimizer's own comparisons all read the same way.
 
-Note what that sentence turns on: **the error flag, not the empty reply.** The
-zero comes from the guard, not from the checks — `scoreDeterministic` on an empty
-string returns 0.931 for beginner on `agentic-fix-verify`, because every "no X
-found" check finds no X. So a cell that returns no text *without* the SDK
-reporting an error scores near-perfect on rules and a free 1.0 on the judge. That
-combination has not been seen in a saved run and the guard has always been written
-this way; it is recorded under COS-11, which owns both halves of this bias.
+What it protects against: a cell that returns no text scores 0 on every rule
+*and* 1.0 on the judge — `evaluate.mjs` substitutes `{ total: 0, checks: [] }`
+for the rules and skips the judge call, substituting `{ score: 1 }`. The two
+biases run in opposite directions and do not cancel. One turn-limit abort in
+`01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge from 33.0 to 44.2,
+and pooling six aborts in `22-59-53` understated Haiku's advanced rule compliance
+by 10.8 points (94.2 pooled down to 83.4) in the same run.
+
+The predicate is `producedReply(row)` in `checks.mjs`, and it turns on **the turn,
+not the error flag.** The zero above comes from the guard, not from the checks:
+`scoreDeterministic` on an empty string returns 0.931 for beginner on
+`agentic-fix-verify`, because every "no X found" check finds no X. A cell that
+returned no text *without* the SDK reporting an error would therefore have scored
+near-perfect on rules and taken the free 1.0 on top — so the predicate reads the
+turn instead, and the same guard now runs on the live path and the `score` path,
+which previously disagreed. That combination has still never been seen in a saved
+run; all five saved runs holding a silent cell had the flag set.
+
+Two things it deliberately does not do. `costUsd` still pools every cell,
+because an aborted cell was paid for. And a cell that narrated and then ended on
+a tool call has an empty *final message* but a real turn — it is measurable
+behaviour and stays in the mean.
+
+**Every figure states its own sample.** Each group in `summary.json` carries `n`
+(cells that replied, the sample behind `score`/`rules`/`judge`), `noReply`, and
+`cells` (the arm as requested); `report.md` renders all three, and the console
+tables print `n=` with a `no reply=k/N` suffix when they differ. An arm where
+nothing replied reports `null`, and both renderers print `n/a` rather than
+`0.0%` — "we could not measure this" must never publish as "it failed every
+rule".
 
 ## Cost control
 
