@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf } from '../src/checks.mjs'
 import { splitTurn } from '../src/run.mjs'
+import { judge } from '../src/judge.mjs'
 
 const C = { maxSentenceWords: 20, maxParagraphSentences: 4, maxUpdateWords: 120, maxCodeLines: 10, level: 'advanced', bannedTerms: [], defaultChecks: ['no_emoji'] }
 
@@ -177,4 +178,53 @@ test('the list-header split changes what sentence_length measures', () => {
   // One header plus one short item: two short sentences, not one long one.
   const t = 'The cause is the nightly job:\nIt writes after the report reads.'
   assert.equal(CHECKS.sentence_length.run(t, tight).score, 1)
+})
+
+test('paragraph_length exempts a list that follows a lead-in line', () => {
+  // The exemption used to test only the paragraph's first character, so a
+  // lead-in plus bullets in one block was graded as prose. Harmless until
+  // sentences() started splitting on a single newline; then five bullets became
+  // five sentences and failed a cap of four.
+  const t = 'Five things changed:\n- retry cap is now three\n- dead-letter table drains\n' +
+            '- alerts cleared\n- queue is empty\n- sign-ins recover again'
+  assert.equal(CHECKS.paragraph_length.run(t, C).score, 1)
+  // A genuine wall of prose is still caught.
+  const wall = 'One. Two. Three. Four. Five.'
+  assert.equal(CHECKS.paragraph_length.run(wall, C).score, 0)
+})
+
+test('the ban checks read the trace, the rate checks read the final message', () => {
+  // The line is ban vs cap, and it has to hold for the two heaviest beginner
+  // checks: a level that shows no code, and its jargon list. Both are violated
+  // by a pre-tool block the reader sees.
+  for (const id of ['no_filler', 'no_celebration', 'no_emoji', 'no_process_narration', 'no_jargon', 'code_block_size']) {
+    assert.equal(CHECKS[id].reads, 'trace', `${id} is a ban list and must read the whole turn`)
+  }
+  for (const id of ['sentence_length', 'paragraph_length', 'total_length', 'active_voice', 'three_question_structure', 'two_options_max', 'leads_with_conclusion']) {
+    assert.equal(CHECKS[id].reads, 'final', `${id} is a rate over the answer and must read the final message`)
+  }
+  const beginner = { ...C, maxCodeLines: 0, bannedTerms: ['endpoint'], defaultChecks: ['code_block_size', 'no_jargon'] }
+  const views = {
+    final: 'I fixed the price rounding. 3 of 3 tests pass.',
+    trace: 'Let me check the endpoint.\n\n```js\nconst x = 1\n```\n\nI fixed the price rounding. 3 of 3 tests pass.'
+  }
+  const by = Object.fromEntries(scoreDeterministic(views, beginner, {}).checks.map(c => [c.id, c.score]))
+  assert.equal(by.code_block_size, 0, 'code shown before the last tool call is still code the reader saw')
+  assert.ok(by.no_jargon < 1, 'jargon in narration is still jargon the reader saw')
+})
+
+test('judge refuses a view it does not recognise instead of scoring 1.0', async () => {
+  const views = { final: 'Fixed it.', trace: 'Fixed it.' }
+  const caseDef = { id: 'typo-case', judge: 'anything', judgeOn: 'finl' }
+  // Falling through would index views as undefined, hit the empty-text guard
+  // and hand over the whole judge weight for free.
+  await assert.rejects(() => judge({ views, caseDef, contract: C, model: 'haiku' }), /judgeOn must be one of/)
+})
+
+test('judge defaults to the final message and honours an explicit trace', async () => {
+  // No API call: an empty view short-circuits before the query, so this asserts
+  // the selection without spending.
+  const views = { final: '', trace: 'narration only' }
+  assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r' }, contract: C }), { score: 1, violations: [] })
+  assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r', judgeOn: 'final' }, contract: C }), { score: 1, violations: [] })
 })

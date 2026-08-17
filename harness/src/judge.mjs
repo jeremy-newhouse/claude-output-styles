@@ -3,6 +3,7 @@
 // system prompt and no tools, so the judge is not itself under an output style.
 
 import { query } from '@anthropic-ai/claude-agent-sdk'
+import { VIEWS } from './checks.mjs'
 
 const JUDGE_PROMPT = `You grade one assistant reply against the style guide it was written under.
 Return ONLY a JSON object, no prose, no code fence:
@@ -33,7 +34,15 @@ would change nothing. Quote the offending text in each violation. Max 4.`
 export const JUDGE_VIEW_DEFAULT = 'final'
 
 export async function judge ({ views, caseDef, contract, model, styleBody }) {
-  const text = views?.[caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT] ?? ''
+  const on = caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT
+  // Throw rather than fall through. An unrecognised view would index `views` as
+  // undefined, the empty-text guard below would return a free 1.0, and that is
+  // the whole judge weight — 0.3 to 0.5 of the cell — awarded for a typo. The
+  // check path throws on an unknown `reads` for the same reason, and the config
+  // test only covers agentic cases, so a bad value on a conversational case
+  // would otherwise ship green and inflate every cell of that case.
+  if (!VIEWS.includes(on)) throw new Error(`case ${caseDef.id}: judgeOn must be one of ${VIEWS.join('|')}, got ${JSON.stringify(on)}`)
+  const text = views?.[on] ?? ''
   if (!caseDef.judge || !text) return { score: 1, violations: [] }
 
   const user = [
