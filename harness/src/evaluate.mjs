@@ -11,9 +11,17 @@ const DEFAULT_JUDGE_WEIGHT = 0.3
 
 /**
  * Execute a matrix and score every cell.
+ *
+ * @param {(rows: object[]) => void} [onRows]  called after every completed cell
+ *   with the rows finished so far, in matrix order. This is how a caller
+ *   persists a run that is about to be killed; the cells are already paid for
+ *   by the time it fires.
+ * @param {object} [deps]  runCell, injectable so persistence can be tested
+ *   without spending anything.
  * @returns {{ rows: object[], summary: object }}
  */
-export async function evaluate ({ styles, variants, models, cases, contracts, opts, onProgress }) {
+export async function evaluate ({ styles, variants, models, cases, contracts, opts, onProgress, onRows, deps = {} }) {
+  const { runCell: runCellFn = runCell } = deps
   const cells = []
   for (const style of styles) {
     for (const variant of variants) {
@@ -28,9 +36,13 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
   }
 
   let done = 0
-  const rows = await pool(cells, opts.concurrency, async cell => {
+  // Indexed by cell, not appended in completion order: a flushed partial file
+  // is then ordered exactly like the complete one it would have become, and
+  // holes are simply the cells still running. filter() skips them.
+  const landed = new Array(cells.length)
+  const rows = await pool(cells, opts.concurrency, async (cell, idx) => {
     const contract = contracts[cell.style.id]
-    const run = await runCell({
+    const run = await runCellFn({
       styleId: cell.style.id,
       styleText: cell.style.text,
       variant: cell.variant,
@@ -50,8 +62,11 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
 
     const wJudge = contract.judgeWeight ?? DEFAULT_JUDGE_WEIGHT
     const total = Number((rules.total * (1 - wJudge) + j.score * wJudge).toFixed(3))
+    const row = { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeViolations: j.violations, total }
+    landed[idx] = row
     onProgress?.(++done, cells.length, { ...run, total })
-    return { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeViolations: j.violations, total }
+    onRows?.(landed.filter(Boolean))
+    return row
   })
 
   return { rows, summary: summarize(rows) }
