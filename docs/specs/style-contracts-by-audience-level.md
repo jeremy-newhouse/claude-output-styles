@@ -173,8 +173,8 @@ read 41.8% on this slice and 47.4% with the tool-using cells pooled back in — 
 and 41.0%, a 0.6-point swing. Most of that gap was the harness under-splitting
 tool-using replies, not a property of the cells.
 
-**A cheap-model probe measures whether an instruction can bind, not whether it
-binds** — and a probe small enough to be cheap is small enough that its baseline
+**A small-model probe measures whether an instruction can bind, not whether it
+binds** — and a probe small enough to run quickly is small enough that its baseline
 arm may not reproduce, which is the failure that actually happened here.
 Re-measure a probe's own baseline before building an explanation on the gap it
 appears to show.

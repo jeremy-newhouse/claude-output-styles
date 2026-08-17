@@ -70,17 +70,16 @@ pooled over 35 cells a model, beginner reads **rules 98.5 / 97.4 and judge 73.9 
 since the rewrite. Read the row as history; `FINDINGS.md` carries the current
 numbers.
 
-The four tiers span a tenfold cost range — $0.0232 to $0.2345 per cell, measured
-— and rule compliance holds across all of it, 90.9 to 97.9. Prose quality does
-not: the judge ranges 37.5 to 78.3 over the same twelve cells. That is the epic's
-central result. The style files carry their rules everywhere; what a tier changes
-is how well it writes, not how well it complies.
+The four tiers span the whole released range, from the smallest model to the
+largest — and rule compliance holds across all of it, 90.9 to 97.9. Prose quality
+does not: the judge ranges 37.5 to 78.3 over the same twelve cells. That is the
+epic's central result. The style files carry their rules everywhere; what a tier
+changes is how well it writes, not how well it complies.
 
 The top tier is not a clean win. Fable leads the judge on advanced and beginner
-but is last of four on intermediate rules, and Sonnet — two tiers down and 2.3×
-cheaper per cell — still writes the best intermediate. Nor does paying more buy
-cap adherence: word-cap overrun does not track tier, and the model that keeps
-best to the cap is Sonnet.
+but is last of four on intermediate rules, and Sonnet — two tiers down — still
+writes the best intermediate. Nor does a larger model buy cap adherence: word-cap
+overrun does not track tier, and the model that keeps best to the cap is Sonnet.
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a

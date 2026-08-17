@@ -207,7 +207,7 @@ That was a scorer artifact. The optimized reply led with the recommendation and
 named both alternatives in prose without the literal "Option A / Option B"
 labels, and the check required the labels. The check now scores the structure —
 at most two options, compared, one recommendation — and the regression
-disappears. Re-graded offline from the saved transcripts at no token cost.
+disappears. Re-graded offline from the saved transcripts, with no new cells run.
 
 ## Converged state
 
@@ -282,8 +282,7 @@ Rules and judge are.
 
 Three things this settles. Rule compliance is high everywhere and roughly
 model-independent — the spread across all twelve cells is 90.9 to 97.9, and it
-holds across a **tenfold cost range**: $0.0232 per cell on Haiku to $0.2345 on
-Fable, measured. Prose quality is not: beginner sits 15 to 28 points below
+holds across **the whole released capability range**, from Haiku to Fable. Prose quality is not: beginner sits 15 to 28 points below
 advanced depending on the model, and it is the only style where the two halves
 disagree sharply. And the two ends of the range fail in opposite halves — Haiku is
 last on the judge for all three styles while never giving up more than 1.9 points
@@ -292,8 +291,7 @@ of rule score against the best of the other three, and Fable is last on
 Whatever a tier gives up, it is not rule-following.
 
 The judge column is *not* a tier ranking. Fable leads on advanced and beginner,
-but Sonnet — two tiers down and 2.3× cheaper per cell — beats it on intermediate,
-72.6 to 67.7. The only stable fact is at the bottom: Haiku is last every time.
+but Sonnet — two tiers down — beats it on intermediate, 72.6 to 67.7. The only stable fact is at the bottom: Haiku is last every time.
 
 There is one clean split, and it is not a gradient. **Haiku and Sonnet both rank
 intermediate above advanced on the judge (62.2 > 52.9 and 72.6 > 66.0); Opus and
@@ -305,8 +303,8 @@ name it.
 Beginner follows its own rules at over 90% and still reads worst, on all four
 models. That is the signature of a style whose stated rules do not capture what
 makes it good, which is why the optimizer could not fix it by rewording them.
-Four models across a tenfold cost spread reproduce the pattern exactly — so it is
-a property of the style file, not of any one model's taste. Fable's 53.9 is the
+Four models spanning the whole capability range reproduce the pattern exactly — so
+it is a property of the style file, not of any one model's taste. Fable's 53.9 is the
 best beginner judge score in this table and still 16 points under the 70% bar.
 (Individual two-cell samples inside optimizer runs have scored higher; those are
 not comparable with a ten-cell baseline and are not a style's score.)
@@ -346,7 +344,7 @@ and the Haiku and Fable columns from `22-59-53` and `23-48-45`, after it — so
 last every time" survives only because Haiku is last by margins larger than the
 effect. The rule is simply that a judge figure predating `3370e4d` is quotable
 only for advanced; anything resting on the other two needs a fresh arm. COS-4
-paid for one, and beginner read 12.8 and 22.3 points higher on it. **How much of
+ran one, and beginner read 12.8 and 22.3 points higher on it. **How much of
 that is the corrected cap and how much is COS-1's added text is not separable** —
 both changed between the two runs, and no arm isolates either.
 
@@ -399,9 +397,9 @@ described below does not touch these figures.
 
 So the honest reading is narrow and it is enough. **Nothing in this data resolves
 a tier gradient, and the point estimates run against one at two of three steps.**
-The one comparison that survives correction says the *second-cheapest* model
-keeps to the cap better than the *most expensive* one, which is the opposite of
-what a gradient predicts. What the data does not do is prove no gradient exists —
+The one comparison that survives correction says the *second-smallest* model
+keeps to the cap better than the *largest* one, which is the opposite of what a
+gradient predicts. What the data does not do is prove no gradient exists —
 the wide intervals on the other five comparisons are consistent with small
 effects in either direction. It rules out the effect being large enough to matter
 at this sample size, and it removes the reason to suspect one.
@@ -409,17 +407,17 @@ at this sample size, and it removes the reason to suspect one.
 This is where the summary's qualifier at the top of the document comes from. The
 "roughly twice as often" figure is run `20-10-29`'s, on an advanced style file
 that has since been replaced; on the shipped files the ratio is 1.44× (43.3%
-against 30.0%). And spending more per token does not buy cap adherence — Fable
+against 30.0%). And a larger model does not buy cap adherence — Fable
 overruns its cap on 40% of replies.
 
 ### Haiku on the full case set, and what it cannot do at all
 
 The table above uses five cases because that is what Opus, Sonnet and Fable were
-measured on. Haiku was also run across the full 13-case pool — 78 cells, $1.88 —
-and that run exposes something five conversational cases cannot. Haiku is the
-only tier cheap enough to afford the whole pool: at Fable's measured rates the
-same 78 cells come to roughly $27 — 66 at $0.2345 plus the 12 cells of its two
-write-then-verify cases at $0.9681.
+measured on. Haiku was also run across the full 13-case pool — 78 cells —
+and that run exposes something five conversational cases cannot. Haiku is the only
+tier fast enough to take the whole pool in one run: the same 78 cells on Fable
+would run an order of magnitude more tokens, because 12 of them are its two
+write-then-verify cases and those are the project's largest cells.
 
 **Six of the 78 cells produced no reply at all.** Every one is
 `Reached maximum number of turns (12)`, and every one is a case that requires
@@ -433,7 +431,7 @@ editing a file and then running the tests:
 
 The like-for-like comparison is `agentic-fix-verify`, the one write-then-verify
 case all four tiers have now run: **Haiku 5 aborts in 6 cells, Opus 0 in 6,
-Sonnet 0 in 6, Fable 0 in 6** (see below for what Fable's six cells cost, and
+Sonnet 0 in 6, Fable 0 in 6** (see below for the size of Fable's six cells, and
 what it gave up to finish them). Widening to every saved agentic cell does not
 change the picture but does pad the denominator with work that does not
 discriminate — Opus is 0 of 21 and Sonnet 0 of 28, but 15 and 22 of those are the
@@ -460,7 +458,7 @@ which one it is.
 
 ### What Haiku does not do
 
-Two rules where the cheap model was expected to fail, and did not:
+Two rules where the smallest model was expected to fail, and did not:
 
 - **Sentence length.** Measured on the **four conversational cases only** — the
   agentic case is excluded on purpose, because the saved agentic replies predate
@@ -501,7 +499,7 @@ Where Haiku is genuinely worse, on the like-for-like five cases, it is worse at
 *opening the reply*, not at obeying caps: `leads_with_conclusion` 83.3 against
 Sonnet's 100.0 and Opus's 90.0 — the same pre-tool-call narration failure this
 document opens with, one tier more pronounced. Fable scores 83.3 on the same
-rule, so the top tier is no better at it than the cheapest.
+rule, so the top tier is no better at it than the smallest.
 
 ### Fable finishes the agentic work and stops obeying the style
 
@@ -516,9 +514,9 @@ Fable was run on the same case, three styles, two repeats (`23-53-02`):
 | opus | 0 of 6 |
 | fable | 0 of 6 |
 
-Those cells averaged $0.9681 and ranged $0.7970 to $1.1315 — 4.8× a conversational
-Fable cell ($0.1998), and the six most expensive cells in the project. The top
-tier buys completion, and completion is the only thing it buys. Same model, same
+Those cells average **4.8× a conversational Fable cell** and spread 1.4× from the
+smallest of the six to the largest — the project's largest cells. The top tier
+buys completion, and completion is the only thing it buys. Same model, same
 style files, same scorer, only the case changes:
 
 | Fable on | rules | judge |
@@ -544,7 +542,7 @@ tiers have run under the current style text:
 | haiku | 16.7 |
 | fable | **16.7** |
 
-The top tier is level with the cheapest, and both are far behind the two in the
+The top tier is level with the smallest, and both are far behind the two in the
 middle. Capability does not touch this rule, which is the strongest evidence in
 the project that pre-tool narration is a Claude Code habit rather than a model
 limitation. Note the direction is the opposite of the word cap: there Sonnet was
@@ -755,17 +753,16 @@ five cases; pooled over 35 cells of the shipped text it is 58.1 [50.5, 65.6].
 24.6 pooled (24.1 Opus, 22.8 Sonnet), so the ten-cell arms every judge figure in
 this project rests on carry 95% intervals about 30 points wide.
 
-What sample size does *not* buy is a score. Sonnet measures 58.1 on the shipped
-text; no arm size moves a point estimate, and none places it above 70. What it
-buys is precision. At $0.1297 a cell — this task's measured mean, with arms
-ranging $0.1074 to $0.1602 — narrowing one arm's 95% half-width to ±10 points
-takes 24 cells per model (~$3), ±7 takes 48 (~$6), ±5 takes 94 (~$12) and ±4
-takes 146 (~$19). Detecting a real difference *between* two arms costs about
-twice that: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
+What sample size does *not* give you is a score. Sonnet measures 58.1 on the
+shipped text; no arm size moves a point estimate, and none places it above 70.
+What it gives you is precision. Narrowing one arm's 95% half-width to ±10 points
+takes 24 cells per model, ±7 takes 48, ±5 takes 94 and ±4 takes 146. Detecting a
+real difference *between* two arms takes about twice that: 47 cells per arm for
+10 points, 95 for 7, 187 for 5, 291 for 4.
 
-Deterministic rules and reply length are cheap to establish and were established
-here; the judge is not, and a ten-cell judge difference under about 20 points
-should be read as unmeasured rather than as a movement.
+Deterministic rules and reply length are settled at small arm sizes and were
+settled here; the judge is not, and a ten-cell judge difference under about 20
+points should be read as unmeasured rather than as a movement.
 
 ## Sources
 

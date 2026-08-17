@@ -67,7 +67,7 @@ is fixed. Judge scores are not comparable across judge revisions.
 
 A judge failure returns a neutral 0.5 with the error recorded on the row rather
 than aborting the run. An earlier version propagated the exception and killed a
-paid multi-style run partway through.
+long multi-style run partway through.
 
 The 0.7/0.3 default is a judgement call, not a measured optimum. It was chosen
 because deterministic checks are trustworthy and free while the judge is neither,

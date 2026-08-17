@@ -66,7 +66,7 @@ The style files carry rules that a given model may already satisfy by
 disposition. That redundancy is accepted: it costs a few tokens and protects
 against model updates that change which rules get dropped.
 
-The cheap end is now tested and the decision held. COS-5 measured all three
+The small end is now tested and the decision held. COS-5 measured all three
 styles on Haiku (`22-59-53`): rule compliance came in at 90.9–96.0 on the shared
 five cases, never more than 1.8 points behind the better of Opus and Sonnet, and
 ahead of Opus on intermediate. One file does serve the third tier.

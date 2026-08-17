@@ -24,9 +24,9 @@ the measured failures without shipping a rewrite that games the checks.
 - An authenticated Claude Code install. The harness spawns real sessions.
 - A style file with frontmatter `name:` and a contract entry in
   `harness/config/contracts.json` giving its numeric caps and check list.
-- Budget. A conversational cell costs roughly $0.10 to $0.15 and an agentic one
-  more. Cell count is `styles x variants x models x cases x repeats`, which
-  multiplies fast.
+- Time. An agentic cell takes substantially longer than a conversational one, and
+  cell count is `styles x variants x models x cases x repeats`, which multiplies
+  fast. `run.maxCellSeconds` bounds any single cell that wedges.
 
 ## Steps
 
@@ -43,7 +43,7 @@ quotes the offending text.
 **Check the `dropped` count before quoting any figure.** Every table states `n`
 (the cells behind the score) separately from `cells` (the arm you asked for). A
 cell that aborted or said nothing is excluded from the means automatically, so
-the two differ whenever a case failed — usually the agentic ones on the cheaper
+the two differ whenever a case failed — usually the agentic ones on the smaller
 models, where the 12-turn limit bites. A wide gap does not invalidate the score;
 it narrows what the score is about, from "how the style performs" to "how it
 performs on the cells that finished". An arm where nothing replied prints `n/a`,
@@ -53,12 +53,12 @@ Useful flags: `--variants`, `--cases`, `--repeats`, `--concurrency`,
 `--no-judge`.
 
 **Killing a run is safe.** All four files are re-written after every completed
-cell, so Ctrl-C costs the cell in flight and nothing else. `run.json` carries
+cell, so Ctrl-C loses the cell in flight and nothing else. `run.json` carries
 `complete: false` until the command finishes; a directory holding that flag is a
 real run that stopped early, not a corrupt one. Re-score it exactly as you would
 a finished run — `score` names the shortfall before it prints anything.
 
-### Re-grade without spending
+### Re-grade without re-running
 
 After changing a check, re-score the saved transcripts offline:
 

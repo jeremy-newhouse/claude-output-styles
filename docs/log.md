@@ -49,6 +49,7 @@
 - 2026-08-17T08:43:43-05:00 a11018a170d738964283188c8f1248f7a955c520 Open two follow-ups from the COS-13 review, and record why they were appended
 - 2026-08-17T09:06:31-05:00 cb638d41a6dd6ec800bab9ae13420a867cb4ea68 chore(COS-14): record the branch's first commit in the doc log
 - 2026-08-17T09:06:31-05:00 e0bb46e530cf665bfc77b1d06222a6f11227abb3 Give improve its own model list instead of run's
+- 2026-08-17T09:17:26-05:00 e1119c96b5eaed892e15ae81d016523e2d079249 Open COS-24 from a sweep of the CLI's argument surface
 
 ## docs/adr
 
@@ -157,3 +158,4 @@
 - 2026-08-17T08:37:10-05:00 5aaa50b7bb978f728e2aee432f59bef25baf63b0 Make the agentic fixture green before and after a correct fix
 - 2026-08-17T08:37:10-05:00 8d68fe21449246ca73da9b1c05f46b1fc2679f51 Bound the fixture caveat by reach, not by check
 - 2026-08-17T09:06:31-05:00 e0bb46e530cf665bfc77b1d06222a6f11227abb3 Give improve its own model list instead of run's
+- 2026-08-17T09:17:26-05:00 e1119c96b5eaed892e15ae81d016523e2d079249 Open COS-24 from a sweep of the CLI's argument surface

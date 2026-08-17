@@ -49,7 +49,7 @@ and conclude the styles do not work.
 
 ## Notes
 
-The cheap confirmation is a canary: add a distinctive instruction to the style
+The quick confirmation is a canary: add a distinctive instruction to the style
 body, start a session, and see whether the reply obeys it. Asking the model to
 describe its own system prompt is unreliable.
 

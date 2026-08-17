@@ -20,8 +20,8 @@ lore_task_status: todo
 ## Goal
 
 The loop produced seven candidate rewrites across three styles. One survived.
-Two of the rejections were caught only by accident, and the loop's own spend was
-invisible until late. Both are fixable properties of the harness.
+Two of the rejections were caught only by accident, and the loop's own work left
+no record until late. Both are fixable properties of the harness.
 
 **Two splits are not enough.** Train and holdout are drawn from the same small
 case pool, so a rewrite can satisfy both and still degrade on genuinely unseen
@@ -38,10 +38,10 @@ points worse out of sample. Rules stayed flat while the judge collapsed — the
 signature every rejected candidate shares.
 
 **Improve runs leave no evidence.** `run` persists rows, summary, and a report
-per invocation. `improve` persists none of that, despite spending most of the
-money in this project. Its cells cannot be re-graded offline after a check is
-fixed, cannot be audited, and did not appear in any spend total until a
-`spentUsd` counter was added late.
+per invocation. `improve` persists none of that, despite measuring most of the
+cells in this project. Its cells cannot be re-graded offline after a check is
+fixed, cannot be audited, and were not counted anywhere until a side counter was
+added late.
 
 ## Acceptance criteria
 
@@ -51,7 +51,7 @@ fixed, cannot be audited, and did not appear in any spend total until a
 - A candidate that regresses on the reserve split is reported as rejected, not
   presented as the winner.
 - Each improve iteration persists its transcripts under the run directory.
-- `score` can re-grade a completed improve run offline with no token spend.
+- `score` can re-grade a completed improve run offline without running a cell.
 - Spend for an improve run is derived from persisted rows, not a side counter.
 - `harness/README.md` documents the three-way split and why two is not enough.
 
@@ -88,6 +88,6 @@ narrower than it looks: it only admits rewrites that improve *both* in-loop
 splits while degrading elsewhere.
 
 Related crash worth not repeating: the judge and author calls ran at
-`maxTurns: 1` and were unwrapped, so one exhausted turn killed a paid
+`maxTurns: 1` and were unwrapped, so one exhausted turn killed a long
 multi-style run partway through. Fixed, but it is the reason the first
 cross-model run has results for only one style.

@@ -103,12 +103,12 @@ from one command. `harness/test/fixture.test.mjs` now enforces all of it — the
 defect was found by reading a transcript, not by a check, and nothing else in the
 suite executes the fixture.
 
-**And a killed run lost every cell it paid for — fixed under COS-12.** `run` used
+**And a killed run lost every cell it measured — fixed under COS-12.** `run` used
 to write `rows.json` only after the whole matrix completed. One session ran a
-$6.64 arm with that exposure live, and the arms this story requires are an order
+50-cell arm with that exposure live, and the arms this story requires are an order
 of magnitude larger. `run` now re-writes `rows.json`, `summary.json`, `report.md`
 and a new `run.json` manifest after every completed cell, each through a
-temp-file rename so a kill mid-write cannot truncate the paid data. Verified by
+temp-file rename so a kill mid-write cannot truncate the measured data. Verified by
 SIGKILLing a real four-cell run after two cells: both survivors re-scored
 offline, and `score` prefixed them with `PARTIAL run — 2 cells of 4 expected`.
 
@@ -130,11 +130,11 @@ one style, one model, and style text that no longer ships.
 **The judge itself has never been validated.** One model, one call per cell, no
 separation of judge-call variance from reply variance, and no inter-judge
 agreement measured. Doing that first may cut the sample sizes everything else
-needs, because judging saved replies is free of generation cost.
+needs, because judging saved replies runs no new cells.
 
 The order matters. Buying precision on a scorer that reads the wrong string,
-pools errored rows and grades against a self-contradicting fixture would be
-expensive and worthless.
+pools errored rows and grades against a self-contradicting fixture is a large
+run spent on nothing.
 
 ## Acceptance criteria
 
@@ -171,24 +171,23 @@ expensive and worthless.
 
 ## Notes
 
-**Budget is not a constraint on this story.** The user settled that on 2026-08-17
-("we have to get everything tested - no budget"), which is what makes it
-tractable — the bars stand and the arms get sized to support them rather than the
+**Arm size is chosen by statistical power, not by run size.** The user settled
+that on 2026-08-17 — everything gets tested — which is what makes this story
+tractable: the bars stand and the arms get sized to support them rather than the
 other way round.
 
 The working figure is **146 non-errored cells per model**, which is what a 95%
-half-width of ±4 points costs at SD 24.6, about $19 a model-arm at the measured
-$0.1297 a cell. Detecting a real difference *between* two arms costs roughly
-double: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4. COS-20
-may lower all of these.
+half-width of ±4 points requires at SD 24.6. Detecting a real difference *between*
+two arms takes roughly double: 47 cells per arm for 10 points, 95 for 7, 187 for
+5, 291 for 4. COS-20 may lower all of these.
 
-Note what sample size does and does not buy. It narrows an interval; it does not
-move a point estimate. Beginner on Sonnet measures 58.1 against a 70% bar, and no
-arm size changes that — only a better style file will.
+Note what sample size does and does not give you. It narrows an interval; it does
+not move a point estimate. Beginner on Sonnet measures 58.1 against a 70% bar, and
+no arm size changes that — only a better style file will.
 
-Budget off the worst cell, not the mean. Fable's worst single agentic cell has
-cost $1.1315, and `reserve-agentic-session` aborts 3 of 6 on Haiku, so an arm
-must be sized on cells that return a reply rather than cells launched.
+Size on cells that answer, not cells launched. `reserve-agentic-session` aborts
+3 of 6 on Haiku, and an errored cell contributes nothing to an interval, so an arm
+must be sized on its expected non-errored yield.
 
 Two figures in this story's Goal are themselves subject to it. The 24.6 SD comes
 from 70 cells of one style on two models, and the "22 to 32" range quoted

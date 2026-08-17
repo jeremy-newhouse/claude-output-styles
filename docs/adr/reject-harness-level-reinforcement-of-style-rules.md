@@ -62,7 +62,7 @@ An existing project `CLAUDE.md` that restates tone rules is a liability, not a
 help. Deleting those sections is an improvement.
 
 The harness keeps these variants defined in `config/matrix.json` so the finding
-can be re-tested cheaply when Claude Code changes how it assembles the prompt.
+can be re-tested quickly when Claude Code changes how it assembles the prompt.
 The conclusion is tied to 2.1.233 and should not be assumed permanent.
 
 The tail-reminder variant lost only 0.7 points, inside the noise band for five

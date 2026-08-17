@@ -31,7 +31,7 @@ so they resolved as `evolv-standard`. Every project outside the one repo with a
 correct local setting had been running Default for months, silently.
 
 Confirming a style is *configured* is not the same as confirming it is *loaded*.
-The cheap check is a canary: put a distinctive instruction in the style body and
+The quick check is a canary: put a distinctive instruction in the style body and
 see whether a reply obeys it.
 
 ### Loading a style through the Agent SDK

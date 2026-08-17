@@ -71,9 +71,9 @@ judge is not itself under an output style.
 
 - **styles** — which style files to test
 - **models** — `opus`, `sonnet`, `haiku`. `run`'s list only: `improve` has its
-  own (`improve.models`) and never reads this one, so a model added here costs
-  one pass of the matrix rather than one pass per optimizer iteration. Fable is
-  still out of it by choice, on price rather than on that coupling. Pass it
+  own (`improve.models`) and never reads this one, so a model added here is one
+  extra pass of the matrix rather than one pass per optimizer iteration. Fable is
+  still out of it by choice, on run length rather than on that coupling. Pass it
   explicitly, and quote it — the `[1m]` is a glob pattern in most shells:
   `--models='claude-fable-5[1m]'`. There is no bare `fable` alias.
 - **variants** — harness-level fixes tested *independently of the style text*,
@@ -112,16 +112,16 @@ same checks grade Beginner and Advanced against different caps.
 5. Stop at `targetScore` or `maxIterations`.
 6. **Validate the winner on the reserve split** before presenting it. See below.
 
-The loop bills `matrix.improve.models`, not `matrix.models`, so the quick-start
-line above is safe to copy without `--models`: what it costs is set by the
+The loop runs `matrix.improve.models`, not `matrix.models`, so the quick-start
+line above is safe to copy without `--models`: its size is set by the
 `improve` block alone and cannot grow when a model is added for `run`. Every arm
-is billed across that whole list — two arms for the baseline, two per iteration
+runs across that whole list — two arms for the baseline, two per iteration
 (train and holdout), two more at the reserve gate, so 16 at `maxIterations: 6` —
 which makes adding a tier there a much larger commitment than adding one to the
 matrix. `--models` still overrides it for a single loop; `--models` with nothing
 in it is an error rather than a silent fall-back, since a flag that was passed
-and ignored buys the full list under a log line naming the config. A config with
-no usable `improve.models` warns and falls back to the cheapest tier alone,
+and ignored would run the full list under a log line naming the config. A config
+with no usable `improve.models` warns and falls back to the smallest tier alone,
 rather than silently inheriting `run`'s.
 
 Candidates land in `results/<stamp>/candidates/<style>.v<N>.md`, and the winner
@@ -133,12 +133,12 @@ An improve run leaves the same artifacts a `run` does: `rows.json`,
 cell the loop measured. Each row carries the `iteration` that produced it — 0 is the
 baseline — and each iteration's cells are also written separately as
 `candidates/<style>.v<N>.<split>.json`. Reverted iterations are kept too: the
-rewrites that failed are the record of what the money bought. Rows are flushed
-after every measured split, so interrupting a long loop leaves everything it paid
-for readable except the split in flight. Its `run.json` carries no expected cell
-count, because how many iterations the loop buys is not known until it stops. The
-run's total spend is the sum of those rows, not a side counter, so any number the
-loop reports can be recomputed from the files it left behind.
+rewrites that failed are the record of what the loop tried. Rows are flushed
+after every measured split, so interrupting a long loop leaves everything it
+measured readable except the split in flight. Its `run.json` carries no expected
+cell count, because how many iterations the loop runs is not known until it stops.
+The run's cell count is derived from those rows, not a side counter, so any number
+the loop reports can be recomputed from the files it left behind.
 
 **An improve `report.md` is not a scorecard.** It pools the baseline with every
 candidate the loop tried and rejected, so its headline is their mean and belongs
@@ -170,7 +170,7 @@ So the loop's own verdict is not the run's verdict:
 
 - The reserve pass runs **only when a rewrite was actually kept**. If every
   candidate reverted, the style is unchanged and there is nothing to validate,
-  so nothing is spent on it.
+  so it does not run at all.
 - It measures the **incumbent and the winner on the same cases in the same run**.
   Comparing against a reserve number from an earlier run would fold in model
   drift and case edits — the exact confound this guard exists to remove.
@@ -188,11 +188,11 @@ So the loop's own verdict is not the run's verdict:
 
 `minReserveDelta` is as tight as `minHoldoutDelta` (−0.02) even though the noise
 section below puts the noise floor near 3 points, so it can fire on noise. That
-asymmetry is intended: rejecting a sound rewrite costs a re-run, adopting a bad
+asymmetry is intended: rejecting a sound rewrite means a re-run, adopting a bad
 one ships a regression.
 
-The pass costs one extra measurement round per adopting style — the reserve
-cases twice, once per side. Nothing is adopted without paying it.
+The pass adds one extra measurement round per adopting style — the reserve
+cases twice, once per side. Nothing is adopted without it.
 
 Reserve rows land in `rows.json` like any other, tagged with the iteration they
 validate (`v0` for the incumbent, `v<N>` for the candidate), so the comparison
@@ -222,7 +222,7 @@ small real regression or reject a sound candidate on a coin flip. Raise
 
 `run` and `improve` both save every raw transcript to
 `results/<stamp>/rows.json`. After editing `checks.mjs`, re-grade them without
-spending a token:
+running a single new cell:
 
 ```bash
 node src/cli.mjs score --rows=results/<stamp>/rows.json
@@ -398,9 +398,8 @@ has still never been seen in a saved run — all twelve silent cells across the 
 saved runs had the flag set — and the live path and the `score` path, which
 previously used different tests, now apply the same two.
 
-`costUsd` is the one figure that still pools every cell, because an aborted cell
-was paid for. And a cell that narrated and then ended on a tool call has an empty
-*final message* but a real turn: measurable behaviour, and it stays in the mean.
+A cell that narrated and then ended on a tool call has an empty *final message*
+but a real turn: measurable behaviour, and it stays in the mean.
 
 **Every figure states its own sample.** Each group in `summary.json` carries `n`
 (cells behind `score`/`rules`/`judge`), `dropped`, and `cells` (the arm as
@@ -409,9 +408,9 @@ print `n=` with a `dropped=k/N` suffix when they differ. An arm where nothing
 replied reports `null`, and both renderers print `n/a` rather than `0.0%` — "we
 could not measure this" must never publish as "it failed every rule".
 
-`dropped` is not the manifest's "never ran": a dropped cell ran, was paid for,
-and may even have been graded — it is excluded from the mean. A cell that never
-ran is one the matrix asked for and the run did not reach.
+`dropped` is not the manifest's "never ran": a dropped cell ran, and may even
+have been graded — it is excluded from the mean. A cell that never ran is one the
+matrix asked for and the run did not reach.
 
 **The optimizer compares paired, not pooled.** Because an arm's mean now covers
 only the cells that replied, a rewrite that makes the model abort a hard case
@@ -422,37 +421,36 @@ the reserve gate has always used, now applied to the loop's own verdict. Each
 iteration logs which cases it dropped, and `improve.json` records
 `comparedTrain`/`comparedHoldout` beside the arm means.
 
-## Cost control
+## Keeping a run bounded
 
-`config/matrix.json` → `run.maxBudgetUsd` caps each cell; `run.concurrency`
-caps parallelism; `--no-judge` drops the LLM grader. Cell count is
-`styles × variants × models × cases × repeats` — it multiplies fast, and
-**every axis you do not name on the command line takes its full default.**
-Omitting `--variants` alone runs five variants instead of one; that turned a
-one-cell model-id probe into a five-cell $1.58 one under COS-7.
+`config/matrix.json` → `run.maxCellSeconds` bounds each cell; `run.concurrency`
+caps parallelism; `run.maxTurns` bounds tool rounds; `--no-judge` drops the LLM
+grader. Cell count is `styles × variants × models × cases × repeats` — it
+multiplies fast, and **every axis you do not name on the command line takes its
+full default.** Omitting `--variants` alone runs five variants instead of one;
+that turned a one-cell model-id probe into a five-cell one under COS-7.
 
 **The pool grew to 15 cases under COS-1, and two of the new ones are agentic.**
 A bare `node src/cli.mjs run` takes every default axis, so those two cases add
 2 × 3 styles × 5 variants × 3 models × 2 repeats = **180 cells**, half of them
-agentic and therefore the priciest kind. `improve` pays for them too: the
-`reserve` split is now 6 cases, so an adopting style validates over 36 cells a
-side instead of 24. Name `--cases` and `--variants` unless you mean the lot.
+agentic and therefore the slowest kind. `improve` runs them too: the `reserve`
+split is now 6 cases, so an adopting style validates over 36 cells a side instead
+of 24. Name `--cases` and `--variants` unless you mean the lot.
 
-Measured cost per baseline cell on the five shared cases:
+Relative cell size, measured on the five shared cases: a conversational cell is
+the unit, a read-only agentic cell is roughly twice one, and a write-then-verify
+cell — `agentic-fix-verify` — is **about 4.8× a conversational cell** on the top
+tier. The `long-prompt` variant is a separate multiplier of roughly 3.9× over the
+baseline variant. Larger models produce longer replies for the same case, so a
+top-tier cell runs an order of magnitude more tokens than a small-tier one.
 
-| model | $/cell | 30-cell run |
-|---|---|---|
-| `haiku` | 0.0232 | $0.70 |
-| `sonnet` | 0.1013 | $3.04 |
-| `opus` | 0.1493 | $4.48 |
-| `claude-fable-5[1m]` | 0.2345 | $7.04 |
-
-The table's per-cell figures pool one read-only agentic case with four
-conversational ones. Split out, Fable's conversational cells run $0.1998 and its
-read-only agentic cells $0.3736. Write-then-verify costs far more again:
-`agentic-fix-verify` runs $0.9681 per cell on Fable, **4.8× its conversational
-rate.** The `long-prompt` variant is a separate multiplier, about 3.9× the
-baseline variant on Fable ($0.7384 against $0.1910).
+`run.maxCellSeconds` is the runaway guard, and it is a wall-clock ceiling on one
+cell enforced by an `AbortController`. It is the only hard stop the SDK offers:
+`maxTurns` bounds tool rounds but not the time spent inside one, and the SDK's
+`taskBudget` merely tells the model how many tokens it has left and asks it to
+pace itself — advisory, and no use against the wedged loop a guard exists for. A
+cell that trips it comes back with `error: "error_timeout"` and is excluded from
+every mean, like any other errored cell.
 
 Probe on Haiku to decide whether an experiment is worth running, but do not
 conclude from it — and **re-measure the probe's own baseline before you explain
@@ -462,16 +460,13 @@ found Haiku's untightened baseline sitting right where the probe's "improved" ar
 landed, so there was no movement left to explain. Two rounds of mechanism were
 written for an effect that a larger sample of the same configuration dissolved
 (`docs/reference/experiment-ledger.md`, runs `22-18-53`, `22-27-15`, `22-59-53`).
-Re-scoring saved rows is free; use it before believing a probe.
-
-Note that a cell which aborts on the turn limit records `costUsd: 0`, so a run's
-summed spend understates what it actually burned whenever cells error.
+Re-scoring saved rows needs no new cells; use it before believing a probe.
 
 **Killing a run no longer forfeits it.** `run` used to write `rows.json` once, at
-the end, so a long arm that died at the last cell returned nothing for its whole
-spend. It now re-writes the run directory after every completed cell, so an
-interrupted arm keeps everything except the cell in flight. (`improve` flushes on
-the same writer but per measured split, as it has since COS-3, so a killed
-improve loses the split in flight.) The cell or split in flight is still lost
-money — flushing recovers transcripts, not tokens — so the cheapest way to avoid
-paying twice remains naming your axes before you start.
+the end, so a long arm that died at the last cell returned nothing for all the
+work it had done. It now re-writes the run directory after every completed cell,
+so an interrupted arm keeps everything except the cell in flight. (`improve`
+flushes on the same writer but per measured split, as it has since COS-3, so a
+killed improve loses the split in flight.) The cell or split in flight is still
+gone — flushing recovers completed transcripts, not the interrupted one — so the
+surest way to avoid repeating work remains naming your axes before you start.
