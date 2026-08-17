@@ -444,13 +444,27 @@ tier. The `long-prompt` variant is a separate multiplier of roughly 3.9× over t
 baseline variant. Larger models produce longer replies for the same case, so a
 top-tier cell runs an order of magnitude more tokens than a small-tier one.
 
-`run.maxCellSeconds` is the runaway guard, and it is a wall-clock ceiling on one
-cell enforced by an `AbortController`. It is the only hard stop the SDK offers:
-`maxTurns` bounds tool rounds but not the time spent inside one, and the SDK's
-`taskBudget` merely tells the model how many tokens it has left and asks it to
-pace itself — advisory, and no use against the wedged loop a guard exists for. A
-cell that trips it comes back with `error: "error_timeout"` and is excluded from
-every mean, like any other errored cell.
+`run.maxCellSeconds` is the runaway guard **for a cell**, and it is a wall-clock
+ceiling enforced by an `AbortController`. It is the only hard stop the SDK
+offers: `maxTurns` bounds tool rounds but not the time spent inside one, and the
+SDK's `taskBudget` merely tells the model how many tokens it has left and asks
+it to pace itself — advisory, and no use against the wedged loop a guard exists
+for. A cell that trips it comes back with `error: "error_timeout"` and is
+excluded from every mean, like any other errored cell.
+
+**It does not bound a run.** The judge call in `judge.mjs` and the rewrite call
+in `improve.mjs` take no `abortController` and no timeout, so either one
+stalling mid-stream hangs the run with nothing to stop it — `runCell`'s guard
+has already returned and cleared its timer by then. That gap predates the guard:
+the `maxBudgetUsd` ceiling it replaced never covered those two calls either. It
+is COS-26, kept as its own issue rather than folded into the change that
+narrowed this wording.
+
+600 is a backstop, not a tuned figure. Every row now carries `elapsedMs`, the
+wall-clock span the guard actually bounds, so the ceiling can be lowered against
+measured durations once a run has produced them. Nothing in the harness recorded
+a cell duration before that field existed, so no earlier figure supports a
+tighter value.
 
 Probe on Haiku to decide whether an experiment is worth running, but do not
 conclude from it — and **re-measure the probe's own baseline before you explain
