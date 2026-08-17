@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:45'
-updated_date: '2026-08-17 13:24'
+updated_date: '2026-08-17 13:27'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -111,6 +111,14 @@ Re-running agentic cells now would measure twice, which is the one thing the use
 `docs/stories/make-the-measurements-trustworthy.md` (the owning story) was rewritten to past tense with all three defects and the reasoning behind the choice.
 
 The caveat is deliberately stated as **weaker than the glued turn**: it changes what the model met, not what the scorer read. So `agentic-read-report` (never needs the tests) and every conversational figure are unaffected, and that is said explicitly in each place rather than left for the reader to infer. Like the glued turn it is irreversible — no re-score can undo a fixture that shaped the model's session — so replacing an affected figure costs a re-run.
+
+## Self-review before the branch review — an overclaim copied across caveats
+
+Re-reading the four labels caught a defect in this session's own prose, of the exact class the project keeps hitting. The COS-10 glued-turn label ends by ruling checks out: `leads_with_conclusion`, `total_length` and the abort counts were unaffected, because the seam was a *scoring* artifact and could be traced to the checks that re-segment. I reused that shape for the fixture caveat and wrote that the same checks were unaffected here too.
+
+That does not hold. The fixture changed what the model *wrote*, not how the text was parsed, so on a cell that met the failure any check can move, the judge included — a model that meets an unexplained red test writes differently, which is precisely why the caveat is worth recording at all. The correct bound is **reach, not check**: conversational cases never involve the repo and are genuinely untouched, and `agentic-read-report` is the least exposed of the four because it asks for a reading rather than a test run — but a model that ran the suite unprompted still met the failure, so it is not exempt either. The earlier wording had called it a figure 'the fixture cannot reach'.
+
+Corrected in all four places, each now stating explicitly why the two caveats cannot be reasoned about the same way. Gates re-run after the correction: `lore check` exit 0, 116/116.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
