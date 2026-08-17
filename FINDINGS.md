@@ -319,11 +319,11 @@ Both ends break the tier story. The **cheapest** model overruns significantly
 The only structure the data resolves is that Sonnet keeps to the cap and the
 other three do not — one model, not a gradient.
 
-Two corrections this forces on the summary at the top of this document. The
-"roughly twice as often" figure is from run `20-10-29`, whose advanced style text
-has since been replaced; on the shipped files the ratio is 1.44× (43.3% against
-30.0%). And spending more per token does not buy cap adherence: Fable overruns
-its cap on 40% of replies.
+This is where the summary's qualifier at the top of the document comes from. The
+"roughly twice as often" figure is run `20-10-29`'s, on an advanced style file
+that has since been replaced; on the shipped files the ratio is 1.44× (43.3%
+against 30.0%). And spending more per token does not buy cap adherence — Fable
+overruns its cap on 40% of replies.
 
 ### Haiku on the full case set, and what it cannot do at all
 
@@ -348,11 +348,10 @@ The like-for-like comparison is `agentic-fix-verify`, the one write-then-verify
 case all four tiers have now run: **Haiku 5 aborts in 6 cells, Opus 0 in 6,
 Sonnet 0 in 6, Fable 0 in 6** (see below for what Fable's six cells cost, and
 what it gave up to finish them). Widening to every saved agentic cell does not
-change the picture but
-does pad the denominator with work that does not discriminate — Opus is 0 of 21
-and Sonnet 0 of 28, but 15 and 22 of those are the read-only case, where Haiku is
-also clean at 0 of 8. Neither larger model has ever been run on
-`reserve-agentic-write`, so that row is Haiku-only evidence.
+change the picture but does pad the denominator with work that does not
+discriminate — Opus is 0 of 21 and Sonnet 0 of 28, but 15 and 22 of those are the
+read-only case, where Haiku is also clean at 0 of 8. Neither larger model has
+ever been run on `reserve-agentic-write`, so that row is Haiku-only evidence.
 
 Haiku hit the limit on all three styles, which makes it a property of the model
 and not of any style file — no rewording of a style can fix it.
