@@ -16,6 +16,7 @@
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T18:40:23-05:00 82d32e5f105b05c18fabcac8af95fdd8cce58283 Archive session 5's handover and record COS-5's merge SHA
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
+- 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
 
 ## docs/adr
 
@@ -24,6 +25,7 @@
 - 2026-08-16T16:04:38-05:00 8a76f13629aac5c95abc3abdd6dc3ed01d03bc3a Validate the optimizer's winner on a split it never sees
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
+- 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
 
 ## docs/epics
 
@@ -75,3 +77,4 @@
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
+- 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
