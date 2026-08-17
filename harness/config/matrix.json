@@ -65,7 +65,15 @@
     "this guard — maxBudgetUsd never covered them either — and closing it is",
     "COS-26.",
     "600 is a backstop, not a tuned figure. Every row now records elapsedMs,",
-    "so lower it against those durations once a run has produced some."
+    "so lower it against those durations once a run has produced some.",
+    "judgeModel is sonnet, and COS-20 measured what that costs. Of the four",
+    "tiers it re-judged the same 60 saved replies with, Sonnet is the LEAST",
+    "repeatable: judge-call SD 10.17 points against Opus 5.49, Haiku 7.29 and",
+    "Fable 4.18. It is left as sonnet on purpose — every published judge figure",
+    "in this project was scored by it, and changing it makes none of them",
+    "comparable with the next run. Change it only alongside re-establishing",
+    "them, and re-read the ledger's judge-validation row first: a change of",
+    "judge moves three published conclusions."
   ],
   "run": {
     "repeats": 2,

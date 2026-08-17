@@ -19,7 +19,7 @@ tasks:
 generated:
   by: lore/0.3.0
   at: 2026-08-17T03:50:43.715Z
-lore_task_status: todo
+lore_task_status: in-progress
 ---
 
 # Make the measurements trustworthy
@@ -127,10 +127,15 @@ this project's headline table — has twelve judge cells at ten cells each. The
 *Reject harness-level reinforcement* ADR is Accepted on **five cells per arm**,
 one style, one model, and style text that no longer ships.
 
-**The judge itself has never been validated.** One model, one call per cell, no
-separation of judge-call variance from reply variance, and no inter-judge
-agreement measured. Doing that first may cut the sample sizes everything else
-needs, because judging saved replies runs no new cells.
+**The judge itself had never been validated — COS-20 did it, and it did not cut
+the sample sizes.** Re-judging the 60 saved replies of `12-44-03` three times
+each with four model tiers, at no cell cost, splits beginner's 24.6-point
+per-cell SD into **10.17 points of judge and 22.58 of reply**. The reply is 83%
+of the variance, which is the component more cells buy and repeat-judging cannot
+touch, so the arms below stand. What the run did establish is that the judge is
+worth choosing deliberately: Sonnet, the configured judge, is the least
+repeatable of the four tiers, and a change of judge moves three published
+conclusions — see the ledger.
 
 The order matters. Buying precision on a scorer that reads the wrong string,
 pools errored rows and grades against a self-contradicting fixture is a large
@@ -163,7 +168,7 @@ run spent on nothing.
 | [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | Done |
 | [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | To Do |
 | [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |
-| [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | To Do |
+| [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | In Progress |
 | [COS-21](../../backlog/tasks/cos-21%20-%20Re-test-the-variant-sweep-the-reinforcement-ADR-rests-on.md) | Re-test the variant sweep the reinforcement ADR rests on | To Do |
 | [COS-24](../../backlog/tasks/cos-24%20-%20Stop-the-CLI-silently-substituting-defaults-for-malformed-flags.md) | Stop the CLI silently substituting defaults for malformed flags | To Do |
 | [COS-22](../../backlog/tasks/cos-22%20-%20Harden-the-fixture-guard-COS-13-added.md) | Harden the fixture guard COS-13 added | To Do |
@@ -176,21 +181,35 @@ that on 2026-08-17 — everything gets tested — which is what makes this story
 tractable: the bars stand and the arms get sized to support them rather than the
 other way round.
 
-The working figure is **146 non-errored cells per model**, which is what a 95%
-half-width of ±4 points requires at SD 24.6. Detecting a real difference *between*
-two arms takes roughly double: 47 cells per arm for 10 points, 95 for 7, 187 for
-5, 291 for 4. COS-20 may lower all of these.
+The working figure is **148 non-errored cells per model**, which is what a 95%
+half-width of ±4 points requires at the components COS-20 measured. Detecting a
+real difference *between* two arms takes double: 48 cells per arm for 10 points,
+97 for 7, 189 for 5, 295 for 4. COS-20 did not lower these — it confirmed them to
+within two cells and added a floor. Judging each cell three times instead of once
+takes ±4 from 148 cells to 131, and no number of judge calls takes it below 123,
+because the reply is 83% of the variance. Judging is also not the cheaper buy: a
+cell costs about one judge call in wall clock and the crossover is 10.9.
 
 Note what sample size does and does not give you. It narrows an interval; it does
 not move a point estimate. Beginner on Sonnet measures 58.1 against a 70% bar, and
 no arm size changes that — only a better style file will.
 
+**The choice of judge does move it, though, and by more than the gap.** COS-20
+measured Haiku grading the same beginner replies +18.01 [+12.34, +23.68] above
+Sonnet, against a Sonnet-to-bar gap of 11.9 points. The bar is stated against a
+judge, not against a reply, and nothing before COS-20 said which. Any re-measure
+of beginner has to name the judge model it was scored under, and any comparison
+has to hold it fixed.
+
 Size on cells that answer, not cells launched. `reserve-agentic-session` aborts
 3 of 6 on Haiku, and an errored cell contributes nothing to an interval, so an arm
 must be sized on its expected non-errored yield.
 
-Two figures in this story's Goal are themselves subject to it. The 24.6 SD comes
+Two figures in this story's Goal were themselves subject to it. The 24.6 SD came
 from 70 cells of one style on two models, and the "22 to 32" range quoted
-elsewhere is the per-arm spread across six arms of the same task. Neither is a
-general constant, and COS-19 and COS-20 between them should replace both with
-something measured across styles and tiers.
+elsewhere is the per-arm spread across six arms of the same task. **COS-20 tested
+both across three styles and two generation models and they held**: 24.76 on the
+same style-and-judge pairing, and 22.33 to 31.31 across the six style x model
+arms. Neither is a general constant even so — both are Sonnet-as-judge figures,
+and the three other tiers COS-20 measured span 23.08 to 29.38 pooled. COS-19 is
+still what widens them past one saved arm.

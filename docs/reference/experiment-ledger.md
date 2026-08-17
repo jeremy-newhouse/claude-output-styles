@@ -115,6 +115,38 @@ Five `improve` invocations, eight candidate rewrites, one survivor.
 | `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells. v1 reverted. **Restated under COS-11**, which found one of the four v0 holdout cells was an `agentic-fix-verify` abort scored 0 on rules and 1.0 on the judge. The in-loop verdict used the pooled figures and read the *usual* signature on holdout — rules 70.8 → 83.3, judge 72.5 → **21.2**, deltas train −0.029 holdout −0.193. Excluding the silent cell, v0 holdout is rules **94.3** and judge **63.3**, so the rewrite dropped rules 94.3 → 83.3 as well: **both halves fell on both splits**, and the holdout delta is −0.265, not −0.193. The reverted verdict is unchanged and was never in doubt; the "rules up, judge down" reading of this run was an artifact of one aborted cell. Scope was always too small to conclude anything about Haiku — the run existed to prove persistence. First improve run whose transcripts survive; re-scoring reproduced all four in-loop numbers exactly at the time, and no longer does, because `score` now reports the error-excluded reading and the in-loop numbers were pooled. |
 | `05-46-38` | beginner, Haiku only, `--iterations=0`, 1 train + 1 holdout case — under COS-12 | 4 cells. Not a measurement and not an optimization: the loop measured its baseline and adopted v0. It exists because nothing else exercises `improve`'s persistence path, and COS-12 moved that path onto a shared writer. `run.json` reads `kind: "improve", complete: true, expected: null` — an improve loop's cell count is not known until it stops — and `report.md` still opens with the optimizer-trace warning. |
 
+### Judge validation runs
+
+A third kind of run, and it belongs in neither table above. `node src/cli.mjs
+judge` re-grades the replies a finished run already saved, several times and with
+several judge models, and runs no cell. Its directory holds `judgements.json`,
+`analysis.json` and a `judge.json` manifest whose `kind` is `judge`; there is no
+`rows.json`, so `score` will not pick one up.
+
+| stamp | calls | scope | established |
+|---|---|---|---|
+| `16-47-17` | 720 | the 60 saved replies of `12-44-03`, judged by Sonnet, Opus, Haiku and Fable, 3 times each | **The judge, characterised.** Judge-call SD 10.17 points against reply SD 22.58 on beginner under Sonnet, so 83% of what a cell's judge score varies by is the reply. **Sonnet is the noisiest of the four judges tested** — judge SD 10.17 against Opus 5.49, Haiku 7.29, Fable 4.18. Opus agrees with Sonnet in level (+2.36 [−1.43, +6.14]); Haiku (+10.80) and Fable (+6.89) mark higher, most on the lowest-scoring style. Rank agreement with Sonnet is 0.83 to 0.89 overall and collapses to **0.007** on `conv-followup-drift`. Haiku returned unparseable output on 6 of its 180 calls and took 59.5s per call against Opus's 7.6s. |
+
+Two qualifications travel with that row, and neither reaches its conclusions,
+because both are constant across the four judges. The replies are pre-COS-10
+rows, so `agentic-read-report` is graded on the glued turn. And the style files
+have been rewritten since `12-44-03` ran, so this grades those replies against
+today's guide — the same convention `score` follows for checks, and the style
+SHAs are recorded in the manifest.
+
+**What a change of judge would move, and what it would not.** The style ranking
+survives: advanced > intermediate > beginner under all four judges, and the
+intermediate-to-beginner gap narrows from 25.2 points under Sonnet to 13.0 under
+Haiku without closing. Three things do not survive. The four-tier table's
+Opus-vs-Sonnet ordering flips — Sonnet-generated replies lead under the Sonnet
+and Opus judges, Opus-generated ones under Haiku and Fable, every delta inside
+the noise floor, which says the ordering was never resolvable. The
+advanced-to-intermediate gap is 2.7 points under Sonnet and 10.0 under Opus and
+Fable, so the judge moves it by more than Sonnet's own figure. And beginner's
+verdict against its 70 bar is judge-dependent: the published Sonnet figure of
+58.1 misses the bar by 11.9 points, and Haiku's measured level shift on beginner
+is +18.01 [+12.34, +23.68] — an interval that lies entirely beyond the gap.
+
 ### What the sequence taught
 
 **The failure signature is consistent.** Every rejected candidate raised
@@ -462,10 +494,26 @@ computed at two cells per pair became **+1.3 [−15.0, +17.6]** at seven.
 
 Two rules follow. Pair by case × model and report the interval, never a bare arm
 mean. And size the arm before agreeing to a bar. Narrowing one arm's 95%
-half-width takes ~24 cells per model for ±10 points, 48 for ±7, 94 for ±5 and
-146 for ±4. Detecting a real difference *between* two arms takes about twice
-that: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
+half-width takes 24 cells per model for ±10 points, 49 for ±7, 95 for ±5 and
+148 for ±4. Detecting a real difference *between* two arms takes twice
+that: 48 cells per arm for 10 points, 97 for 7, 189 for 5, 295 for 4.
 Note what this does and does not give you — sample size narrows an interval, it
 does not move a point estimate above a bar. A judge bar stated to the point is not
 resolvable at this project's arm sizes, and two tasks have now been written
 against one.
+
+**COS-20 split that noise floor into its two halves, and the reply is the larger
+one.** Re-judging the same saved reply three times separates judge-call variance
+from reply variance by one-way random-effects ANOVA. On beginner under the
+Sonnet judge — the arm COS-4's 24.6 describes — the per-cell SD of 24.76
+decomposes into **10.17 points of judge and 22.58 points of reply**: the judge is
+16.9% of the variance and 41% of the SD, the reply 83.1% (ICC 0.831). That the
+total reproduces 24.6 on a different arm, and that the per-style-per-model
+spread runs 22.33 to 31.31, are independent confirmations of both figures above.
+
+The sizes in the paragraph before this one are the recomputed ones, and they moved
+by at most two cells from what a single pooled SD gave. What the split adds is a
+**floor**: repeat-judging shrinks only the judge's share, so ±4 costs 148 cells at
+one judge call each, 135 at two, 131 at three, and **never fewer than 123 however
+many times each cell is judged**. Buying precision past that point means buying
+cells.

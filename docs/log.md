@@ -58,9 +58,10 @@
 - 2026-08-17T11:02:10-05:00 b83bb2079ad02396c81d23cb8d983f6bb4070c1d Say that the guard bounds a cell, not a run
 - 2026-08-17T11:02:10-05:00 c37049d16fdd7b5376ddc10c537f760d8579ca99 Record the COS-25 finalization in the generated log
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
-- 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
-- 2026-08-17T11:25:34-05:00 bf88e43c21c3f5ed4034bf1622e10ef13d2a8410 Correct the re-score denominator, and record why the connectives went
-- 2026-08-17T11:28:03-05:00 5989c1e2d7bb39e5e07ebfb999374cb7e2cbe41d Settle the published figures by model instead of by provenance
+- 2026-08-17T11:32:23-05:00 163d0b06cb9692f86e79026852370034bb094fac Record the third pass on two_options_max, and what re-scoring moved
+- 2026-08-17T11:32:23-05:00 35f053aef9e35ca773b793a1746383d0cfa33414 Record the COS-9 finalization in the generated docs
+- 2026-08-17T11:32:23-05:00 9a8bfd23778996dbb8c69be703317c508678b984 Settle the published figures by model instead of by provenance
+- 2026-08-17T11:32:23-05:00 f442aa6579bbc0720f70f2d23caf5b72f4a72f50 Correct the re-score denominator, and record why the connectives went
 
 ## docs/adr
 
@@ -114,10 +115,10 @@
 - 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
 - 2026-08-17T11:02:10-05:00 b83bb2079ad02396c81d23cb8d983f6bb4070c1d Say that the guard bounds a cell, not a run
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
-- 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
-- 2026-08-17T11:19:51-05:00 1faabd518b036079be3a9f7e8fb17a48454573a9 Quote the moved reply verbatim, and record the review round
-- 2026-08-17T11:25:34-05:00 bf88e43c21c3f5ed4034bf1622e10ef13d2a8410 Correct the re-score denominator, and record why the connectives went
-- 2026-08-17T11:28:03-05:00 5989c1e2d7bb39e5e07ebfb999374cb7e2cbe41d Settle the published figures by model instead of by provenance
+- 2026-08-17T11:32:23-05:00 163d0b06cb9692f86e79026852370034bb094fac Record the third pass on two_options_max, and what re-scoring moved
+- 2026-08-17T11:32:23-05:00 9a8bfd23778996dbb8c69be703317c508678b984 Settle the published figures by model instead of by provenance
+- 2026-08-17T11:32:23-05:00 c2365142cb71ce797b73959a4ba1fe3096206220 Quote the moved reply verbatim, and record the review round
+- 2026-08-17T11:32:23-05:00 f442aa6579bbc0720f70f2d23caf5b72f4a72f50 Correct the re-score denominator, and record why the connectives went
 
 ## docs/runbooks
 
@@ -185,4 +186,5 @@
 - 2026-08-17T11:02:10-05:00 68d47d418080f1639e2744d070f8f1c2b5575c96 Correct the cost-to-token claim everywhere it lives, not just where it was found
 - 2026-08-17T11:02:10-05:00 a2c911b8ee8d7b45eca151ec3c20fc86384348f3 Repair the table the cost-column removal broke, and three more sweep defects
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
-- 2026-08-17T11:14:41-05:00 773dda5320b49a5ef421724b5c5991a7f3bff45e Record the third pass on two_options_max, and what re-scoring moved
+- 2026-08-17T11:32:23-05:00 163d0b06cb9692f86e79026852370034bb094fac Record the third pass on two_options_max, and what re-scoring moved
+- 2026-08-17T11:32:23-05:00 35f053aef9e35ca773b793a1746383d0cfa33414 Record the COS-9 finalization in the generated docs

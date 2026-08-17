@@ -69,6 +69,70 @@ node src/cli.mjs score --rows=results/<stamp>/rows.json
 
 Costs nothing. Do this before assuming a score moved because the style changed.
 
+### Re-judge without re-running
+
+`score` re-runs the deterministic checks. It cannot re-run the judge, because a
+judge score is a model call. `judge` is that path:
+
+```bash
+node src/cli.mjs judge --rows=results/<stamp>/rows.json \
+  --judges=sonnet,opus,haiku --judge-repeats=3
+```
+
+It runs no cell. It re-grades each saved reply once per judge model per repeat
+and writes `judgements.json`, `analysis.json`, `report.md` and a `judge.json`
+manifest. Use it for two questions: how much of a score is the judge rather than
+the reply, and whether another model tier would rank the same replies the same
+way.
+
+The report splits the per-cell SD into a judge half and a reply half, reports
+each other judge's agreement with the reference judge paired per reply, and sizes
+arms from the split. Records carry an `ok` flag; a call that failed or returned
+unparseable JSON substitutes 0.5, and 0.5 sits inside the range real scores
+occupy, so those records are excluded from every figure rather than pooled.
+
+Killing it is safe on the same terms as `run`. The plan is ordered by sweep —
+every judge over every reply once, then again — so a kill leaves whole balanced
+passes rather than a few replies judged many times.
+
+### Size the arm
+
+Judge each cell **once**, and buy precision with cells rather than repeats. The
+crossover is measured, not assumed.
+
+Variance of an arm mean is `(varReply + varJudge / k) / n` for `n` cells at `k`
+judge calls each, so repeat-judging shrinks only the judge's share. Going from
+`k` to `k+1` beats spending the same budget on cells only when one cell costs
+fewer than `(k+1)(varReply + varJudge/k)/varJudge − k` judge calls — **10.9 at
+k=1**, 14.3 at k=2. Measured on Sonnet: a conversational cell 9.6s mean over
+four cases (5.4s to 15.1s), a judge call 6.1s median and 13.9s mean over 180.
+That puts a cell between 0.7 and 1.6 judge calls whichever statistic you pick —
+nowhere near eleven.
+
+Cells per model for a 95% half-width, from the components COS-20 measured:
+
+| half-width | k=1 | k=2 | k=3 | floor (k→∞) |
+|---|---|---|---|---|
+| ±10 | 24 | 22 | 21 | 20 |
+| ±7 | 49 | 45 | 43 | 40 |
+| ±5 | 95 | 87 | 84 | 79 |
+| ±4 | 148 | 135 | 131 | **123** |
+
+Double for a difference *between* two arms. The floor column is the point of the
+table: 83% of the variance is the reply, so no number of judge calls per cell
+takes a ±4 arm below 123.
+
+The one place the answer flips is a cell that is genuinely expensive against the
+judge. An agentic cell that runs to the `maxCellSeconds` cap, graded by a fast
+judge, is far past 10.9 — but that is a ratio to measure on the arm in hand, not
+one to assume.
+
+Two more results from the same run are worth carrying into a judge choice.
+`matrix.run.judgeModel` is `sonnet`, and Sonnet is the **least repeatable** of
+the four tiers tested — judge SD 10.17 points against Opus's 5.49. And Haiku,
+the cheapest, took 59.5s per call against Opus's 7.6s and returned unparseable
+output on 6 of 180 calls, so it is neither the fast option nor the reliable one.
+
 ### Optimize
 
 ```bash
