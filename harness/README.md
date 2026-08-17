@@ -335,32 +335,57 @@ What it protects against: a cell that returns no text scores 0 on every rule
 *and* 1.0 on the judge — `evaluate.mjs` substitutes `{ total: 0, checks: [] }`
 for the rules and skips the judge call, substituting `{ score: 1 }`. The two
 biases run in opposite directions and do not cancel. One turn-limit abort in
-`01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge from 33.0 to 44.2,
-and pooling six aborts in `22-59-53` understated Haiku's advanced rule compliance
-by 10.8 points (94.2 pooled down to 83.4) in the same run.
+`01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge from 33.0 to 44.2.
+In `22-59-53`, the three aborts that landed in the 26-cell advanced arm
+understated its rule compliance by 10.8 points — 94.2 down to 83.4. (That run
+aborted six cells in all; the other three sit in the intermediate and beginner
+arms, which move 92.3 → 85.2 and 86.6 → 83.3 on their own aborts. Attributing
+all six to the advanced figure would overstate what three cells did.)
 
-The predicate is `producedReply(row)` in `checks.mjs`, and it turns on **the turn,
-not the error flag.** The zero above comes from the guard, not from the checks:
-`scoreDeterministic` on an empty string returns 0.931 for beginner on
-`agentic-fix-verify`, because every "no X found" check finds no X. A cell that
-returned no text *without* the SDK reporting an error would therefore have scored
-near-perfect on rules and taken the free 1.0 on top — so the predicate reads the
-turn instead, and the same guard now runs on the live path and the `score` path,
-which previously disagreed. That combination has still never been seen in a saved
-run; all five saved runs holding a silent cell had the flag set.
+**Two predicates in `checks.mjs`, because these are two questions.**
 
-Two things it deliberately does not do. `costUsd` still pools every cell,
-because an aborted cell was paid for. And a cell that narrated and then ended on
-a tool call has an empty *final message* but a real turn — it is measurable
-behaviour and stays in the mean.
+`hasTurnText(row)` — is there anything to grade? Grade whenever there is, even a
+turn an abort cut short: that score is real, and `rows.json` is what every
+offline re-derivation reads. Overwriting a measurement with a fabricated 0 to
+express "do not trust this" destroys data that `error` already flags.
+
+`producedReply(row)` — may this row go into a mean? Stricter: `!error &&
+hasTurnText`. A truncated turn is a *fragment* of a reply, and pooling it
+measures how far the model got before the harness stopped it, not how well the
+style was followed.
+
+Both read the **turn, not the error flag.** The zero above comes from the guard,
+not from the checks: `scoreDeterministic` on an empty string returns 0.931 for
+beginner on `agentic-fix-verify`, because every "no X found" check finds no X. A
+cell that returned no text *without* the SDK reporting an error would therefore
+have scored near-perfect on rules and taken the free 1.0 on top. That combination
+has still never been seen in a saved run — all twelve silent cells across the 41
+saved runs had the flag set — and the live path and the `score` path, which
+previously used different tests, now apply the same two.
+
+`costUsd` is the one figure that still pools every cell, because an aborted cell
+was paid for. And a cell that narrated and then ended on a tool call has an empty
+*final message* but a real turn: measurable behaviour, and it stays in the mean.
 
 **Every figure states its own sample.** Each group in `summary.json` carries `n`
-(cells that replied, the sample behind `score`/`rules`/`judge`), `noReply`, and
-`cells` (the arm as requested); `report.md` renders all three, and the console
-tables print `n=` with a `no reply=k/N` suffix when they differ. An arm where
-nothing replied reports `null`, and both renderers print `n/a` rather than
-`0.0%` — "we could not measure this" must never publish as "it failed every
-rule".
+(cells behind `score`/`rules`/`judge`), `dropped`, and `cells` (the arm as
+requested); `report.md` renders all three as columns, and the console tables
+print `n=` with a `dropped=k/N` suffix when they differ. An arm where nothing
+replied reports `null`, and both renderers print `n/a` rather than `0.0%` — "we
+could not measure this" must never publish as "it failed every rule".
+
+`dropped` is not the manifest's "never ran": a dropped cell ran, was paid for,
+and may even have been graded — it is excluded from the mean. A cell that never
+ran is one the matrix asked for and the run did not reach.
+
+**The optimizer compares paired, not pooled.** Because an arm's mean now covers
+only the cells that replied, a rewrite that makes the model abort a hard case
+would otherwise be measured on the easier remaining cells and could score higher
+for having broken one. `improve`'s KEEP/REVERT pairs candidate against incumbent
+by case id and drops any case that failed to reply on either side — the same rule
+the reserve gate has always used, now applied to the loop's own verdict. Each
+iteration logs which cases it dropped, and `improve.json` records
+`comparedTrain`/`comparedHoldout` beside the arm means.
 
 ## Cost control
 

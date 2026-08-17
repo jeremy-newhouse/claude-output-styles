@@ -398,7 +398,7 @@ test('a verdict computed over fewer cases than the split holds says so', () => {
       baseline: 0.5, candidate: 0.6, delta: 0.1, accepted: true, iteration: 1
     }
   })
-  assert.match(line, /1 case\(s\) errored and were excluded: rs-2/)
+  assert.match(line, /1 case\(s\) produced no reply and were excluded: rs-2/)
   assert.match(line, /1 cells compared/)
 })
 
@@ -557,4 +557,147 @@ test('an improve report is labelled a trace; a plain run report is not', () => {
   }])
   assert.match(renderMarkdown(plain), /^# Output style adherence report/)
   assert.doesNotMatch(renderConsole(plain), /Optimizer trace/)
+})
+
+// ---------- COS-11 review: the loop must not reward a rewrite for breaking a case ----------
+
+/**
+ * A scorer where each case has its own score, and a named set of cases abort.
+ * An aborted cell is what the harness actually writes for one: no text, the
+ * error flag set, rules 0 and the judge substituted at 1.0.
+ */
+const perCaseEvaluate = (scores, aborts = {}) => async ({ styles, cases }) => {
+  const v = styles[0].text.includes('REWRITTEN') ? 'v1' : 'v0'
+  const rows = cases.map(c => {
+    if (aborts[v]?.includes(c.id)) {
+      return {
+        styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
+        split: c.split, repeat: 0, text: '', trace: '', costUsd: 0.01,
+        error: 'error_max_turns', rulesScore: 0, checks: [], judgeScore: 1,
+        judgeViolations: [], total: 0.3
+      }
+    }
+    const s = scores[v][c.id]
+    return {
+      styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id,
+      split: c.split, repeat: 0, text: 'reply', trace: 'reply', costUsd: 0.01,
+      error: null, rulesScore: s, checks: [], judgeScore: s, judgeViolations: [], total: s
+    }
+  })
+  return { rows, summary: summarize(rows) }
+}
+
+const WIDE = [
+  { id: 'tr-1', split: 'train', prompt: 'p' },
+  { id: 'tr-hard', split: 'train', prompt: 'p' },
+  { id: 'ho-1', split: 'holdout', prompt: 'p' },
+  { id: 'rs-1', split: 'reserve', prompt: 'p' }
+]
+
+test('a rewrite that makes a case abort cannot win by being measured on what survived', async () => {
+  await withTmpDir(async dir => {
+    // v0 answers both train cases: 0.80 and 0.40, arm mean 0.60.
+    // v1 is WORSE on the case it still answers (0.80 -> 0.70) and makes the hard
+    // one abort. Its arm mean over replying cells is 0.70 — higher than v0's
+    // 0.60 — purely because the case that dragged the mean down is gone.
+    // Paired on the one case both answered, the rewrite is -0.10 and must lose.
+    const r = await runLoop(dir, {
+      evaluate: perCaseEvaluate(
+        { v0: { 'tr-1': 0.8, 'tr-hard': 0.4, 'ho-1': 0.6, 'rs-1': 0.6 },
+          v1: { 'tr-1': 0.7, 'tr-hard': 0.4, 'ho-1': 0.6, 'rs-1': 0.6 } },
+        { v1: ['tr-hard'] }
+      ),
+      rewrite: async () => `REWRITTEN ${'y'.repeat(300)}`,
+      cases: WIDE
+    })
+    assert.equal(r.best.iteration, 0, 'the rewrite must be reverted, not adopted')
+    assert.equal(r.history[1].kept, false)
+    assert.equal(r.history[1].dTrain, -0.1, 'delta is paired on the case both sides answered')
+    assert.equal(r.history[1].comparedTrain, 1, 'one case was comparable')
+    assert.deepEqual(r.history[1].droppedCases, ['tr-hard'])
+    // The unpaired reading is the trap this guards: v1's own arm mean is higher.
+    assert.ok(r.history[1].train > r.history[0].train,
+      'the arm mean really does rise — which is exactly why it must not be the verdict')
+  })
+})
+
+test('a genuine improvement is still kept when no case aborts', async () => {
+  // The complement of the test above: pairing must not make the loop refuse
+  // every rewrite. Same shape, no aborts, v1 better on both train cases.
+  await withTmpDir(async dir => {
+    const r = await runLoop(dir, {
+      evaluate: perCaseEvaluate({
+        v0: { 'tr-1': 0.6, 'tr-hard': 0.4, 'ho-1': 0.6, 'rs-1': 0.6 },
+        v1: { 'tr-1': 0.8, 'tr-hard': 0.6, 'ho-1': 0.7, 'rs-1': 0.7 }
+      }),
+      rewrite: async () => `REWRITTEN ${'y'.repeat(300)}`,
+      cases: WIDE
+    })
+    assert.equal(r.best.iteration, 1, 'a real improvement is adopted')
+    assert.equal(r.history[1].dTrain, 0.2)
+    assert.equal(r.history[1].comparedTrain, 2)
+    assert.deepEqual(r.history[1].droppedCases, [])
+  })
+})
+
+test('an unmeasurable baseline stops the loop before it buys a candidate', async () => {
+  await withTmpDir(async dir => {
+    const logs = []
+    let rewrites = 0
+    const r = await runLoop(dir, {
+      // Every cell aborts, so the baseline has no score to compare against.
+      evaluate: perCaseEvaluate(
+        { v0: {}, v1: {} },
+        { v0: ['tr-1', 'tr-hard', 'ho-1', 'rs-1'], v1: ['tr-1', 'tr-hard', 'ho-1', 'rs-1'] }
+      ),
+      rewrite: async () => { rewrites++; return `REWRITTEN ${'y'.repeat(300)}` },
+      cases: WIDE,
+      log: m => logs.push(m)
+    })
+    assert.equal(rewrites, 0, 'no rewrite is bought when nothing can be compared')
+    assert.equal(r.best.iteration, 0)
+    assert.equal(r.best.train, null, 'reported as unmeasured, not as 0')
+    assert.match(logs.join('\n'), /nothing can be compared against, stopping/)
+  })
+})
+
+test('the author model is never briefed from an aborted transcript', async () => {
+  await withTmpDir(async dir => {
+    let brief = null
+    await runLoop(dir, {
+      // tr-hard aborts on the baseline while emitting narration; it must not be
+      // quoted back as one of the worst replies.
+      evaluate: async ({ styles, cases }) => {
+        const rows = cases.map(c => c.id === 'tr-hard'
+          ? { styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id, split: c.split, repeat: 0,
+              text: 'ABORTED FRAGMENT', trace: 'ABORTED FRAGMENT', costUsd: 0.01, error: 'error_max_turns',
+              rulesScore: 0, checks: [], judgeScore: 1, judgeViolations: [], total: 0.3 }
+          : { styleId: 'demo', variantId: 'baseline', model: 'haiku', caseId: c.id, split: c.split, repeat: 0,
+              text: 'A GENUINELY POOR REPLY', trace: 'A GENUINELY POOR REPLY', costUsd: 0.01, error: null,
+              rulesScore: 0.5, checks: [], judgeScore: 0.5, judgeViolations: [], total: 0.5 })
+        return { rows, summary: summarize(rows) }
+      },
+      rewrite: async ({ brief: b }) => { brief = b; return `REWRITTEN ${'y'.repeat(300)}` },
+      cases: WIDE
+    })
+    // total 0.3 sorts below the 0.5 replies, so the unfiltered selection would
+    // hand the author a truncated turn to rewrite from.
+    assert.ok(brief, 'the author was briefed')
+    assert.doesNotMatch(brief, /ABORTED FRAGMENT/)
+    assert.match(brief, /A GENUINELY POOR REPLY/)
+  })
+})
+
+test('an unmeasured split is never printed as a null score', () => {
+  const out = renderVerdict({
+    styleId: 'demo',
+    best: { iteration: 0, train: null, holdout: null },
+    history: [{ iteration: 0, train: null, holdout: null, kept: true }],
+    reserve: null
+  })
+  assert.doesNotMatch(out, /null/, 'neither the headline nor the history line may print null')
+  // Same token the score tables use for a missing figure, so one vocabulary
+  // covers both places a reader meets an unmeasured arm.
+  assert.match(out, /\(train n\/a holdout n\/a\)/, 'headline')
+  assert.match(out, /v0: train n\/a holdout n\/a/, 'history line')
 })

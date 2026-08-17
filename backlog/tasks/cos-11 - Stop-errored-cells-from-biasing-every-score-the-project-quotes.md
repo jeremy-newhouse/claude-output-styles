@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:44'
-updated_date: '2026-08-17 12:52'
+updated_date: '2026-08-17 13:06'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -101,6 +101,40 @@ Both biases, one run, opposite directions, and they do not cancel — which is A
 - A cell that narrated and then ended on a tool call has an empty *final message* but a real turn. `producedReply` reads the turn, so that cell stays in the mean — it produced measurable behaviour. Empty-final-with-trace is a different question and not this task's.
 
 **Gates:** `npm --prefix harness test` 104/104 (was 94; 9 added, 1 pre-existing fixture set corrected — three tests built rows with no text at all, which the new predicate correctly reads as silent). `node src/cli.mjs audit` exit 0.
+
+## Sweep completeness — all 718 saved rows, every combination
+
+The five-run sweep above counted cells the new predicate excludes. This closes the converse, because `producedReply` differs from the old guards in two directions and only one of them was checked:
+
+| row shape | rows | old live guard | old `score` guard | now |
+|---|---|---|---|---|
+| error flag, no text | **12** | zeroed | zeroed | zeroed **and excluded from means** |
+| error flag, **with** text | **0** | scored | scored | would be zeroed and excluded |
+| no flag, no text | **0** | scored (~0.93 + free 1.0) | zeroed | zeroed and excluded |
+
+The 12 reconcile exactly with the per-run sweep: 1 + 6 + 1 + 3 + 1 across `14-48-09`, `22-59-53`, `01-03-21`, `01-33-41`, `06-21-53`.
+
+Both zero rows matter. **Zero error-with-text rows** means the stricter live guard cannot move a saved figure through the one path where the new predicate is *harsher* than the old one — a partially-emitted aborted turn would now be dropped where it used to be scored, and that case has never occurred. **Zero no-flag-no-text rows** confirms the wider bias has never landed in a saved run, so the two guards' disagreement was latent rather than active. Every figure that moves does so through the 12 flagged empty cells and nothing else, which is what the before/after table above measures.
+
+## Branch review (/code-review high) — 7 findings, all real, all fixed
+
+The serious one was a regression this task introduced, and it inverted the optimizer's incentive.
+
+**1. HIGH — the loop could adopt a rewrite *because* it broke a case.** `improve`'s KEEP/REVERT subtracts two `summary.overall` values. Before this task an aborted cell pooled in at `total = judgeWeight` (0.3), which pushed a candidate *down*. Once the cell is excluded instead, the candidate is measured on the easier cells that survived: a rewrite that makes the model abort a hard case can score higher for having destroyed it. Nothing compared the two arms' `n`. Fixed by pairing the loop's own verdict by case id — new `pairedDelta()` over `comparableRows()`, the same like-with-like rule the reserve gate has used since COS-1, which had simply never been applied to the in-loop decision. `best` now carries the rows it was measured on; each iteration logs which cases it dropped; `improve.json` records `comparedTrain`/`comparedHoldout`/`droppedCases`. Two tests pin it: one where the arm mean genuinely rises while the paired delta is −0.10 (must REVERT), and its complement where a real improvement is still adopted — a guard that rejects everything would be no better.
+
+**2. MEDIUM — the author model was being briefed from aborted transcripts.** `summary.failures` was correctly filtered, but `failureBrief`'s `worst` selection was not: it filtered on `r.text` and sorted ascending by `total`, and an aborted cell's total is forced to the judge weight (~0.3), below almost any genuine reply. A truncated turn would have reliably won both WORST ACTUAL REPLIES slots. Fixed and tested.
+
+**3. LOW/MEDIUM — `renderVerdict` printed `train null holdout null` on history lines.** I added the `split()` guard for the headline and not for the loop two lines below it — the exact output the guard exists to prevent. Fixed, and the reserve line's "case(s) errored" wording brought in line with `improve.mjs`'s "produced no reply".
+
+**4. LOW/MEDIUM — the fix destroyed data on one row shape, and mislabelled a column.** My single predicate zeroed an aborted cell's `rulesScore` even when it had emitted text, overwriting a real measurement that `rows.json` consumers re-derive figures from. That is the same sin as the fabricated 1.0 this task exists to remove, in the other direction. **Split into two predicates**, which is what the code was actually doing all along: `hasTurnText(row)` — is there anything to grade? — and `producedReply(row)` — may this row enter a mean? They part company on exactly one shape, the aborted-with-text cell, which is now graded and kept but never pooled. The column was renamed `noReply` → `dropped` to match, since such a cell did reply, partially; `dropped` also matches the vocabulary the reserve gate already uses (`droppedCases`) and does not collide with the manifest's `complete`/"never ran".
+
+**5. LOW — the loop kept buying iterations after warning that nothing could be kept.** An unmeasurable baseline makes `keep` false by construction, yet each further pass bought a rewrite call plus two full arms. Now stops before any candidate is bought, and a test asserts zero rewrite calls.
+
+**6. LOW — `const delta` shadowing.** Resolved by the finding-1 rewrite: the module-level `delta` helper is gone, replaced by `pairedDelta`.
+
+**7. LOW — my own wrong attribution, the class of error this project keeps making.** I wrote "pooling six aborts in `22-59-53` understated Haiku's advanced rule compliance by 10.8 points". The advanced arm is 26 cells holding **3** of that run's 6 aborts; the other 3 are in the intermediate and beginner arms, which move 92.3 → 85.2 and 86.6 → 83.3 on their own. Corrected in `harness/README.md` and the story, with the per-arm split stated so the number cannot be re-attributed.
+
+**Re-verified after the fixes**: `22-59-53` still reads overall 71.9%, haiku rules 91.2 / judge 42.6, dropped 6/78; `14-48-09` v0 holdout still 94.8 rules / 63.3 judge at n=3/4. No acceptance-criterion evidence moved. Suite 104 → **112**; `audit` exit 0; `lore check` exit 0.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
