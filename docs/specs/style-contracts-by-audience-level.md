@@ -264,9 +264,13 @@ conditioned on different things:
   audit reports a prose conditional with no matching contract field — and the
   mirror, a contract that lifts a cap the prose never lifts — as a FAIL.
 
-`codeOnRequest` lifts a **ban**, never a **size cap**. No style file states how
-long a requested snippet may be, and inventing a number would put a figure in the
-scorer that no reader of the style could find.
+`codeOnRequest` lifts the **whole** cap on a case that asks, at every level.
+Beginner states no length for a requested snippet, and neither does intermediate:
+"Show code only when asked, **or** when a snippet under 5 lines says it faster
+than prose" reads as two triggers for showing code at all, with the 5 attached to
+the second. Keeping a cap on the asked branch would apply a number no reader of
+the style could find — the same unstated threshold this whole section exists to
+remove. Unasked, the stated cap applies as before.
 
 Only a reader's request is recognised as a condition. Advanced's "Code or diffs
 under 10 lines **when they carry the point faster than prose**" is a judgement

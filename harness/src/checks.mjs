@@ -125,11 +125,18 @@ const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
  * is the rule being followed, so scoring later bare occurrences would penalise
  * exactly the behaviour the file teaches.
  */
-export function firstUseIsUnglossed (text, term) {
+export function firstUseIsUnglossed (raw, term) {
+  // Emphasis markers go first, because both gloss forms turn on the bracket
+  // being ADJACENT to the term, and `stripCode` leaves `**` in place (unlike
+  // `sentences()`, which strips it). Beginner's own file writes bold labels
+  // throughout, so `**API** (the messenger that lets two programs talk)` is the
+  // shape a compliant reply actually takes — and it read as unglossed.
+  const text = raw.replace(/\*\*|__/g, '')
   const m = new RegExp(`\\b${escapeRe(term)}\\b`, 'i').exec(text)
   if (!m) return false
 
-  const after = text.slice(m.index + m[0].length)
+  // A possessive still points at the same term: "the API's (the messenger …)".
+  const after = text.slice(m.index + m[0].length).replace(/^['’]s\b/, '')
   const parenthetical = /^\s*\(([^)]*)\)/.exec(after)
   if (parenthetical && words(parenthetical[1]).length >= MIN_GLOSS_WORDS) return false
 
@@ -325,16 +332,23 @@ export const CHECKS = {
 
   code_block_size: {
     reads: 'trace',
-    describe: c => c.maxCodeLines === 0
-      ? (c.codeOnRequest ? 'shows no code unless the reader asks' : 'shows no code')
-      : `code blocks under ${c.maxCodeLines} lines`,
-    // `codeOnRequest` lifts a BAN, never a SIZE CAP, and the distinction is the
-    // whole reason the field exists. Beginner's file says "Never show code
-    // unless they ask": the ban is conditional, and no style file anywhere
-    // states how long a requested snippet may be. So a zero cap plus a request
-    // scores clean, and a nonzero cap keeps applying — inventing an on-request
-    // length would put a number in the scorer that no reader of the style could
-    // find, which is the exact drift COS-15 exists to remove.
+    describe: c => {
+      const base = c.maxCodeLines === 0 ? 'shows no code' : `code blocks under ${c.maxCodeLines} lines`
+      return c.codeOnRequest ? `${base}, unless the reader asks` : base
+    },
+    // `codeOnRequest` lifts the WHOLE cap when the case asks, at every level,
+    // because that is what both files that grant it say. Beginner: "Never show
+    // code unless they ask." Intermediate: "Show code only when asked, or when a
+    // snippet under 5 lines says it faster than prose" — the "only when X or Y"
+    // governs WHETHER to show code, and the 5 belongs to the second trigger. On
+    // the asked branch neither file states a length at all.
+    //
+    // An earlier revision lifted only a zero cap, on the reasoning that a ban
+    // and a size cap are different things. That reasoning ran backwards: keeping
+    // the 5-line cap on a requested snippet applies a number to a branch of the
+    // prose that never states one, which is precisely the unstated threshold
+    // COS-15 exists to remove. It also let the audit certify intermediate's lift
+    // as mutually held while the scorer ignored the flag.
     //
     // The condition is read from the CASE, not guessed from the reply. A check
     // cannot see whether this reader asked for code, and a regex over the prompt
@@ -342,12 +356,10 @@ export const CHECKS = {
     run: (text, c, caseDef) => {
       const blocks = codeBlocks(text)
       if (!blocks.length) return { score: 1, evidence: [] }
-      if (c.maxCodeLines === 0) {
-        if (c.codeOnRequest && caseDef?.requestsCode) {
-          return { score: 1, evidence: [`${blocks.length} code block(s); the case asks for code and this level permits it on request`] }
-        }
-        return { score: 0, evidence: [`${blocks.length} code block(s) shown; this level shows none`] }
+      if (c.codeOnRequest && caseDef?.requestsCode) {
+        return { score: 1, evidence: [`${blocks.length} code block(s); the case asks for code and this level states no length for a requested one`] }
       }
+      if (c.maxCodeLines === 0) return { score: 0, evidence: [`${blocks.length} code block(s) shown; this level shows none`] }
       const bad = blocks.filter(b => b.length > c.maxCodeLines)
       return { score: 1 - bad.length / blocks.length, evidence: bad.map(b => `${b.length} lines vs cap ${c.maxCodeLines}`) }
     }

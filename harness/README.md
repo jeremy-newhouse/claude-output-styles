@@ -327,13 +327,16 @@ makes, not a request the reader sends. Nothing outside the writer can evaluate
 it, so it stays an ordinary unconditional cap rather than demanding a
 `codeOnRequest` that would then be graded on every reply.
 
-`codeOnRequest` lifts a **ban**, never a **size cap**: `code_block_size` scores a
-code block clean when `maxCodeLines` is 0 and the case sets `requestsCode: true`,
-and keeps applying a nonzero cap regardless. No style file states how long a
-requested snippet may be, and inventing a number would put a figure in the scorer
-that no reader of the style could find. No shipped case sets `requestsCode`, so
-this branch moves no measured figure today; it exists so the permission the style
-grants is expressible rather than silently dropped.
+`codeOnRequest` lifts the **whole** cap when the case sets `requestsCode: true`,
+at every level, because that is what both files granting it say. Beginner:
+"Never show code unless they ask." Intermediate: "Show code only when asked, **or**
+when a snippet under 5 lines says it faster than prose" — the "only when X or Y"
+governs *whether* to show code, and the 5 belongs to the second trigger. Neither
+file states a length on the asked branch, so keeping a cap there would apply a
+number no reader of the style could find. Unasked, the stated cap bites as before.
+No shipped case sets `requestsCode`, so this branch moves no measured figure
+today; it exists so the permission the style grants is expressible rather than
+silently dropped.
 
 The jargon ban carries the same conditional, from the other direction, and it is
 enforced in `checks.mjs` rather than here because it is conditioned on the reply:
