@@ -34,6 +34,7 @@
 - 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
 - 2026-08-16T23:40:05-05:00 9f541403ce1fa3d58a56e644ae97e6c6c57140e9 Arm campaign 2: confirm the queue order and set the cursor at COS-12
 - 2026-08-17T00:38:00-05:00 4219429e8cdb995a3a5631128478c561a73d7252 Record the per-cell flush in the docs bundle and the ledger
+- 2026-08-17T00:39:27-05:00 2ef05d8843d0f48d9e307197c61ea231a311ac82 Say which command flushes per cell and which per split
 
 ## docs/adr
 
@@ -73,6 +74,7 @@
 - 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 - 2026-08-17T00:38:00-05:00 4219429e8cdb995a3a5631128478c561a73d7252 Record the per-cell flush in the docs bundle and the ledger
+- 2026-08-17T00:39:27-05:00 2ef05d8843d0f48d9e307197c61ea231a311ac82 Say which command flushes per cell and which per split
 
 ## docs/runbooks
 

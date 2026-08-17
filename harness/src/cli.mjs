@@ -120,9 +120,13 @@ if (cmd === 'run') {
   // offline with no arguments. improve.json stays a summary of the loop.
   // The cell count an improve loop will reach is not known up front (it depends
   // on how many iterations it buys), so the manifest carries no expected count.
+  // improve.json before writeResults, for the reason results.mjs writes its
+  // manifest last: a kill between the two must never leave a manifest saying
+  // `complete` over an improve.json that is a flush stale and missing a style's
+  // whole verdict.
   const flush = (complete = false) => {
-    writeResults({ outDir, rows: allRows, stamp, kind: 'improve', expected: null, complete })
     writeAtomic(join(outDir, 'improve.json'), JSON.stringify(results, null, 2))
+    writeResults({ outDir, rows: allRows, stamp, kind: 'improve', expected: null, complete })
   }
   for (const style of styles) {
     const before = allRows.length
@@ -143,7 +147,12 @@ if (cmd === 'run') {
     // style got as far as its first measurement.
     flush()
   }
-  flush(true)
+  // Reaching the end of the loop is not the same as the loop having worked. A
+  // style that threw was caught and recorded, and its rows are the wreckage of
+  // an aborted optimization; stamping `complete` over them would have `score`
+  // announce a finished improve run. `run` already behaves this way — a throw
+  // out of evaluate leaves the last flush's `complete: false` standing.
+  flush(results.every(r => !r.error))
   for (const r of results.filter(r => r.best)) console.log(`\n${renderVerdict(r, cfg.reserveSplit)}`)
   console.log(`\ntotal spend $${spendOf(allRows)} across ${allRows.length} saved cells`)
   console.log(`candidates in ${join(outDir, 'candidates')}`)
@@ -154,10 +163,7 @@ if (cmd === 'run') {
   const rowsPath = args.rows ? resolve(args.rows) : newestRows()
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   console.error(`re-scoring ${rowsPath}`)
-  // Say what this file is before printing a single figure. A partial run's
-  // numbers describe the cells that survived and not the matrix that was asked
-  // for, and nothing in the table itself would tell a reader that.
-  console.error(describeManifest(readManifest(rowsPath)))
+  const manifest = readManifest(rowsPath)
   const rows = readJson(rowsPath)
   const { scoreDeterministic } = await import('./checks.mjs')
   const rescored = rows.map(r => {
@@ -166,6 +172,12 @@ if (cmd === 'run') {
     const wJudge = contracts[r.styleId]?.judgeWeight ?? 0.3
     return { ...r, rulesScore: s.total, checks: s.checks, total: Number((s.total * (1 - wJudge) + (r.judgeScore ?? 1) * wJudge).toFixed(3)) }
   })
+  // On stdout, with the tables, not on stderr beside the progress chatter:
+  // `npm run score > figures.txt` has to carry the completeness line with the
+  // numbers it qualifies. A bare `score` now resolves to the newest run of any
+  // kind, and since COS-12 a killed run leaves one behind, so the newest run is
+  // more likely than before to be a partial one.
+  console.log(describeManifest(manifest))
   console.log(renderConsole(summarize(rescored)))
 
 } else {

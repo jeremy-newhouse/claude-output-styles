@@ -22,6 +22,27 @@ const TRACE_WARNING =
 
 const isTrace = summary => (summary.byIteration ?? []).length > 0
 
+/**
+ * One line saying what a reader is holding, rendered from a run's `run.json`.
+ *
+ * Lives here rather than beside the writer because it is the same job as
+ * TRACE_WARNING above: a set of figures that is easy to quote as something it is
+ * not, labelled at the point of reading. `score` prints it above its tables and
+ * `report.md` carries it as a banner.
+ */
+export function describeManifest (manifest) {
+  if (!manifest) {
+    return 'no run manifest beside these rows — completeness unknown. ' +
+      'Runs saved before manifests existed look like this; so does a rows.json copied out of its directory.'
+  }
+  const label = manifest.kind === 'run' ? 'run' : `${manifest.kind} run`
+  const cells = `${manifest.completed} cell${manifest.completed === 1 ? '' : 's'}`
+  if (manifest.complete) return `complete ${label} — ${cells}`
+  const missing = manifest.expected == null ? '' : ` of ${manifest.expected} expected (${manifest.expected - manifest.completed} never ran)`
+  return `PARTIAL ${label} — ${cells}${missing}. ` +
+    'This run did not finish. Every figure below describes the cells that survived, not the matrix that was requested.'
+}
+
 export function renderConsole (summary) {
   let out = isTrace(summary) ? `\n! ${TRACE_WARNING}\n` : ''
   out += `\nOVERALL ${pct(summary.overall)}   cost $${summary.totalCostUsd}\n`
@@ -90,8 +111,15 @@ export function renderMarkdown (summary, meta = {}) {
       rows.map(r => `| ${r.key} | ${pct(r.score)} | ${pct(r.rules)} | ${pct(r.judge)} | ${r.n} | ${r.errors} |`).join('\n') + '\n'
     : ''
 
+  // A partial report.md is a new thing in this project — before rows were
+  // flushed per cell a killed run left no report at all — and it is the file the
+  // runbook tells readers to open first. Unlabelled, its Overall figure looks
+  // exactly like a finished arm's.
+  const partial = meta.manifest && meta.manifest.complete === false
+
   return [
     isTrace(summary) ? '# Optimizer trace' : '# Output style adherence report', '',
+    ...(partial ? [`> **${describeManifest(meta.manifest)}**`, ''] : []),
     ...(isTrace(summary) ? [`> **${TRACE_WARNING}**`, ''] : []),
     `**Overall:** ${pct(summary.overall)}  |  **Cost:** $${summary.totalCostUsd}` +
       (meta.when ? `  |  **Run:** ${meta.when}` : ''), '',
