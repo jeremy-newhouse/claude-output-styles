@@ -26,9 +26,10 @@
 - 2026-08-16T19:30:03-05:00 e48a48dbd30d55bc086c83b037d40736bb6a1aab Archive session 6's handover, record COS-7's merge SHA, and fix two of my own claims
 - 2026-08-16T20:39:31-05:00 1c35697173274d087821bfffdb3991cea5ce3320 Fix eleven review findings, including a regression this branch introduced
 - 2026-08-16T20:39:31-05:00 7d21c5a7e532fc9b571bdf697f9b236a0aabbcc8 Write the two missing style rules, and measure that they do not close the gap
-- 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
-- 2026-08-16T21:38:58-05:00 b9ab26ef7b5fb1d0219c24c8d73de5959a24cfe5 Put the superseded length claims in the past tense, and say what replaced them
-- 2026-08-16T21:40:18-05:00 e3b6a746bc4f030f307e7504e57edb95a4f08430 Mark the four-tier table's beginner row as history, and the tier word counts too
+- 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
+- 2026-08-16T21:50:29-05:00 af750a40f9da94741dafaea744d079df440b3499 Mark the four-tier table's beginner row as history, and the tier word counts too
+- 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 
 ## docs/adr
 
@@ -46,7 +47,8 @@
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T19:26:40-05:00 946c630b7e6192a89e7b3e4b4a63bebfbc52abcb Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:26:40-05:00 c53b282ac6669db49ad5d715321c3c8c221104c4 Fix nine findings from the branch review
-- 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 
 ## docs/reference
 
@@ -63,7 +65,8 @@
 - 2026-08-16T19:26:40-05:00 c53b282ac6669db49ad5d715321c3c8c221104c4 Fix nine findings from the branch review
 - 2026-08-16T20:39:31-05:00 1c35697173274d087821bfffdb3991cea5ce3320 Fix eleven review findings, including a regression this branch introduced
 - 2026-08-16T20:39:31-05:00 7d21c5a7e532fc9b571bdf697f9b236a0aabbcc8 Write the two missing style rules, and measure that they do not close the gap
-- 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 
 ## docs/runbooks
 
@@ -85,8 +88,8 @@
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T19:26:40-05:00 c53b282ac6669db49ad5d715321c3c8c221104c4 Fix nine findings from the branch review
 - 2026-08-16T19:26:40-05:00 f67772d495ad2f610615ec6c3087190030cc06b0 Carry the fourth tier into the audience-level spec
-- 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
-- 2026-08-16T21:38:58-05:00 b9ab26ef7b5fb1d0219c24c8d73de5959a24cfe5 Put the superseded length claims in the past tense, and say what replaced them
+- 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 
 ## docs/stories
 
@@ -106,6 +109,7 @@
 - 2026-08-16T19:30:03-05:00 e48a48dbd30d55bc086c83b037d40736bb6a1aab Archive session 6's handover, record COS-7's merge SHA, and fix two of my own claims
 - 2026-08-16T20:39:31-05:00 1c35697173274d087821bfffdb3991cea5ce3320 Fix eleven review findings, including a regression this branch introduced
 - 2026-08-16T20:39:31-05:00 7d21c5a7e532fc9b571bdf697f9b236a0aabbcc8 Write the two missing style rules, and measure that they do not close the gap
-- 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
-- 2026-08-16T21:38:58-05:00 b9ab26ef7b5fb1d0219c24c8d73de5959a24cfe5 Put the superseded length claims in the past tense, and say what replaced them
-- 2026-08-16T21:40:18-05:00 e3b6a746bc4f030f307e7504e57edb95a4f08430 Mark the four-tier table's beginner row as history, and the tier word counts too
+- 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
+- 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
+- 2026-08-16T21:50:29-05:00 af750a40f9da94741dafaea744d079df440b3499 Mark the four-tier table's beginner row as history, and the tier word counts too
+- 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
