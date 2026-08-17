@@ -1,11 +1,11 @@
 ---
 id: COS-20
 title: Validate the judge instrument itself
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:47'
-updated_date: '2026-08-17 18:02'
+updated_date: '2026-08-17 18:12'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -36,11 +36,11 @@ There is already one recorded instance of the judge being the problem rather tha
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Judge-call variance is separated from reply variance by re-judging the same saved replies repeatedly, and reported as a share of the 24.6 per-cell SD
-- [ ] #2 At least two other model tiers judge the same saved arm, and their agreement with Sonnet is reported per style and per case, not only in aggregate
-- [ ] #3 The sample sizes quoted in the ledger's noise-floor section are recomputed against whichever component dominates, and corrected if the arithmetic changes
-- [ ] #4 If repeat-judging one reply is cheaper per point of precision than adding cells, the runbook says so and gives the crossover
-- [ ] #5 Any disagreement large enough to move a published conclusion is named, with the conclusion it would move
+- [x] #1 Judge-call variance is separated from reply variance by re-judging the same saved replies repeatedly, and reported as a share of the 24.6 per-cell SD
+- [x] #2 At least two other model tiers judge the same saved arm, and their agreement with Sonnet is reported per style and per case, not only in aggregate
+- [x] #3 The sample sizes quoted in the ledger's noise-floor section are recomputed against whichever component dominates, and corrected if the arithmetic changes
+- [x] #4 If repeat-judging one reply is cheaper per point of precision than adding cells, the runbook says so and gives the crossover
+- [x] #5 Any disagreement large enough to move a published conclusion is named, with the conclusion it would move
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -132,4 +132,46 @@ The ratio, not the seconds, is the reusable part. It flips where a cell is genui
 **Survives: the style ranking.** Advanced > intermediate > beginner holds under all four judges. The intermediate-to-beginner gap — the one large gap in the table — is 25.2 points under Sonnet, 22.4 Opus, 16.5 Fable, 13.0 Haiku: it narrows under every other judge but never closes or reverses.
 
 **Correction to the AC #4 timings above.** The 10.5s figure is the mean over all five cases of `results/2026-08-17T17-09-49-361Z`, which includes `agentic-read-report` at 14.0s. The conversational-only mean is **9.6s** over four cases (5.4, 12.4, 5.5, 15.1). Stated both ways because a Sonnet judge call is 6.1s median and 13.9s mean over 180 calls, so a cell is 0.7 to 1.6 judge calls whichever statistic is picked — the conclusion does not turn on the choice, and the crossover is 10.9 either way. The docs and the commit message carry the corrected figures.
+
+## Branch review
+
+`/code-review high` returned seven findings, all real, all fixed in `6e3ba30`. Two mattered.
+
+**Data loss.** `judge --judgements=<path>` rewrote `report.md` in the directory it was handed with no check on the file. `--rows` and `--judgements` are adjacent in the usage text and take paths of the same shape from the same directory; handed a run's `rows.json`, every record filtered out (rows carry no `ok`) and an empty judge report landed on that run's adherence report, reported only as "5 of 5 judge calls returned no parseable score". `assertJudgements()` now refuses before the first write — verified on a copy of `17-09-49`, report.md byte-identical afterwards, and no stray results directory created.
+
+**A wrong figure, published.** The re-derive path defaulted the reference judge to `matrix.run.judgeModel` rather than the reference the run was measured against, so re-deriving a non-Sonnet run silently produced a different analysis, mislabelled it, and overwrote the correct one beside a `judge.json` that still named the real reference. It reads `judge.json` now. Underneath it, `analyzeJudgements` fell back to `perJudge[0]` when the reference had no records, which titled a sizing table "sonnet as judge" over Opus's numbers. No fallback now; the CLI refuses a reference outside `--judges` before spending a call.
+
+Also fixed: an unmeasured judge x style pair rendered as a real 0.00 on every partial report; `noRubric`/`filtered` skip counts were computed and never printed; the style-body loop called `loadStyle` on every contract so `judge` died with a bare ENOENT over a style the rows never mention; and a `process.exit(0)` that could truncate a piped report.
+
+**Self-review, before the agent returned**, found one the agent then confirmed independently: the sizing table was built on the pooled decomposition across all styles, which puts the gap *between* styles into the reply component — 27.56 points against beginner's 22.58 — and asked for 208 cells where the arm needs 148. Sized per style now, and the docs say which style their figures are for. That in turn found that beginner is the cheapest of the three: +/-4 is 169 cells on intermediate and 207 on advanced, corrected in the ledger, the runbook, FINDINGS.md and both stories.
+
+**Sabotage-verified.** Eight mutations, one per guard this task added, each applied by exact-string replacement with the mutated line printed and its presence in the file asserted before the suite ran. All eight go red on the test that names them, and the suite is green when restored. The first pass found a real gap this way: removing `ok: false` from judge.mjs's unparseable-output return left the suite green, because the rejudge tests inject a fake judge and never reach judge.mjs's own returns. `judge()` now takes the `queryFn` seam `runTurn` already had, and a test drives all four substituted-score paths.
+
+**Arithmetic verified independently.** The headline decomposition was recomputed from `judgements.json` with arithmetic that imports nothing from `rejudge.mjs`: SD judge 10.17, SD reply 22.58, SD total 24.76, judge share 0.169, and Haiku-minus-Sonnet on beginner +18.01 [12.34, 23.68]. Identical to the tool's output to the last digit.
+
+Final gates: `npm --prefix harness test` **159/159** (was 135), `node src/cli.mjs audit` exit 0, `lore check` exit 0 (24 files, 0 errors, 0 warnings).
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Characterised the judge as an instrument, and built the path that made it possible.
+
+**The missing tool came first.** Nothing in the harness could re-judge a saved row: `score` re-runs deterministic checks only, and `judge()` was reachable only from `evaluate.mjs`, once per live cell. New `harness/src/rejudge.mjs` and a `judge` subcommand plan, grade, decompose and report, with `--judgements` re-deriving a finished run offline for nothing. `judge()` gained an `ok` flag because its four substituted scores all sit inside the range real scores occupy, and a substituted 0.5 pooled into a variance study reads as the judge disagreeing with itself.
+
+**The run**: `results/2026-08-17T16-47-17-091Z`, 720 judge calls over the 60 saved replies of `12-44-03`, four judge tiers, three repeats each. No cells.
+
+**AC #1** — one-way random-effects ANOVA on beginner under Sonnet, the pairing COS-4's 24.6 came from: SD total **24.76 = 10.17 judge + 22.58 reply**. The judge is 16.9% of the variance and 41% of the SD; ICC 0.831. Reproducing 24.6 on a different arm, and the six style x model arms spanning 22.33-31.31 against the ledger's quoted 22-to-32, confirm both published figures rather than replacing them.
+
+**AC #2** — Opus +2.36 [-1.43, +6.14], Haiku +10.80 [+6.81, +14.78], Fable +6.89 [+3.60, +10.18], paired per reply and reported per style and per case. Rank agreement 0.83-0.89 overall, collapsing to 0.007 on `conv-followup-drift`.
+
+**AC #3** — the reply dominates, so the sizes moved by at most two cells: 24/49/95/148 per model on beginner, 48/97/189/295 between arms. Corrected in place, with a floor the old arithmetic could not express: repeat-judging touches only the judge's 17%, so +/-4 never falls below 123 cells. And beginner is the cheapest style, not the constant — 169 on intermediate, 207 on advanced.
+
+**AC #4** — the crossover is 10.9 judge calls per cell, and both sides were measured rather than assumed: a conversational Sonnet cell 9.6s mean, a Sonnet judge call 6.1s median and 13.9s mean. A cell is 0.7 to 1.6 judge calls. **Judge once and buy cells** — the opposite of what the task expected. The runbook carries the formula, the measurement and the one case that flips it.
+
+**AC #5** — four conclusions are judge-dependent: beginner's verdict against its 70 bar (gap 11.9 points, Haiku's shift +18.01 [+12.34, +23.68]); the four-tier table's Opus-vs-Sonnet ordering, which flips sign between judges on deltas under 3 points; the advanced-to-intermediate gap, 2.7 under Sonnet and 10.0 under Opus and Fable; and anything from `conv-followup-drift`. The style ranking survives all four judges.
+
+**Verification.** Every AC rests on the run's saved records, not on reading code. The headline decomposition was recomputed with arithmetic importing nothing from the module under test and matched to the last digit. Eight sabotage mutations, one per guard, each printed and confirmed present before the suite ran, all eight red on the intended test. `/code-review high` returned seven findings, all real, all fixed — including one that overwrote a run's report when `--judgements` was pointed at a `rows.json`. Suite **135 -> 159**; `audit` exit 0; `lore check` exit 0.
+
+`judgeModel` deliberately left at `sonnet` despite being the least repeatable tier, with the reason recorded in `matrix.json`: every published judge figure was scored by it.
+<!-- SECTION:FINAL_SUMMARY:END -->
