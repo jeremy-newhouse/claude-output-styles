@@ -28,6 +28,7 @@
 - 2026-08-16T20:39:31-05:00 7d21c5a7e532fc9b571bdf697f9b236a0aabbcc8 Write the two missing style rules, and measure that they do not close the gap
 - 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:38:58-05:00 b9ab26ef7b5fb1d0219c24c8d73de5959a24cfe5 Put the superseded length claims in the past tense, and say what replaced them
+- 2026-08-16T21:40:18-05:00 e3b6a746bc4f030f307e7504e57edb95a4f08430 Mark the four-tier table's beginner row as history, and the tier word counts too
 
 ## docs/adr
 
@@ -107,3 +108,4 @@
 - 2026-08-16T20:39:31-05:00 7d21c5a7e532fc9b571bdf697f9b236a0aabbcc8 Write the two missing style rules, and measure that they do not close the gap
 - 2026-08-16T21:37:56-05:00 f03d6e7da060f776e98f199449667913ee6460b9 Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:38:58-05:00 b9ab26ef7b5fb1d0219c24c8d73de5959a24cfe5 Put the superseded length claims in the past tense, and say what replaced them
+- 2026-08-16T21:40:18-05:00 e3b6a746bc4f030f307e7504e57edb95a4f08430 Mark the four-tier table's beginner row as history, and the tier word counts too

@@ -82,10 +82,11 @@ best to the cap is Sonnet.
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a
-countable word cap. Intermediate is unchanged from first release — six rewrites
-were generated for it and beginner and every one was rejected, either by the keep
-rule or by out-of-sample testing. Beginner has since been rewritten **by hand**,
-by COS-1 and then COS-4, which is the only route that has ever changed it.
+countable word cap. Intermediate is unchanged from first release: six rewrites
+were generated across intermediate and beginner and every one was rejected,
+either by the keep rule or by out-of-sample testing. Beginner has since been
+rewritten **by hand**, by COS-1 and then COS-4 — the only route that has ever
+changed it.
 
 Rule compliance is high everywhere and prose quality is not. That is the shape of
 the remaining work: the styles are followed, and beginner in particular is not

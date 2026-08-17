@@ -61,8 +61,9 @@ Two things had to be corrected before the work could start. That row's Opus and
 Sonnet judge figures were graded with the judge told a 15-word sentence cap the
 file never stated — `FINDINGS.md`, *The judge column carries a defect the rules
 column had corrected* — and COS-1 had since added two sections. A fresh arm on
-the shipped text read 58.7 Opus / 70.7 Sonnet, not 45.9 / 48.4, and the two
-causes are not separable.
+the *pre-rewrite* file read 58.7 Opus / 70.7 Sonnet, not 45.9 / 48.4, and the two
+causes of that difference are not separable. (Post-rewrite figures are below;
+"shipped text" from here on means the rewritten file.)
 
 The defect underneath was not wording and not missing content: beginner's rules
 contradicted each other, and the judge enforced both sides. Its 80-word budget
@@ -70,11 +71,12 @@ was scoped to status updates while the harness applied it to every reply; its
 demands for analogies and for explaining what a thing *is* were unbounded and
 cost 15–25 words each; "skip all internal details" was read as forbidding the
 evidence its own status shape requires. And nothing in the file said which of its
-shapes a reply should take, so 8 of 24 judge violations on the weakest cases were
-"missing the three beats" on replies that are not status updates.
+shapes a reply should take, so 10 of the 40 judge violations on the three weakest
+cases in run `02-10-45` say the reply is missing the three beats — on replies
+that are not status updates, and spread across all three cases (3 / 3 / 4).
 
-The rewrite is measured on 128 cells across two disjoint case sets. **Rules and
-reply length moved and are established** — rules +5.2 shared and +7.7 on reserve
+The rewrite is measured over 144 cells in six arms, 114 of them in the two paired
+comparisons below. **Rules and reply length moved and are established** — rules +5.2 shared and +7.7 on reserve
 (t=7.06), reply words −42.0 and −55.7, over-cap share 40.0% → 14.3%, and rules on
 the shipped text at 98.5 / 97.4, the highest beginner has recorded. **The judge
 did not move**: +1.3 [−15.0, +17.6]. Sonnet pooled over 35 cells reads 58.1
@@ -85,9 +87,9 @@ criterion is not met and COS-4 is parked rather than closed.
 (This paragraph describes the pre-COS-4 file; the rewrite is measured on Opus and
 Sonnet only.) Beginner was last on the judge on every one of the four, and the
 best score any model reached was Fable's 53.9 — the most capable tier available,
-still 16 points under the bar. A more capable model does not write better beginner prose from
-this file, which is what would have to be true for the gap to be a model problem
-rather than a content one. COS-7 also measured the mechanism directly: on the
+still 16 points under the bar. A more capable model did not write better beginner
+prose from that file, which is what would have to be true for the gap to be a
+model problem rather than a content one. COS-7 also measured the mechanism directly: on the
 five shared cases beginner averaged 135 words on Opus, 132 on Fable, 113 on Haiku
 and 103 on Sonnet, against a stated cap of 80, while every tier wrote comfortably
 *inside* the looser 120-word advanced cap. The caps were being read as an
@@ -156,5 +158,9 @@ not the only one.
 a ten-cell arm — the size every judge figure in this project rests on — carries a
 95% interval about 30 points wide. Sonnet read 70.7, 65.8, 74.1 and 55.0 across
 four arms of the same five cases. Placing a style above a 70% bar with confidence
-needs roughly 151 cells per model, about $32 an arm. Any future bar of this kind
-should be priced before it is agreed.
+does not place a score above a bar — Sonnet measures 58.1 and no arm size moves a
+point estimate. What it buys is precision: at the measured $0.1297 a cell,
+narrowing one arm's 95% half-width to ±7 points takes 48 cells per model (~$6)
+and ±4 takes 146 (~$19); detecting a real 5-point difference between two arms
+takes 187 cells per arm. Any future bar of this kind should be priced before it
+is agreed.
