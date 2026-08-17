@@ -116,6 +116,34 @@ test('an abort that ends the stream quietly is still reported as a timeout', asy
   assert.equal(row.text, '')
 })
 
+/**
+ * Delivers a complete turn, then stalls until the timer fires. This is the race
+ * `cutShort` exists for: the SDK handed over everything, and the abort landed in
+ * the gap before the loop resumed.
+ */
+const answersThenTimerFires = async function * ({ options }) {
+  yield { type: 'assistant', message: { content: [{ type: 'text', text: 'Done in time.' }] } }
+  yield { type: 'result', is_error: false, session_id: 's1', num_turns: 1 }
+  await new Promise(resolve => {
+    options.abortController.signal.addEventListener('abort', resolve, { once: true })
+  })
+}
+
+test('a timer that fires after the cell already finished does not discard it', async () => {
+  // `timedOut` was unconditionally authoritative, so a cell completing at 599.9s
+  // of a 600s limit came back stamped error_timeout — and producedReply then
+  // dropped a complete, fully scoreable measurement out of every mean and out of
+  // summary.failures. Losing a real measurement to a few milliseconds is the
+  // same class of error as grading a cell that said nothing, in the opposite
+  // direction.
+  const row = await runCell({
+    ...CELL, opts: { maxTurns: 4, maxCellSeconds: 0.05 }, deps: { query: answersThenTimerFires }
+  })
+
+  assert.equal(row.error, null, 'the cell finished, so it carries no timeout')
+  assert.equal(row.text, 'Done in time.', 'and its reply is kept')
+})
+
 test('a cell that finishes inside the limit is untouched by the guard', async () => {
   // The other half of the evidence: a guard that fires on everything is not a
   // guard. This is the case that must survive.

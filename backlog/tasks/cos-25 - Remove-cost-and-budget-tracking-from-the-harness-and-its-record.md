@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 14:43'
-updated_date: '2026-08-17 15:41'
+updated_date: '2026-08-17 15:51'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -138,6 +138,23 @@ R2-5 (low, docs/reference/harness-architecture.md) — the module map still cred
 R2-6 (low, harness/README.md) — the sharpest of the six, and it is this branch's own mistake. Session 15's cost-strip commit WROTE the sentence 'Larger models produce longer replies for the same case, so a top-tier cell runs an order of magnitude more tokens than a small-tier one.' Confirmed by reading the commit: it converted the deleted cost table's ~10x span (haiku $0.0232 to Fable $0.2345) into a claim about tokens. That conversion is invalid. Per-token prices differ across tiers by roughly that same factor, so the cost ratio is explained by price alone and implies nothing about token counts. Every other ratio in the paragraph — 4.8x, 3.9x, ~2x — is WITHIN a model, same price on both sides, so those do convert and they survive. The paragraph now states that distinction explicitly, says outright that nothing here supports a cross-tier comparison, and points at elapsedMs as the only measurement the harness takes that means the same thing on every model. This is the campaign's 'a number in a doc is a claim' rule catching a number that a cost removal had quietly turned into a different claim.
 
 Gates after all six: npm --prefix harness test 130/130, node src/cli.mjs audit exit 0, lore check exit 0 across 24 files. Re-scoring the published 12-44-03 arm offline still returns 81.0%, so no published score moved.
+
+THIRD REVIEW ROUND — five findings, all real, all fixed.
+
+R3-1/R3-2/R3-3 (medium/medium/low) — THE ROUND-TWO FIX WAS INCOMPLETE, and this is the finding worth remembering. R2-6 corrected the invalid cost-to-token conversion in harness/README.md. The identical claim was still standing in three other files, all of which this branch had already touched: FINDINGS.md ('Haiku is the only tier fast enough to take the whole pool in one run: the same 78 cells on Fable would run an order of magnitude more tokens'), docs/stories/extend-measurement-coverage.md ('on Fable the same pool would run an order of magnitude more tokens'), and this campaign's own tracker doc-1. The FINDINGS.md version was the worst of the four, because 'fast enough' also rests on a duration the harness had never recorded until elapsedMs was added in this same branch — the README says so in as many words two files away.
+All three now keep what the evidence supports (12 of the 78 cells are write-then-verify, the largest kind, so the full pool is a heavier run on any tier) and state plainly that the cross-tier comparison has not been measured, naming the bad inference so it is not re-derived. doc-1's correction was made through backlog doc update, not by editing the file.
+
+R3-4 (low, run.mjs) — MAX_TIMER_MS was declared below cellLimitMs, the only function that reads it. Inert today because cellLimitMs is never called during module evaluation, but a ReferenceError the moment anything calls it at module scope — for instance a default-parameter refactor — and the error would look nothing like the config problem it actually is. Moved above the function.
+
+R3-5 (low, run.mjs) — A REAL MEASUREMENT LOSS, and the opposite of the bias COS-11 fixed. timedOut was unconditionally authoritative: 'error: timedOut ? error_timeout : ...'. If the timer fires in the window between the SDK delivering the last chunk and the for-await continuation resuming — a cell finishing at 599.9s of a 600s limit — runTurn returns a complete turn with a full reply and no error, and the row was still stamped error_timeout. producedReply then drops a fully measured, scoreable cell out of every mean and out of summary.failures on the strength of a few milliseconds.
+runTurn now returns 'completed: result !== null' and runCell computes cutShort = timedOut && !(every prompt ran && last turn completed && last turn has no error). The result message is the right signal and '!error' alone is not: the quiet abort path returns a turn with no error and no reply, which is precisely the case the timedOut flag was added for. Proven rather than asserted — sabotaging it to '!last.error' reds three tests, including the original quiet-abort test.
+New test: a query that delivers a complete turn and then stalls until the timer fires. Restoring the unconditional timedOut authority reds exactly that test.
+
+Also cleared: harness/test/improve.test.mjs:411 still read 'nothing is spent on it' in the branch whose purpose was removing spend language.
+
+Reviewer's note, considered and not acted on: the branch does trade away the only per-cell spend ceiling, and run.mjs still forwards process.env, so on an API-key environment a wedged cell now burns up to 600s of tokens rather than stopping at $2. That is the deliberate trade this task's description argues for and the user directed; it is recorded here rather than silently accepted.
+
+Gates: npm --prefix harness test 131/131, node src/cli.mjs audit exit 0, lore check exit 0 (24 files), and re-scoring the published 12-44-03 arm still returns 81.0%.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

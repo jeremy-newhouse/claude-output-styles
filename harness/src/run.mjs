@@ -95,10 +95,18 @@ async function runTurn ({ prompt, ws, env, model, opts, resume, controller, quer
     ...splitTurn(blocks),
     sessionId,
     toolCalls,
+    // Did the SDK deliver a result message, or did the stream just stop? This is
+    // the only signal that separates a turn that genuinely finished from one an
+    // abort closed quietly, and `runCell` needs it to decide whether a timer
+    // that fired actually cut anything short.
+    completed: result !== null,
     numTurns: result?.num_turns ?? 0,
     error: thrown ?? (result?.is_error ? (result.subtype ?? 'error') : null)
   }
 }
+
+/** setTimeout's 32-bit signed ceiling, past which a delay silently becomes 1ms. */
+const MAX_TIMER_MS = 2147483647
 
 /**
  * The cell timeout in milliseconds, or a throw naming the bad value.
@@ -133,9 +141,6 @@ export function cellLimitMs (maxCellSeconds) {
   }
   return ms
 }
-
-/** setTimeout's 32-bit signed ceiling, past which a delay silently becomes 1ms. */
-const MAX_TIMER_MS = 2147483647
 
 /**
  * Run one cell of the matrix: (style x variant x model x case x repeat).
@@ -188,6 +193,20 @@ export async function runCell ({ styleId, styleText, variant, model, caseDef, re
       if (t.error || timedOut) break
     }
 
+    // The timer having fired is not by itself proof the cell was cut short. It
+    // can land in the gap between the SDK delivering the last chunk and this
+    // loop resuming — a cell that finishes at 599.9s of a 600s limit. Stamping
+    // that row `error_timeout` drops a complete, fully scoreable measurement out
+    // of every mean on the strength of a few milliseconds, which is the same
+    // class of loss as grading a cell that said nothing.
+    //
+    // A turn is only trusted here if the SDK closed it with a result message.
+    // `!t.error` alone would not do: the quiet abort path returns a turn with no
+    // error and no reply, which is the case the `timedOut` flag was added for.
+    const last = turns.at(-1)
+    const ranEverything = turns.length === prompts.length && last.completed && !last.error
+    const cutShort = timedOut && !ranEverything
+
     return {
       ...base,
       // Style adherence is judged on the LAST turn: that is where drift shows.
@@ -201,7 +220,7 @@ export async function runCell ({ styleId, styleText, variant, model, caseDef, re
       allFinals: turns.map(t => t.final),
       toolCalls: turns.flatMap(t => t.toolCalls),
       elapsedMs: Date.now() - startedAt,
-      error: timedOut ? 'error_timeout' : (turns.find(t => t.error)?.error ?? null)
+      error: cutShort ? 'error_timeout' : (turns.find(t => t.error)?.error ?? null)
     }
   } catch (err) {
     // Reached only by something outside runTurn now that runTurn catches its
