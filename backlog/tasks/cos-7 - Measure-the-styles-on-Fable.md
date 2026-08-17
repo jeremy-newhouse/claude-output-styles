@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 13:07'
-updated_date: '2026-08-17 00:14'
+updated_date: '2026-08-17 00:24'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies: []
@@ -233,6 +233,74 @@ Also corrected while reconciling: the campaign tracker's running spend total sai
 $5.93 before this session, but the five per-session figures it states sum to
 $6.2222. The parts are each evidenced in their own Resolved row, so the sum was
 fixed. Campaign total is now $20.65.
+
+## Branch review (`/code-review high`) — 9 findings, all real, all addressed
+
+The review re-derived every figure independently from the saved rows with
+`checks.mjs`'s own helpers and reproduced all of them, then found nine defects
+no gate could see. Four are worth carrying forward.
+
+**1. Statistical over-claiming (the serious one).** The word-cap section ran six
+paired comparisons on the same 15 units and bolded three as significant with no
+multiplicity adjustment. Bonferroni over exactly those six leaves **only
+sonnet − fable** clear of zero ([−0.525, −0.012]) — the haiku − sonnet result the
+headline sentence rested on becomes [−0.016, +0.270]. A second error compounded
+it: the 15 units are 3 styles x the SAME 5 cases, so differences repeat within a
+case and a paired t treating them as independent makes every interval too narrow.
+Clustering to the 5 cases widens them again (sonnet − fable [−0.494, −0.043];
+nothing else changes status). And 'the top two tiers are indistinguishable' read
+a null result as a null — that CI contains +0.127, the very effect size called
+significant two rows above.
+
+Rewritten to rest on the point estimates, which need no inference: a tier
+gradient predicts each step up overruns more than the step below, and **two of
+the three adjacent steps go the wrong way** (haiku > sonnet, opus > fable). The
+answer to AC #3 is unchanged and now rests on something the sample size cannot
+undermine. The section also now says explicitly what the data does NOT show —
+that no gradient exists — rather than implying it.
+
+**2. Two documents left contradicting the new result.** `docs/index.md`, the
+bundle's landing page, still summarised the two-model era ('both models',
+'91.5% to 97.8%', 'twenty points below'). And
+`docs/stories/close-the-style-quality-gaps.md` — the story behind COS-1 and COS-4,
+the next two cursor items — still carried a two-column opus/sonnet table as its
+standing evidence. Both updated. Fifth consecutive session where a real defect
+was a document left stating a superseded headline.
+
+**3. A gate claim that was false.** The notes said the `matrix.json` comment
+block's 'parse is asserted by the existing suite loading it'. No test loads it:
+the suites import modules, and `src/cli.mjs` — the only reader of `matrix.json` —
+is never imported. `npm test` would return 52/52 on a `matrix.json` with a stray
+comma while every `run`, `improve` and `score` invocation died at load.
+**Fixed rather than reworded**: new `harness/test/config.test.mjs`, 4 cases,
+suite 52 → 56. Proved by introducing a trailing comma into the comment block:
+3 tests fail and `npm test` goes red where before it stayed green.
+
+**4. Mean quoted as a per-cell fact.** '$0.9681 each' is the mean of six cells
+that ran $0.7970 to **$1.1315** — a 1.4x spread, in the one place readers go for
+per-cell costs. Corrected everywhere, with 'budget off the worst cell'.
+
+Also fixed: 'a fifth of the price / three tiers down' for Sonnet vs Fable (it is
+43% of the price and two tiers) in both FINDINGS.md and the epic; and the
+sentence-length bullet quoting figures pooled over `agentic-read-report` — cells
+the same document declares unquotable for `sentence_length`. Recomputed on
+tool-free cells only: Opus 10.6w/7.9%, Fable 11.1/9.6%, Haiku 11.3/10.0%, Sonnet
+13.4/20.3%. Every figure moved 0.1–0.7 words; the conclusion did not move, and
+Sonnet's lead grew.
+
+**One thing the review found that I would not have.** The four-tier table cannot
+be reproduced by reading `12-44-03`'s `rows.json` — its stored `rulesScore`
+predates 3370e4d and gives 93.8/90.2/95.0/91.7 where the table says
+94.2/91.5/95.6/92.3. Only re-scoring under today's `contracts.json` reproduces
+the published figures. The reviewer nearly filed it as a discrepancy. FINDINGS.md
+now states the dependency next to the table.
+
+The review also confirmed keeping Fable out of `matrix.json`'s `models` is
+correct, and sharpened why: `harness/README.md`'s own quick-start line is
+`improve --styles=… --iterations=4` with no `--models`, so the documented
+invocation would have picked Fable up silently. It suggests `matrix.improve`
+take its own `models` key so the footgun is removed rather than documented —
+raised for the user, not taken here.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
