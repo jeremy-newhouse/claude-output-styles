@@ -230,6 +230,66 @@ two different numbers for one cap are reported as **ambiguous**. Silence is the
 failure mode this guard exists to prevent, so it never resolves an unclear file
 by guessing.
 
+### Conditional caps
+
+A cap can be conditional, and for a while the guard could not say so. Beginner's
+file says "Never show code **unless they ask**". That parses to 0, matches
+`maxCodeLines: 0`, and was reported as agreement — while the prose granted a
+permission the contract had no field to hold, and `code_block_size` scored any
+code block 0 at weight 2 whether or not the reader had asked for it. The numbers
+agreed and the rules did not.
+
+The same defect ran the other way through the ban lists. Beginner's core rules
+say to gloss a term you must keep, with "I updated the API (the messenger that
+lets two programs talk)" as the worked example, and `no_jargon` matched the bare
+term. A reply following the file's own example lost the heaviest-weighted check
+in the contract.
+
+Both are fixed by extending the contract language rather than by editing the
+style files, and the two halves were decided separately because they are
+conditioned on different things:
+
+- **The gloss is conditioned on the reply**, which is the string a check already
+  reads. `no_jargon` was named "avoids unglossed jargon" from the start; only the
+  implementation was unconditional. It now grades **first use** and recognises
+  two gloss forms — `TERM (a phrase of three words or more)` and
+  `a two-word-or-longer expansion (TERM)` — which are the two the shipped files
+  demonstrate. The em-dash appositive is deliberately not recognised: "the cache
+  — the saved copy" is indistinguishable from "the cache — tests pass", and a
+  gloss detector that guesses wrong turns a real violation into a clean score.
+- **"Unless they ask" is conditioned on the request**, which no check can see. A
+  regex over the prompt would put a guess inside the one instrument whose value
+  is being deterministic. So the condition lives where the request does: a
+  contract sets `codeOnRequest: true`, a case sets `requestsCode: true`, and the
+  audit reports a prose conditional with no matching contract field — and the
+  mirror, a contract that lifts a cap the prose never lifts — as a FAIL.
+
+`codeOnRequest` lifts a **ban**, never a **size cap**. No style file states how
+long a requested snippet may be, and inventing a number would put a figure in the
+scorer that no reader of the style could find.
+
+Only a reader's request is recognised as a condition. Advanced's "Code or diffs
+under 10 lines **when they carry the point faster than prose**" is a judgement
+the writer makes, not a request the reader sends; nothing outside the writer can
+evaluate it, so it stays an ordinary unconditional cap.
+
+### What the by-hand re-read of all three files found
+
+`audit` cannot verify this about itself, so all three files were read against
+every contract field by hand. Two findings survive, and neither is a conditional:
+
+- **Advanced states a basis its contract grades differently.** The file says
+  "Keep the whole reply under 120, **headers and code included**"; `total_length`
+  counts `stripCode(text)`, so code is excluded. The scored cap is more permissive
+  than the stated one. Filed rather than fixed here: changing the basis moves
+  every `total_length` figure ever published, and changing the prose costs a
+  measured arm.
+- **Intermediate's "under about 100 words *when things are normal*" is a soft
+  cap, and the contract grades it as one.** `total_length` gives full credit at
+  the cap and decays to 0 at twice it, so the graded rule is already "about 100,
+  with a growing penalty past it" rather than a cliff. No change needed; recorded
+  because it reads like a conditional and is not one.
+
 ## Open questions
 
 Reply length, code allowance, and the ban lists have never been swept. They were

@@ -54,10 +54,10 @@ quotes the offending text. No model calls, so they are free and never drift:
 | `no_emoji` | any pictographic character |
 | `no_process_narration` | "Let me start by", "First, I'll…" |
 | `active_voice` | "was fixed" instead of "I fixed" |
-| `code_block_size` | code blocks over the level's line cap (0 = none allowed) |
+| `code_block_size` | code blocks over the level's line cap (0 = none allowed, unless `codeOnRequest` and the case asks) |
 | `three_question_structure` | what I did / did it work / what you do next |
 | `two_options_max` | exactly two options, trade-offs, one recommendation |
-| `no_jargon` | level-inappropriate terms from the contract's ban list |
+| `no_jargon` | level-inappropriate terms from the contract's ban list, unglossed on first use |
 | `leads_with_conclusion` | replies that open with "I'll…" instead of the outcome |
 
 **LLM judge** (`src/judge.mjs`, 30%) — a rubric grader for what regex cannot
@@ -298,14 +298,49 @@ Run it after editing a style file or a contract — those are the two moments th
 pair can drift. After adopting an optimizer candidate too; see the adopt step in
 `docs/runbooks/measure-and-optimize-an-output-style.md` for why that one bites.
 
-**It compares numbers, not conditions.** Beginner's file says "Never show code
-*unless they ask*", and the guard reads that as a flat 0 because that is all
-`maxCodeLines` can express. `code_block_size` then scores 0 for any code block at
-weight 2, whether or not the user asked — so on a prompt that requests a snippet,
-beginner follows its own style file and takes the heaviest penalty in its
-contract while `audit` reports "both say 0". The conditional half of a rule is
-invisible to both instruments. Treat a clean audit as "the numbers agree", not as
-"the file and the contract mean the same thing".
+**It compares conditions as well as numbers, since COS-15.** It used to compare
+only numbers, and that was its one silent failure: beginner's "Never show code
+*unless they ask*" parsed to a flat 0, matched `maxCodeLines: 0`, and was
+reported as agreement while the prose granted a permission the contract had no
+field to hold — and `code_block_size` scored a requested snippet 0 at weight 2.
+
+A cap the prose lifts on request now needs a contract field that says so, and the
+mirror — a contract that lifts a cap the prose never lifts — is drift too:
+
+| condition | recognised prose | contract field |
+|---|---|---|
+| the reader asks | "unless they ask", "unless asked", "only when asked", "when/if they ask" | `codeOnRequest` |
+
+```
+FAIL plain-english-beginner  maxCodeLines  both say 0, but the file lifts the cap
+                                           "unless they ask" and contracts.json
+                                           sets no codeOnRequest
+```
+
+The condition is read from the sentence that states the cap, not from the whole
+file — beginner says "Do not elaborate unless asked" three sections above its
+code rule, and a whole-body test would read that as a code-cap condition.
+
+**Only a reader's request counts as a condition.** Advanced's "Code or diffs under
+10 lines *when they carry the point faster than prose*" is a judgement the writer
+makes, not a request the reader sends. Nothing outside the writer can evaluate
+it, so it stays an ordinary unconditional cap rather than demanding a
+`codeOnRequest` that would then be graded on every reply.
+
+`codeOnRequest` lifts a **ban**, never a **size cap**: `code_block_size` scores a
+code block clean when `maxCodeLines` is 0 and the case sets `requestsCode: true`,
+and keeps applying a nonzero cap regardless. No style file states how long a
+requested snippet may be, and inventing a number would put a figure in the scorer
+that no reader of the style could find. No shipped case sets `requestsCode`, so
+this branch moves no measured figure today; it exists so the permission the style
+grants is expressible rather than silently dropped.
+
+The jargon ban carries the same conditional, from the other direction, and it is
+enforced in `checks.mjs` rather than here because it is conditioned on the reply:
+`no_jargon` grades **first use** and forgives a gloss in either of the two forms
+the shipped files demonstrate — `TERM (a phrase of three words or more)` and `a
+two-word-or-longer expansion (TERM)`. The em-dash appositive is deliberately not
+recognised; see the spec for why.
 
 **Every agentic figure saved before COS-10 is measured on a glued turn.** Until
 COS-10, `runTurn` accumulated the assistant's visible text with `text += b.text`.

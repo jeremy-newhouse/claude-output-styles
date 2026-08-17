@@ -80,7 +80,9 @@ that are not status updates, and spread across all three cases (3 / 3 / 4).
 The rewrite is measured over 144 cells in six arms, 114 of them in the two paired
 comparisons below. **Rules and reply length moved and are established** — rules +5.2 shared and +7.7 on reserve
 (t=7.06), reply words −42.0 and −55.7, over-cap share 40.0% → 14.3%, and rules on
-the shipped text at 98.5 / 97.4, the highest beginner has recorded. **The judge
+the shipped text at 98.5 / **97.7** — 97.4 before COS-15 taught `no_jargon` to
+forgive a glossed first use, which also shifts both rules deltas by under a
+point; see the footnote in `FINDINGS.md`. Still the highest beginner has recorded. **The judge
 did not move**: +1.3 [−15.0, +17.6]. Sonnet pooled over 35 cells reads 58.1
 [50.5, 65.6], below this story's 70% bar and established as below it, so that
 criterion is not met and COS-4 is parked rather than closed.
