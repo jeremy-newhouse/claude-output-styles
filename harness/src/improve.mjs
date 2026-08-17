@@ -79,6 +79,54 @@ export function comparableRows (baselineRows, candidateRows) {
 // split but omits the threshold — see where it is used.
 const DEFAULT_MIN_RESERVE_DELTA = -0.02
 
+// The fallback when a config carries no improve.models. Deliberately the
+// cheapest tier and only the cheapest tier ($0.0232 a baseline cell against
+// opus's $0.1493 and fable's $0.2345): an absent key has to fail cheap. It is
+// not matrix.models, which is the whole point — see resolveImproveModels.
+export const DEFAULT_IMPROVE_MODELS = ['haiku']
+
+/**
+ * The model list an improve loop scores candidates on.
+ *
+ * `run` and `improve` used to share one list: cli.mjs resolved
+ * `pick(args.models, matrix.models)` once, before the subcommand branch, and
+ * handed the same array to both. So every model added to matrix.models was
+ * billed on every iteration of every optimizer loop run the documented way —
+ * README's quick-start line passes no --models — and the top tier had to be kept
+ * out of the default matrix to contain a cost that only `improve` incurred.
+ *
+ * This function is not given matrix.models. Inheriting run's list is therefore
+ * structurally impossible here rather than merely avoided, which is what the
+ * deleted comment block in matrix.json was standing in for.
+ *
+ * An absent improve.models warns and uses DEFAULT_IMPROVE_MODELS, the shape
+ * COS-8 used for a missing minReserveDelta: a named default plus a log line, so
+ * the substitution is visible in the run's own output instead of silent.
+ *
+ * @param {object} a
+ * @param {string[]} [a.cliModels] parsed --models, when the caller passed one
+ * @param {object} a.cfg matrix.improve
+ * @param {(m: string) => void} [a.log]
+ * @returns {string[]}
+ */
+export function resolveImproveModels ({ cliModels, cfg = {}, log = () => {} }) {
+  // An explicit --models still wins: the flag is how a single loop is aimed at
+  // one tier without editing the config it shares with everyone else.
+  if (cliModels?.length) {
+    log(`models: ${cliModels.join(',')} (--models)`)
+    return cliModels
+  }
+  if (Array.isArray(cfg.models) && cfg.models.length) {
+    log(`models: ${cfg.models.join(',')} (matrix.improve.models)`)
+    return cfg.models
+  }
+  // Named source in every branch, so a loop's own output says what it is about
+  // to be billed for. This one is a warning because it is the branch nobody
+  // chose.
+  log(`WARNING: improve.models is not set — using ${DEFAULT_IMPROVE_MODELS.join(',')}`)
+  return DEFAULT_IMPROVE_MODELS
+}
+
 // summarize() reports an arm where nothing replied as null rather than as a
 // score. These keep that null intact through the loop's arithmetic and its log
 // lines instead of letting `null - 0.7` quietly become -0.7.

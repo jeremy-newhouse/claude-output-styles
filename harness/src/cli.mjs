@@ -3,7 +3,7 @@ import { readFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { evaluate, summarize } from './evaluate.mjs'
-import { improveStyle, spendOf } from './improve.mjs'
+import { improveStyle, spendOf, resolveImproveModels } from './improve.mjs'
 import { loadStyle } from './style.mjs'
 import { renderConsole, renderVerdict } from './report.mjs'
 import { writeResults, writeAtomic, readManifest, describeManifest } from './results.mjs'
@@ -113,6 +113,11 @@ if (cmd === 'run') {
   const variant = variants[0] ?? matrix.variants[0]
   mkdirSync(outDir, { recursive: true })
   const log = m => console.error(m)
+  // `models` above is run's list, and improve must not spend on it: the loop
+  // pays for its list once per iteration per candidate, so one extra model in
+  // matrix.models used to multiply through the whole loop. Resolved here rather
+  // than at line 68 because `run` in the same file must keep seeing matrix.models.
+  const improveModels = resolveImproveModels({ cliModels: args.models === undefined ? undefined : models, cfg, log })
   const results = []
   const allRows = []
   // The transcripts live in rows.json, in the same shape and at the same path
@@ -135,7 +140,7 @@ if (cmd === 'run') {
       // summary of the loop rather than a second copy of rows.json.
       // Wrapped, not passed bare: improveStyle calls onRows(rows), and flush's
       // first parameter is the completeness flag.
-      const { rows, ...r } = await improveStyle({ style, variant, models, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows, onRows: () => flush() })
+      const { rows, ...r } = await improveStyle({ style, variant, models: improveModels, cases, contracts, opts, cfg, outDir: join(outDir, 'candidates'), log, rows: allRows, onRows: () => flush() })
       results.push(r)
     } catch (err) {
       log(`[${style.id}] FAILED: ${String(err.message ?? err).slice(0, 200)}`)

@@ -6,7 +6,8 @@ output-style harness
 
   node src/cli.mjs run       [--styles=a,b] [--models=opus,sonnet] [--variants=baseline]
                              [--cases=id,id] [--repeats=2] [--concurrency=4] [--no-judge]
-  node src/cli.mjs improve   [--styles=a] [--iterations=6] [--variants=baseline]
+  node src/cli.mjs improve   [--styles=a] [--models=haiku] [--iterations=6]
+                             [--variants=baseline]
   node src/cli.mjs score     --rows=results/<stamp>/rows.json
   node src/cli.mjs audit     [--styles=a,b]
 
@@ -14,7 +15,8 @@ output-style harness
            re-written after every completed cell so a killed run keeps what it paid for.
            run.json says whether the rows beside it are the whole matrix
   improve  loop: measure -> rewrite the style -> re-measure -> keep if train up and holdout flat,
-           then validate the winner on the reserve split and roll back to v0 if it regresses
+           then validate the winner on the reserve split and roll back to v0 if it regresses.
+           Bills matrix.improve.models, NOT matrix.models — one list per iteration per candidate
   score    re-score saved transcripts offline after changing checks.mjs
   audit    check every style file's stated caps against contracts.json; exit 1 on disagreement
 

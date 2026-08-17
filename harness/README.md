@@ -70,10 +70,11 @@ judge is not itself under an output style.
 `config/matrix.json` crosses four axes:
 
 - **styles** — which style files to test
-- **models** — `opus`, `sonnet`, `haiku`. Fable is measured but deliberately not
-  in this list: it is the default for `improve` as well as `run`, so adding the
-  priciest tier would bill every optimizer iteration for it. Pass it explicitly,
-  and quote it — the `[1m]` is a glob pattern in most shells:
+- **models** — `opus`, `sonnet`, `haiku`. `run`'s list only: `improve` has its
+  own (`improve.models`) and never reads this one, so a model added here costs
+  one pass of the matrix rather than one pass per optimizer iteration. Fable is
+  still out of it by choice, on price rather than on that coupling. Pass it
+  explicitly, and quote it — the `[1m]` is a glob pattern in most shells:
   `--models='claude-fable-5[1m]'`. There is no bare `fable` alias.
 - **variants** — harness-level fixes tested *independently of the style text*,
   so you can tell whether a failure is the wording or the plumbing:
@@ -110,6 +111,14 @@ same checks grade Beginner and Advanced against different caps.
    that same text.
 5. Stop at `targetScore` or `maxIterations`.
 6. **Validate the winner on the reserve split** before presenting it. See below.
+
+The loop bills `matrix.improve.models`, not `matrix.models`, so the quick-start
+line above is safe to copy without `--models`: what it costs is set by the
+`improve` block alone and cannot grow when a model is added for `run`. That list
+is paid once per candidate per iteration, so it multiplies — adding a tier there
+is a much larger commitment than adding one to the matrix. `--models` still
+overrides it for a single loop, and a config with no `improve.models` warns and
+falls back to the cheapest tier alone rather than silently inheriting `run`'s.
 
 Candidates land in `results/<stamp>/candidates/<style>.v<N>.md`, and the winner
 in `<style>.best.md`. Nothing is written back to the real style files — diff and

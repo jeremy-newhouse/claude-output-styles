@@ -156,11 +156,11 @@ Fable. A single write-then-verify agentic cell runs $0.9681 on Fable. Scope the
 Fable case set before running rather than reusing the full matrix.
 
 SDK model values: `haiku` and `claude-fable-5[1m]`. There is no bare `fable`
-alias in the model list, and Fable is deliberately kept out of
-`config/matrix.json`'s `models` — that list is the default for `improve` as well
-as `run`, so putting the priciest tier in it would bill every optimizer
-iteration for it. Pass the id explicitly, quoted, and name `--variants` while you
-are there: omitting it runs all five variants, which is how COS-7's one-cell
+alias in the model list. Fable is kept out of `config/matrix.json`'s `models` on
+price alone; since COS-14 that list is `run`'s only, and `improve` bills its own
+`improve.models`, so a model added there no longer multiplies through every
+optimizer iteration. Pass the id explicitly, quoted, and name `--variants` while
+you are there: omitting it runs all five variants, which is how COS-7's one-cell
 model-id probe became a five-cell $1.58 one.
 
 If Haiku exposes rules that the larger models satisfy without being told, those

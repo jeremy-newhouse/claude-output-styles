@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CHECKS, VIEWS } from '../src/checks.mjs'
+import { resolveImproveModels } from '../src/improve.mjs'
 
 // `src/cli.mjs` reads these three files at startup, before any subcommand runs,
 // so a malformed one breaks `run`, `improve`, `score` and `audit` alike. Nothing
@@ -110,4 +111,18 @@ test('a comment key is a string array, so it can never be read as an axis', () =
     if (!k.startsWith('//')) continue
     assert.ok(Array.isArray(v) && v.every(line => typeof line === 'string'), `${k} must be an array of strings`)
   }
+})
+
+test('improve carries its own model list, and it is what the loop resolves', () => {
+  const m = readConfig('matrix.json')
+  assert.ok(Array.isArray(m.improve.models) && m.improve.models.length, 'matrix.improve.models must be a non-empty array')
+  assert.ok(m.improve.models.every(x => typeof x === 'string' && x), 'every improve model must be a non-empty string')
+  // README's quick-start line is `improve --styles=… --iterations=4` with no
+  // --models, so what that line bills is exactly this resolution. Assert it
+  // here rather than by running improve: an improve run costs money and this
+  // claim is about which list is read, which is free to check.
+  assert.deepEqual(resolveImproveModels({ cfg: m.improve }), m.improve.models)
+  // And it follows improve.models rather than agreeing with it by coincidence —
+  // the two lists happen to hold the same three models today.
+  assert.deepEqual(resolveImproveModels({ cfg: { ...m.improve, models: ['haiku'] } }), ['haiku'])
 })
