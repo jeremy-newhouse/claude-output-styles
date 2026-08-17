@@ -49,7 +49,7 @@ What the fix cannot do is reach backwards. Gluing is lossy, so every saved
 agentic figure still describes the whole turn and is labelled as such in
 `FINDINGS.md` and the ledger; replacing one costs a re-run. The newline half *is*
 re-derivable, was re-derived across all 61 saved runs, and moves rule totals by at
-most 1.07 points — but it moves published sentence-segmentation figures by more
+most 1.50 points — but it moves published sentence-segmentation figures by more
 than that, and those were corrected in place.
 
 **Errored cells bias both halves of the score, in opposite directions.** An
