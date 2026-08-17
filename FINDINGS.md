@@ -193,6 +193,13 @@ is a single string with no per-model key, and the style is read once at session
 start — switching model mid-session does not reload it, so you would silently run
 the wrong file until the next `/clear`.
 
+Two tiers later this still holds, and the argument is now stronger than
+"different subsets". Across all four models the *same four rules* are the only
+ones anyone drops — `total_length`, `leads_with_conclusion`, `sentence_length`
+and `no_process_narration` — and the remaining eight score 96.7 to 100.0 on every
+tier at once. There is no rule that one model needs and another should be spared,
+which is what a per-model file would have to be built on.
+
 ### One harness fix this run produced
 
 The comparison first showed `two_options_max` regressing on Sonnet, 1.00 → 0.50.
