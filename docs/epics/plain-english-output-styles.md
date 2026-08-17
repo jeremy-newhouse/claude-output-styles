@@ -39,6 +39,8 @@ decision.
 
 - [Close the style quality gaps](../stories/close-the-style-quality-gaps.md) —
   the two scenarios every style handles badly, and beginner's prose
+- [Make the measurements trustworthy](../stories/make-the-measurements-trustworthy.md) —
+  four defects in the scorer, and every figure that rests on a ten-cell arm
 - [Harden the optimizer loop](../stories/harden-the-optimizer-loop.md) —
   a reserve split and auditable improve runs
 - [Extend measurement coverage](../stories/extend-measurement-coverage.md) —

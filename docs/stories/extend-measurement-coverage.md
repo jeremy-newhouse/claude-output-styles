@@ -8,10 +8,11 @@ summary: Measure all three styles at both ends of the model range — Haiku and 
 tasks:
   - cos-5
   - cos-7
+  - cos-17
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: done
+lore_task_status: todo
 ---
 
 # Extend measurement coverage
@@ -119,6 +120,7 @@ columns.
 |---|---|---|
 | [COS-5](../../backlog/tasks/cos-5%20-%20Measure-the-styles-on-Haiku.md) | Measure the styles on Haiku | Done |
 | [COS-7](../../backlog/tasks/cos-7%20-%20Measure-the-styles-on-Fable.md) | Measure the styles on Fable | Done |
+| [COS-17](../../backlog/tasks/cos-17%20-%20Re-measure-beginner-on-Haiku-and-Fable-after-the-rewrite.md) | Re-measure beginner on Haiku and Fable after the rewrite | To Do |
 <!-- lore:tasks:end -->
 
 ## Notes

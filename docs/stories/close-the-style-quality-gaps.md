@@ -8,6 +8,8 @@ tasks:
   - cos-1
   - cos-4
   - cos-8
+  - cos-16
+  - cos-18
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
@@ -116,6 +118,8 @@ untested tiers are Haiku and Fable.
 | [COS-1](../../backlog/tasks/cos-1%20-%20Close-the-multi-tool-session-and-open-ended-decision-quality-gap.md) | Close the multi-tool session and open-ended decision quality gap | To Do |
 | [COS-4](../../backlog/tasks/cos-4%20-%20Raise-beginner-style-prose-quality.md) | Raise beginner style prose quality | To Do |
 | [COS-8](../../backlog/tasks/cos-8%20-%20Decide-whether-lower-levels-need-tighter-sentence-caps.md) | Decide whether lower levels need tighter sentence caps | Done |
+| [COS-16](../../backlog/tasks/cos-16%20-%20Fix-the-five-contradictions-COS-4-left-in-the-beginner-style-file.md) | Fix the five contradictions COS-4 left in the beginner style file | To Do |
+| [COS-18](../../backlog/tasks/cos-18%20-%20Test-whether-intermediate-and-advanced-carry-beginners-defects.md) | Test whether intermediate and advanced carry beginner's defects | To Do |
 <!-- lore:tasks:end -->
 
 ## Notes

@@ -30,6 +30,7 @@
 - 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 - 2026-08-16T21:50:29-05:00 af750a40f9da94741dafaea744d079df440b3499 Mark the four-tier table's beginner row as history, and the tier word counts too
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
+- 2026-08-16T21:51:07-05:00 ded82ae91653c1c41d4152e9f4bece4e9e836a59 Archive session 8's handover, record COS-4's merge SHA, and close the campaign
 
 ## docs/adr
 

@@ -7,10 +7,12 @@ summary: A reserve split the optimizer never sees, and persisted transcripts so 
 tasks:
   - cos-2
   - cos-3
+  - cos-14
+  - cos-9
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: done
+lore_task_status: todo
 ---
 
 # Harden the optimizer loop
@@ -60,6 +62,8 @@ fixed, cannot be audited, and did not appear in any spend total until a
 |---|---|---|
 | [COS-2](../../backlog/tasks/cos-2%20-%20Hold-a-case-pool-out-of-every-optimizer-split.md) | Hold a case pool out of every optimizer split | Done |
 | [COS-3](../../backlog/tasks/cos-3%20-%20Persist-transcripts-from-improve-runs.md) | Persist transcripts from improve runs | Done |
+| [COS-14](../../backlog/tasks/cos-14%20-%20Give-matrix.improve-its-own-model-list.md) | Give matrix.improve its own model list | To Do |
+| [COS-9](../../backlog/tasks/cos-9%20-%20Make-two_options_max-see-prose-option-sprawl.md) | Make two_options_max see prose option sprawl | To Do |
 <!-- lore:tasks:end -->
 
 ## Outcome
