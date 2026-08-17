@@ -26,6 +26,14 @@ Every `run` invocation writes `rows.json`, `summary.json`, and `report.md`.
 absent from the runs below; from `2026-08-16T14-48-09` onward an improve run
 persists the same three files, with an `iteration` on every row.
 
+From COS-12 onward both commands also write a fourth file, `run.json`, and
+re-write all four after every completed cell rather than once at the end. Read
+`run.json` before quoting anything from a run directory: `complete: false` means
+the process died partway and the rows beside it are the cells that survived, not
+the matrix that was requested. Runs recorded before COS-12 have no `run.json`,
+and their completeness is not knowable from the directory alone — that is what
+`score` means when it says completeness is unknown.
+
 **Do not add an improve run to the table above.** Its headline pools the baseline
 with every rejected candidate, so it is not a score for anything and is not
 comparable with the rows here. Its `report.md` is titled *Optimizer trace* and
@@ -60,17 +68,26 @@ runs belong in the optimizer table below.
 | `02-16-47` | 12 | $1.92 | same as `02-12-24`, after pass 1 | The AC #3 validation. Rules 95.6 / 93.5, judge 45.3 / 49.7, 0 errors. Paired over the twelve cells this is the strongest arm in the task: rules **+7.7 [+5.3, +10.1]**, reply words **−55.7 [−83.2, −28.1]**, composite **+7.4 [+0.8, +14.0]**. |
 | `02-20-01` | 30 | $3.93 | same shared five, 3 repeats, after a second authoring pass | **Rejected and reverted.** Rules 98.7 / 97.1, judge 68.4 / 74.1 — arm mean 71.2 against pass 1's 71.8, statistically identical. Its five edits each quoted a pass-1 violation, but one introduced a false premise ("There was no job to report") on a tool-using case, and that case fell on both models. No bullet was kept: COS-1's precedent is that unmeasured text does not ship. |
 | `02-25-39` | 50 | $6.64 | same shared five, 5 repeats, byte-identical pass-1 text | **The arm that corrected this task's own conclusion.** Judge 72.4 Opus / **55.0 Sonnet**, against 77.8 / 65.8 from the same text at n=10. Pooled to n=35 a model the shipped text reads 73.9 [66.0, 81.9] and 58.1 [50.5, 65.6], and the paired judge delta against the before arm collapses from +7.1 to **+1.3 [−15.0, +17.6]**. Sonnet across four arms of the same five cases: 70.7, 65.8, 74.1, 55.0. |
+| `05-29-31` | 2 | $0.07 | beginner, Haiku, baseline, 4 cases, SIGKILLed after cell 2 | **COS-12's evidence.** A run killed with SIGKILL — no handler, no graceful shutdown — left both completed cells fully scored in `rows.json` and a `run.json` reading `complete: false, completed: 2, expected: 4`. `score --rows=` re-read them at exit 0 behind the line `PARTIAL run — 2 cells of 4 expected (2 never ran)`. Under the previous code the same kill would have left the directory empty. |
+| `05-31-40` | 1 | $0.02 | beginner, Haiku, baseline, 1 case | COS-12's happy path: a run allowed to finish writes `complete: true`, and `score` says so. Re-scoring `12-44-03` in the same session still reproduced 81.0% and $7.517, so the flush changed no published figure. |
 
-Total persisted: 634 cells, $83.33. Improve-loop spend before COS-3 is additional
+Total persisted: 637 cells, $83.43. Improve-loop spend before COS-3 is additional
 and was not tracked until late; from COS-3 onward it is carried on the rows.
 
-Two accounting caveats on that total. Cells that error carry `costUsd: 0` — the
+Four accounting caveats on that total. Cells that error carry `costUsd: 0` — the
 SDK's result message has no cost on a turn-limit abort — so `22-59-53`'s six
 failed cells, `01-03-21`'s one and `01-33-41`'s three burned tokens that no row records. And one aborted invocation under
-COS-5 (a `run --help` that the CLI treats as `run`, since there is no help flag
-on the subcommand) ran for about two minutes at concurrency 4 before being
-killed. It wrote no `rows.json`, so its spend is real but unquantified and is not
-in the total above.
+COS-5 (a `run --help` that the CLI then treated as `run`; COS-5 added the guard
+that now short-circuits it before any config is read) ran for about two minutes
+at concurrency 4 before being killed. It wrote no `rows.json`, so its spend is
+real but unquantified and is not in the total above.
+
+Third, the same gap survives the COS-12 flush in a much smaller form: the cell in
+flight when a run is killed has already spent tokens and will never be written,
+so `05-29-31`'s $0.07 is the two cells that landed and not what the process cost.
+Flushing recovers the completed cells, not the interrupted one. Fourth, the total
+is the sum of the per-run costs as rounded in the table above; the pre-COS-12
+figure was carried as $83.33 while its own rows summed to $83.34.
 
 `22-18-53`, `22-27-15` and `22-59-53` are one story and belong together.
 `22-18-53` was a cheap Haiku probe run to decide whether a tighter sentence cap

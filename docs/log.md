@@ -32,6 +32,7 @@
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 - 2026-08-16T21:51:07-05:00 ded82ae91653c1c41d4152e9f4bece4e9e836a59 Archive session 8's handover, record COS-4's merge SHA, and close the campaign
 - 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
+- 2026-08-16T23:40:05-05:00 9f541403ce1fa3d58a56e644ae97e6c6c57140e9 Arm campaign 2: confirm the queue order and set the cursor at COS-12
 
 ## docs/adr
 

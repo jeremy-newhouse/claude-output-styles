@@ -116,8 +116,8 @@ in `<style>.best.md`. Nothing is written back to the real style files — diff a
 copy them yourself.
 
 An improve run leaves the same artifacts a `run` does: `rows.json`,
-`summary.json`, and `report.md` at `results/<stamp>/`, holding every cell the
-loop measured. Each row carries the `iteration` that produced it — 0 is the
+`summary.json`, `report.md` and `run.json` at `results/<stamp>/`, holding every
+cell the loop measured. Each row carries the `iteration` that produced it — 0 is the
 baseline — and each iteration's cells are also written separately as
 `candidates/<style>.v<N>.<split>.json`. Reverted iterations are kept too: the
 rewrites that failed are the record of what the money bought. Rows are flushed
@@ -218,6 +218,19 @@ With no `--rows`, `score` re-grades the newest run of either kind. Re-grading an
 improve run adds the `BY ITERATION` table and the same trace warning, so a
 scoring change can be replayed across the whole optimization rather than one
 snapshot of it.
+
+`score` prints one line about the file before any figure, read from the
+`run.json` beside it:
+
+- `complete run — 78 cells` — the whole matrix ran.
+- `PARTIAL run — 12 cells of 78 expected (66 never ran)` — the process died
+  partway. The rows are real and fully scored; they describe the cells that
+  survived and not the matrix that was asked for.
+- `no run manifest beside these rows — completeness unknown` — a run saved
+  before COS-12 added the manifest, or a `rows.json` copied out of its directory.
+
+Partial files are ordinary input: `score` reads them, exits 0, and says what it
+read. What it will not do is let a half-finished arm be quoted as a whole one.
 
 ## Auditing a style file against its contract
 
@@ -353,3 +366,10 @@ Re-scoring saved rows is free; use it before believing a probe.
 
 Note that a cell which aborts on the turn limit records `costUsd: 0`, so a run's
 summed spend understates what it actually burned whenever cells error.
+
+**Killing a run no longer forfeits it.** `run` used to write `rows.json` once, at
+the end, so a long arm that died at the last cell returned nothing for its whole
+spend. Both commands now re-write the run directory after every completed cell,
+so an interrupted arm keeps everything except the cell in flight. That cell is
+still lost money — flushing recovers transcripts, not tokens — so the cheapest
+way to avoid paying twice remains naming your axes before you start.
