@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, cpSync, rmSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { resolve, dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // `fixtures/repo` is copied into every workspace by workspace.mjs, and three of
 // the four agentic cases ask the model to run its tests. Nothing else in the
@@ -31,32 +31,45 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const FIXTURE = join(ROOT, 'fixtures', 'repo')
 
-// NODE_TEST_CONTEXT must be stripped from the child's environment. `node --test`
-// sets it, the child inherits it, and a child that believes it is running under a
-// test runner reports its results over a serializer channel instead of exiting
-// non-zero — so a failing fixture suite comes back as status 0. The first version
-// of this file inherited the environment and every assertion below passed while
-// the fixture was deliberately broken. Verified by reintroducing the 966
-// assertion: without the scrub, status 0; with it, status 1.
-const runSuite = dir => {
+// Two variables have to go before the child runs.
+//
+// NODE_TEST_CONTEXT: `node --test` sets it, the child inherits it, and a child
+// that believes it is running under a test runner reports over a serializer
+// channel instead of exiting non-zero — so a failing fixture suite comes back as
+// status 0. The first version of this file inherited the environment and every
+// assertion below passed while the fixture was deliberately broken.
+//
+// NODE_OPTIONS: it can carry `--test-reporter`, which changes the output this
+// file parses. With `NODE_OPTIONS=--test-reporter=tap` the spec-format regex
+// below matched nothing and a perfectly green fixture was reported as broken —
+// accusing it of the exact defect COS-13 fixed. The reporter is also pinned on
+// the command line rather than left to Node's non-TTY default, which has not
+// always been spec.
+const cleanEnv = () => {
   const env = { ...process.env }
   delete env.NODE_TEST_CONTEXT
-  const r = spawnSync(process.execPath, ['--test', 'test/pricing.test.mjs'], { cwd: dir, encoding: 'utf8', env })
-  const output = `${r.stdout ?? ''}${r.stderr ?? ''}`
-  // An empty suite is not a green suite. `node --test` counts a file containing no
-  // tests as one passing test — `ℹ pass 1` — so a pass count above zero proves
-  // nothing and an earlier version of this guard accepted a fixture whose tests had
-  // been deleted. Compare the reported passes against the number the file declares.
-  const declared = (readFileSync(join(dir, 'test', 'pricing.test.mjs'), 'utf8').match(/^test\(/gm) ?? []).length
-  const reported = Number(/^ℹ pass (\d+)$/m.exec(output)?.[1])
-  return {
-    passed: r.status === 0 && declared > 0 && reported === declared,
-    status: r.status,
-    declared,
-    reported,
-    output
-  }
+  delete env.NODE_OPTIONS
+  return env
 }
+
+// An empty suite is not a green suite. `node --test` counts a file containing no
+// tests as one passing test, so a pass count above zero proves nothing and an
+// earlier version of this guard accepted a fixture whose tests had been deleted.
+// Liveness is taken from the assertions the file actually makes: counting
+// `test(` at column 0 was tried first and is too brittle — indenting the cases
+// inside a `describe`, or switching to `it(`, would drop the count to zero and
+// fail a green fixture with a misleading message.
+const verdict = (r, dir) => {
+  const output = `${r.stdout ?? ''}${r.stderr ?? ''}`
+  const assertions = (readFileSync(join(dir, 'test', 'pricing.test.mjs'), 'utf8').match(/assert\./g) ?? []).length
+  const failed = Number(/^ℹ fail (\d+)$/m.exec(output)?.[1])
+  return { passed: r.status === 0 && failed === 0 && assertions >= 2, status: r.status, failed, assertions, output }
+}
+
+const runSuite = dir => verdict(
+  spawnSync(process.execPath, ['--test', '--test-reporter=spec', 'test/pricing.test.mjs'], { cwd: dir, encoding: 'utf8', env: cleanEnv() }),
+  dir
+)
 
 const withFixtureCopy = fn => {
   const dir = mkdtempSync(join(tmpdir(), 'osh-fixture-'))
@@ -69,8 +82,21 @@ const withFixtureCopy = fn => {
 }
 
 test('the fixture suite is green on arrival, before the model touches anything', () => {
-  const { passed, declared, reported, output } = runSuite(FIXTURE)
-  assert.equal(passed, true, `fixtures/repo does not run clean, so every agentic cell that runs the suite meets a failure it did not cause (declared ${declared} tests, ${reported} passed):\n${output}`)
+  const { passed, assertions, failed, output } = runSuite(FIXTURE)
+  assert.equal(passed, true, `fixtures/repo does not run clean, so every agentic cell that runs the suite meets a failure it did not cause (${assertions} assertions in the file, ${failed} reported failures):\n${output}`)
+})
+
+test('npm test works in a workspace copy, which is the command the cases ask for', () => {
+  // The fixture is copied to the workspace ROOT, so it has no package.json above
+  // it the way it does in this repo. Without one of its own, `npm test` — the
+  // obvious reading of "run the tests" in a JS repo — died with ENOENT before
+  // any test ran. That is the same unexplained, self-inflicted failure COS-13
+  // exists to remove, one command to the left of the assertion that was
+  // reported. `node --test` alone never sees it, so it is asserted separately.
+  const r = withFixtureCopy(dir =>
+    spawnSync('npm', ['test'], { cwd: dir, encoding: 'utf8', env: cleanEnv() })
+  )
+  assert.equal(r.status, 0, `npm test fails in a workspace copy of the fixture:\n${r.stdout ?? ''}${r.stderr ?? ''}`)
 })
 
 test('the fixture suite is still green after the rounding bug is correctly fixed', () => {
@@ -86,7 +112,7 @@ test('the fixture suite is still green after the rounding bug is correctly fixed
 })
 
 test('the rounding bug is still present, so the agentic cases still have something to find', async () => {
-  const { applyDiscount } = await import(join(FIXTURE, 'src', 'pricing.js'))
+  const { applyDiscount } = await import(pathToFileURL(join(FIXTURE, 'src', 'pricing.js')).href)
   // 999 * 0.15 = 149.85. Truncating keeps 850; rounding to the nearest cent keeps 849.
   assert.equal(applyDiscount(999, 15), 850, 'applyDiscount no longer truncates — the bug three agentic cases exist to find has been fixed in the fixture itself')
   assert.notEqual(applyDiscount(999, 15), 999 - Math.round(999 * 0.15))

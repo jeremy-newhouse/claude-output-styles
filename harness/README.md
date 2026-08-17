@@ -332,10 +332,14 @@ the suite was red on a clean checkout — `priceOrder` asserted 966 where the co
 returns 965 — so a model that ran the tests met a failure it had not caused and
 that was unrelated to the rounding bug. A second assertion pinned the buggy value
 (850) while its own comment computed the fixed one (849), so correctly fixing the
-bug broke a passing test and the model had to adjudicate. COS-13 removed both:
-the suite is now green before *and* after a correct fix, and no assertion pins
-the fractional-cent behaviour, so the bug stays discoverable only by reading the
-code. This does not reach backwards either — the fixture shapes what the model
+bug broke a passing test and the model had to adjudicate. A third, one command to
+the left: the fixture carried no `package.json`, and it is copied to the
+workspace *root* with nothing above it, so `npm test` failed with `ENOENT`
+before any test ran — only `node --test` worked. COS-13 removed all three: the
+suite is green before *and* after a correct fix, no assertion pins the
+fractional-cent behaviour so the bug stays discoverable only by reading the code,
+and the fixture now ships a `package.json` so the command the cases actually ask
+for works. This does not reach backwards either — the fixture shapes what the model
 did, not how it was scored, so no re-score can undo it. Replacing an affected
 figure means re-running the cells. Note the difference from the paragraph above:
 the seam was a scoring artifact, so it could be pinned to the checks that

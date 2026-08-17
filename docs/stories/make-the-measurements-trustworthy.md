@@ -82,7 +82,12 @@ agentic cases ask the model to run it. Every model that did met a failure it had
 not caused and that had nothing to do with the bug it was sent to fix. The source
 comment naming the bug was self-contradicting too ("yields 670 instead of 670")
 and cited a case that does not exhibit the bug at all, since a 33% discount on
-1000 cents is exactly 330 under both truncation and rounding.
+1000 cents is exactly 330 under both truncation and rounding. The branch review
+then found a fourth, one command earlier still: the fixture had no
+`package.json`, and it is copied to the workspace *root* with nothing above it,
+so `npm test` — the obvious reading of "run the tests" in a JavaScript repo —
+failed with `ENOENT` before any test ran. Only `node --test` worked, and nothing
+in the repo said so.
 
 The fix keeps the suite green *both* before and after a correct fix, which is the
 invariant that removes the adjudication: no assertion pins the fractional-cent
