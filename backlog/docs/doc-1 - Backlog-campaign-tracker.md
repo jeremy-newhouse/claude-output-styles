@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 01:22'
+updated_date: '2026-08-17 01:38'
 ---
 # Backlog campaign tracker
 
@@ -38,10 +38,10 @@ Not queued yet: **COS-9** (raised session 3) and two harness defects raised in
 sessions 5 and 6 — see "Raised, not queued" below. Deliberately left out of the
 confirmed order, which is the user's to change.
 
-Estimated remaining: ~$20, for COS-4 alone. Spent so far: **$33.96** — COS-6
+Estimated remaining: ~$20, for COS-4 alone. Spent so far: **$34.31** — COS-6
 nothing, COS-3 $0.7500, COS-2 $1.1800, COS-8 $2.4152, COS-5 $1.8770, COS-7
 $14.4290 (the most expensive session, and the last measurement task), COS-1
-$13.3074 against a ~$15 budget.
+$13.6567 against a ~$15 budget.
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -86,9 +86,9 @@ IS counted above.
   `agentic-fix-verify`'s judge score is not a measure of the style file. That is
   the text-block seam already raised in session 6, now known to reach the judge
   and not only the two segmentation checks. **The conversational half is a
-  length problem**, which is COS-4's subject — 75-83% of cells overrun their
-  style's word cap in every arm, before and after, and no rule this task added
-  touched that.
+  length problem**, which is COS-4's subject — 70.8-82.6% of cells overrun their
+  style's word cap in every arm, before and after (9/12, 17/24, 19/23), and no
+  rule this task added touched that.
 
   Sequencing follows from that: COS-4 first, the seam fix before any retry of
   AC #4. Do not re-open COS-1 with an `improve` run — the rules now exist and
@@ -128,8 +128,21 @@ IS counted above.
   every judge mean. The rules half is documented from COS-5; the judge half is
   the opposite bias, is not documented, and the two do not cancel. One turn-limit
   abort in `01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge from
-  33.0 to **44.2**. Small fix (drop errored rows from `summarize`, or carry them
-  in a separate column); until then, filter on `!row.error` before quoting.
+  33.0 to **44.2**. **Partly fixed in session 7, because COS-1 made it worse
+  first**: adding a second agentic case to `reserve` put the most abort-prone
+  case type inside `improve`'s adoption gate, where each one-sided abort moved
+  the delta ~0.01 against a `minReserveDelta` of -0.02. The gate now compares
+  only cases that produced a reply on both sides, names what it dropped, and
+  rejects rather than adopting when nothing is comparable. The wider bias in
+  `summarize()` — every judge mean anyone quotes — is untouched and still needs
+  the user's call. Until then, filter on `!row.error` before quoting.
+- **The agentic fixture contradicts itself** (session 7, from the branch review).
+  `harness/fixtures/repo/test/pricing.test.mjs` asserts `applyDiscount(999, 15)`
+  is 850 while its own comment computes 849. A model that correctly replaces
+  `Math.floor` with rounding breaks a currently-passing test and has to decide
+  unaided whether to edit the assertion, which is scoring noise on every agentic
+  case — including the two now on the reserve gate. Pre-existing; fixing it moves
+  published agentic numbers, so it is raised rather than patched.
 - **`sentences()` merges a list header into its first item** (session 4). It does
   not split on a single newline, so "Here's why:\nYou're paying twice." scores as
   one long sentence. Measured at 12.2% of over-cap sentences. Fixing it also
@@ -394,5 +407,13 @@ Both remaining issues carry known risk against that policy:
   `harness/README.md` and the raised list. Also closed a parse-guard gap of
   exactly the kind session 6's review found in `matrix.json`, one file over:
   `cases/cases.json` was read at CLI startup with nothing asserting it parsed.
-  Suite 56 → 58, and all five new guards were proved to fire by breaking the file
-  on purpose. `audit` exit 0; `lore check` exit 0. Cursor advanced to COS-4.
+  Suite 56 → **64**, and all five new case guards were proved to fire by breaking
+  the file on purpose. The branch review returned 11 findings and every one was
+  real: four wrong numbers in my own prose (all from counting words without
+  `stripCode`, so the published over-cap range excluded the shipped arm), one
+  withdrawn claim, and — the serious one — **a regression I introduced**, putting
+  an abort-prone agentic case inside `improve`'s adoption gate while the diff
+  documented that same error bias in three places and left the code alone. Fixed
+  in the gate with six new tests, after `01-33-41` measured the case aborting
+  3 of 6 on Haiku. `audit` exit 0; `lore check` exit 0. Six paid runs, $13.6567
+  against ~$15. Cursor advanced to COS-4.
