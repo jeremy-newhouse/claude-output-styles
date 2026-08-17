@@ -43,6 +43,25 @@ Rewrite the body to fix those failures. Rules for the rewrite:
 
 Return ONLY the new body in Markdown. No frontmatter. No commentary.`
 
+/** Mean `total` over a set of rows; 0 for an empty set, matching summarize(). */
+export const meanTotal = rows =>
+  rows.length ? Number((rows.reduce((a, r) => a + r.total, 0) / rows.length).toFixed(3)) : 0
+
+/**
+ * The rows the reserve gate may compare. A cell that errored on either side is
+ * dropped from BOTH, so the two means are always taken over the same case set.
+ * Pairing is by caseId rather than by index: `pool` preserves order today, but a
+ * comparison that silently depends on that would be wrong the moment it does not.
+ * @returns {{a: object[], b: object[]}} baseline rows and candidate rows
+ */
+export function comparableRows (baselineRows, candidateRows) {
+  const bad = new Set([...baselineRows, ...candidateRows].filter(r => r.error).map(r => r.caseId))
+  return {
+    a: baselineRows.filter(r => !bad.has(r.caseId)),
+    b: candidateRows.filter(r => !bad.has(r.caseId))
+  }
+}
+
 // Matches config/matrix.json. Only a fallback for a config that names a reserve
 // split but omits the threshold — see where it is used.
 const DEFAULT_MIN_RESERVE_DELTA = -0.02
@@ -212,23 +231,49 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     // drift and case edits, which is the comparison this guard exists to avoid.
     const r0 = await measure(incumbent.text, reserveCases, cfg.reserveSplit, 0)
     const rN = await measure(best.text, reserveCases, cfg.reserveSplit, best.iteration)
-    const delta = Number((rN.summary.overall - r0.summary.overall).toFixed(3))
+    // `summary.overall` averages errored rows in, and an errored row is scored
+    // 0 on every rule but 1.0 by the judge (evaluate.mjs substitutes a neutral
+    // score rather than calling the judge on empty text). Its `total` is
+    // therefore the style's judgeWeight — 0.3 to 0.5 — against a reserve mean
+    // nearer 0.65, so each one-sided abort drags that side down by roughly
+    // 0.01 at 36 cells. minReserveDelta is -0.02, so two unmatched aborts can
+    // flip the verdict on noise that has nothing to do with the rewrite. The
+    // gate compares like with like instead: only cases that produced a reply on
+    // BOTH sides count, so an abort removes a case from the comparison rather
+    // than scoring it.
+    const usable = comparableRows(r0.rows, rN.rows)
+    const dropped = new Set([...r0.rows, ...rN.rows].filter(x => x.error).map(x => x.caseId))
+    const baseline = meanTotal(usable.a)
+    const candidate = meanTotal(usable.b)
+    const delta = Number((candidate - baseline).toFixed(3))
+    if (dropped.size) {
+      log(`[${style.id}] WARNING: ${dropped.size} reserve case(s) errored on one or both sides and are excluded ` +
+          `from the comparison: ${[...dropped].join(', ')}`)
+    }
+    if (!usable.a.length) {
+      log(`[${style.id}] WARNING: every reserve cell errored — v${best.iteration} cannot be validated`)
+    }
     // Without a fallback a missing threshold means `delta >= undefined`, which
     // is false for every candidate: every run would roll back to v0 while
     // logging an ordinary-looking REJECT. Say so rather than fail silently.
     if (cfg.minReserveDelta === undefined) log(`[${style.id}] WARNING: improve.minReserveDelta is not set — using ${DEFAULT_MIN_RESERVE_DELTA}`)
-    const accepted = delta >= (cfg.minReserveDelta ?? DEFAULT_MIN_RESERVE_DELTA)
+    // No usable cell means no evidence, and no evidence is a rejection: this
+    // project's stated asymmetry is that re-running a sound rewrite is cheap and
+    // shipping a bad one is not. Accepting here would adopt on a mean of nothing.
+    const accepted = usable.a.length > 0 && delta >= (cfg.minReserveDelta ?? DEFAULT_MIN_RESERVE_DELTA)
     reserve = {
       split: cfg.reserveSplit,
       cases: reserveCases.length,
-      baseline: r0.summary.overall,
-      candidate: rN.summary.overall,
+      comparedCells: usable.a.length,
+      droppedCases: [...dropped],
+      baseline,
+      candidate,
       delta,
       accepted,
       iteration: best.iteration
     }
-    log(`[${style.id}] ${cfg.reserveSplit}: v${best.iteration} ${rN.summary.overall} vs v0 ${r0.summary.overall} ` +
-        `(${delta >= 0 ? '+' : ''}${delta}) -> ${accepted ? 'ACCEPT' : 'REJECT'}`)
+    log(`[${style.id}] ${cfg.reserveSplit}: v${best.iteration} ${candidate} vs v0 ${baseline} ` +
+        `(${delta >= 0 ? '+' : ''}${delta}) over ${usable.a.length} comparable cells -> ${accepted ? 'ACCEPT' : 'REJECT'}`)
     if (!accepted) {
       // A rejection is a rollback, not an annotation. best.md is documented as
       // the winner and is the file a reader diffs and copies, so it must hold

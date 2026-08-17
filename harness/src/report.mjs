@@ -65,6 +65,13 @@ export function renderVerdict (r, reserveSplit = 'reserve') {
     const d = r.reserve.delta
     lines.push(`  ${r.reserve.split}: v${r.reserve.iteration} ${r.reserve.candidate} vs v0 ${r.reserve.baseline} ` +
                `(${d >= 0 ? '+' : ''}${d}) over ${r.reserve.cases} cases`)
+    // A verdict computed over fewer cases than the split holds is a weaker
+    // verdict, and silently printing the full case count would hide that.
+    const dropped = r.reserve.droppedCases ?? []
+    if (dropped.length) {
+      lines.push(`    ${dropped.length} case(s) errored and were excluded: ${dropped.join(', ')}` +
+                 (r.reserve.comparedCells !== undefined ? ` (${r.reserve.comparedCells} cells compared)` : ''))
+    }
   } else if (r.best.iteration === 0) {
     lines.push('  reserve: not measured — no rewrite was kept')
   } else {

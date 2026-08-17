@@ -318,6 +318,13 @@ caps parallelism; `--no-judge` drops the LLM grader. Cell count is
 Omitting `--variants` alone runs five variants instead of one; that turned a
 one-cell model-id probe into a five-cell $1.58 one under COS-7.
 
+**The pool grew to 15 cases under COS-1, and two of the new ones are agentic.**
+A bare `node src/cli.mjs run` takes every default axis, so those two cases add
+2 × 3 styles × 5 variants × 3 models × 2 repeats = **180 cells**, half of them
+agentic and therefore the priciest kind. `improve` pays for them too: the
+`reserve` split is now 6 cases, so an adopting style validates over 36 cells a
+side instead of 24. Name `--cases` and `--variants` unless you mean the lot.
+
 Measured cost per baseline cell on the five shared cases:
 
 | model | $/cell | 30-cell run |

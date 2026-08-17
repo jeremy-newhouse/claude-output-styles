@@ -75,6 +75,19 @@ test('every split the optimizer reads by name has cases in it', () => {
   }
 })
 
+test('no case sits in a split the optimizer never reads', () => {
+  const m = readConfig('matrix.json')
+  const known = new Set([m.improve.trainSplit, m.improve.holdoutSplit, m.improve.reserveSplit])
+  // The check above is one-way: it passes as long as *some* case holds each
+  // split name, so a single case whose split is a typo keeps it green while
+  // silently dropping out of every optimizer split — still billed by `run`,
+  // never seen by `improve`. Being on `reserve` is the whole point of the two
+  // cases COS-1 added, so assert containment in the other direction too.
+  for (const c of readCases()) {
+    assert.ok(known.has(c.split), `case "${c.id}" has split "${c.split}", which improve never reads`)
+  }
+})
+
 test('a comment key is a string array, so it can never be read as an axis', () => {
   const m = readConfig('matrix.json')
   // Keys are prefixed `//` by convention here. They sit alongside real keys, so

@@ -549,9 +549,11 @@ bullets were never measured separately. Run `01-03-21`.
 
 **Why the rules did not help, from the judge's own violations.** Two failure
 modes dominate, and neither is the missing content the task was written about.
-The first is length: between 75% and 83% of cells overrun their style's word cap
-in *every* arm, before and after, with beginner replies at 101–256 words against
-a cap of 80. The second is that replies hedge the recommendation into a
+The first is length: 70.8% to 82.6% of cells overrun their style's word cap in
+*every* arm, before and after — 9/12 on the baseline, 17/24 with the new rules,
+19/23 on the rejected pass — with beginner replies at 101–256 words against a cap
+of 80. The share does not move in one direction, and no arm comes close to
+clearing the cap. The second is that replies hedge the recommendation into a
 threshold, or close by asking the reader for figures. Length is the binding
 constraint, which is what COS-8 concluded from the opposite direction and what
 COS-4 owns.
