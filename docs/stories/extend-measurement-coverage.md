@@ -73,8 +73,8 @@ the data resolves is that Sonnet keeps to the cap and the other three do not —
 one model, not a gradient.
 
 **Fable finishes the agentic work and stops obeying the style.** On
-`agentic-fix-verify` it aborted 0 of 6 cells against Haiku's 5 of 6, at 4.8× a
-cell — 4.8× a conversational Fable cell. Its own compliance falls from
+`agentic-fix-verify` it aborted 0 of 6 cells against Haiku's 5 of 6, on cells
+averaging 4.8× a conversational Fable cell. Its own compliance falls from
 rules 94.1 / judge 66.6 on the shared five to 79.5 / 41.2 there, with
 `leads_with_conclusion` at 16.7: five of six replies open with "I'll look at the
 file first." No amount of capability removed the narration habit.
@@ -155,11 +155,12 @@ corrected figures are in `FINDINGS.md`.
 
 ## Notes
 
-Cell size is asymmetric, and now measured. Three styles, one model, five cases,
-two repeats is thirty cells, and the same thirty cells run roughly an order of
-magnitude more tokens on Fable than on Haiku. A single write-then-verify agentic
-cell is 4.8× a conversational one on Fable. Scope the Fable case set before
-running rather than reusing the full matrix.
+Cell size is asymmetric. Three styles, one model, five cases, two repeats is
+thirty cells, and a single write-then-verify agentic cell is 4.8× a conversational
+one on Fable — a within-model ratio, which is what makes it sound. **How the same
+thirty cells compare across tiers is not measured**; the retraction above applies
+here too. Scope the Fable case set before running rather than reusing the full
+matrix.
 
 SDK model values: `haiku` and `claude-fable-5[1m]`. There is no bare `fable`
 alias in the model list. Fable is kept out of `config/matrix.json`'s `models` on

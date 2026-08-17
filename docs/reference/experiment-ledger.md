@@ -77,14 +77,19 @@ runs belong in the optimizer table below.
 Total persisted: 640 cells. Improve-loop cells before COS-3 are additional and
 were not saved at all; from COS-3 onward every one of them is on disk.
 
-Two completeness caveats on that count, both about work the record cannot see.
-Runs measured more than they persisted: `22-59-53`'s six failed cells,
-`01-03-21`'s one, `01-33-41`'s three and `06-21-53`'s one each ran a real turn
-and left a row with no usable reply in it. And one aborted invocation under COS-5
-(a `run --help` that the CLI then treated as `run`; COS-5 added the guard that
-now short-circuits it before any config is read) ran for about two minutes at
+One completeness caveat on that count. An aborted invocation under COS-5 (a
+`run --help` that the CLI then treated as `run`; COS-5 added the guard that now
+short-circuits it before any config is read) ran for about two minutes at
 concurrency 4 before being killed. It wrote no `rows.json` at all, so nothing it
 measured is in the count above.
+
+Eleven cells — `22-59-53`'s six, `01-03-21`'s one, `01-33-41`'s three and
+`06-21-53`'s one — ran a real turn and left a row with no usable reply in it.
+Those rows **are** on disk and **are** inside the 640, so they are not a gap in
+the count; they are excluded from every mean instead, by `producedReply`. This
+used to be a second completeness caveat because the cells had spent a real
+`costUsd` that no figure reflected. With cost gone the caveat no longer applies
+to the count, only to the means, where COS-11 already handles it.
 
 The same gap survives the COS-12 flush in a much smaller form: the cell in flight
 when a run is killed will never be written, so `05-29-31` shows the two cells
@@ -160,7 +165,7 @@ and so re-segmented every saved reply. The pre-COS-10 figures are given beside
 each one, because they are what earlier revisions of this ledger published:
 
 | sample of the untightened 20-word file | cells | sentences | mean words | over 12 words |
-|---|---|---|---|
+|---|---|---|---|---|
 | `22-18-53` — the probe's baseline arm | 4 | 32 (was 30) | **15.5** (was 16.6) | **56.3%** (was 60.0%) |
 | `22-59-53`, same 4 cases | 8 | 88 (was 79) | **10.8** (was 12.1) | **35.2%** (was 43.0%) |
 | `22-59-53`, beginner, all 13 cases | 25 | 315 (was 268) | **10.4** (was 12.2) | **30.2%** (was 38.4%) |

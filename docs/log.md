@@ -55,6 +55,7 @@
 - 2026-08-17T10:17:37-05:00 d05367346a885c5ece20a028422385575dc25839 Record the archive commit in the generated log
 - 2026-08-17T10:30:40-05:00 8cb72e6101ccbce348e7aba60fb4a24e0e72b308 Say that the guard bounds a cell, not a run
 - 2026-08-17T10:41:31-05:00 876a0c68d27f2de5d55059161c5d6a453aa16ae9 Close the guard's high end, and keep the reply a wedged turn had started
+- 2026-08-17T10:51:40-05:00 25a58da9ab8079716c028a9e0feec719c1e34759 Correct the cost-to-token claim everywhere it lives, not just where it was found
 
 ## docs/adr
 
@@ -172,3 +173,4 @@
 - 2026-08-17T09:06:31-05:00 e0bb46e530cf665bfc77b1d06222a6f11227abb3 Give improve its own model list instead of run's
 - 2026-08-17T09:17:26-05:00 e1119c96b5eaed892e15ae81d016523e2d079249 Open COS-24 from a sweep of the CLI's argument surface
 - 2026-08-17T10:08:32-05:00 6f31a57f2130e3e93866dd3829392b26f69a5c27 Strip cost from the published record
+- 2026-08-17T10:51:40-05:00 25a58da9ab8079716c028a9e0feec719c1e34759 Correct the cost-to-token claim everywhere it lives, not just where it was found
