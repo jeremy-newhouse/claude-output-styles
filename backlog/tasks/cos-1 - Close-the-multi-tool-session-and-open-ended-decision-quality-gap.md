@@ -1,11 +1,11 @@
 ---
 id: COS-1
 title: Close the multi-tool session and open-ended decision quality gap
-status: In Progress
+status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 01:17'
+updated_date: '2026-08-17 01:21'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies: []
@@ -133,4 +133,13 @@ AC #4 (NOT checked, and not met). Best shipped figures, run `00-48-49`: agentic-
 **Session spend: $13.3074** across five runs against a ~$15 budget — `00-44-03` $2.4027, `00-48-49` $4.8643, `01-03-21` $4.3675, `01-12-03` $0.9450, `01-13-15` $0.7279. One cell errored (pass 2) and carries `costUsd: 0`, so the true figure is slightly higher.
 
 **Gates:** `npm --prefix harness test` 58/58 (was 56; two new config tests). `node src/cli.mjs audit` exit 0.
+
+**Status: parked, not done.** ACs #1-#3 are met and merged; AC #4 is a measured bar that two authoring passes did not reach. Returned to To Do and unassigned rather than marked Done, because Done with an unchecked acceptance criterion would misreport it.
+
+What has to happen before AC #4 is attemptable again, in order:
+
+1. **The agentic half is not measurable as written.** `run.mjs` hands the judge the whole turn, so `agentic-fix-verify`'s judge score is not a measure of the style file. No style-file wording can fix that. The seam fix is already on the tracker as a raised item; AC #4 depends on it.
+2. **The conversational half is a length problem, which is COS-4's.** Length is the binding constraint on both cases, and COS-8 reached the same conclusion from the opposite direction. Attempting COS-1 again before COS-4 moves reply length would repeat what pass 2 already paid for.
+
+Do not re-open this with an `improve` run. That was true before this session on the grounds that the loop can only re-express existing rules; it is now also true that the rules exist and the loop still has nothing to add, because what fails is length and an instrument defect, neither of which the optimizer can see.
 <!-- SECTION:NOTES:END -->
