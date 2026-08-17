@@ -1,11 +1,11 @@
 ---
 id: COS-9
 title: Make two_options_max see prose option sprawl
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 20:54'
-updated_date: '2026-08-17 16:29'
+updated_date: '2026-08-17 16:31'
 labels:
   - 'doc:stories/harden-the-optimizer-loop'
 dependencies: []
@@ -136,3 +136,21 @@ Also probed and found correct, no change needed: markdown tables of two options 
 
 Re-score re-run after both: unchanged. One moved row, same figures. Suite 135/135.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Restored the option cap for replies that never write a label, and did not re-break the reply the label-blindness was written to protect.
+
+THE DEFECT. Dropping the literal 'Option A / Option B' requirement was right and stays right — scoring the label penalised the better reply, the one that leads with its recommendation and names alternatives in prose. But nothing replaced the cap: with no labels present the cap term was free, so three alternatives walked through in prose scored a clean 1.0. That left the deterministic 70% of the score blind on reserve-three-options, the case COS-2 added specifically to test whether a style narrows to two.
+
+THE FIX. The cap keys on max(labelled.size, statedCount, claimedOrdinal, another + 1) — four estimators, all of which require the reply to ASSERT a count rather than merely imply one: a stated count ('three ways to'), a claimed ordinal ('a third approach'), and 'another option', where each occurrence claims one more than the reply already had, so one of them means two — the cap, not a breach. It does not identify alternatives semantically; a reply naming three approaches without asserting a count is still invisible and is the judge's to catch, because counting nouns or sentences would re-break the protected reply. The comment says that, and names the blind spot in the other direction too: a reply that states a count in order to reject it is read as claiming it.
+
+AC #1 verified: three sprawl fixtures — stated count, 'another' run, ordinal chain — all below 1.0 with the evidence string asserted.
+AC #2 verified, and written FIRST: three fixtures pin the recommendation-first prose reply at exactly 1.0, and they passed on the unmodified check before the fix existed, which is what makes them a regression guard rather than a restatement of the fix.
+AC #3 verified by an old-vs-new diff, not an assertion. A baseline was captured before the check was touched. Of the 106 saved rows carrying this check, 96 are re-scorable (the other 10 name optimizer-candidate styles with no contract); exactly ONE moves — 22-59-53, beginner on Haiku, reserve-three-options, 1.00 -> 0.70 — and it is a true positive: that reply labels two options, tells the reader they 'have three paths', and closes by naming the third in prose. 61 of the 62 saved runs re-score byte-identical. No published figure moves, settled by the model split rather than by tracing provenance: 0 of 34 Opus rows and 0 of 32 Sonnet rows move, and both published two_options_max figures (the one-style-file ADR's 1.00/0.85 row and FINDINGS' Sonnet regression) are Opus/Sonnet numbers. The ledger records the re-score, since results/ is gitignored.
+
+REVIEW. Three rounds, eleven findings, all fixed. The decisive one killed half the original fix: connective pivots ('alternatively', 'or you could') scored a compliant two-option reply at 0.70 — the original defect rebuilt, on the third attempt to fix this check — and auditing them against the corpus showed they matched ZERO of the 96 rows while the stated count matched exactly the two real sprawl replies. An estimator with no observed true positive and a live false-positive path is worse than none, so they came out. Also fixed: the check read raw text where every other shape check strips code; 'three ways' fired on benefit lists; the count alternation and its lookup could drift into a silent NaN that costs a reply the cap point with no evidence line; and the label pattern had no trailing boundary, so 'the obvious option adds latency' read as option A.
+
+GATES. npm --prefix harness test 131 -> 135, all pass. node src/cli.mjs audit exit 0. lore check exit 0, 24 files, 0 errors, 0 warnings. Every new test is sabotage-verified — and two sabotage runs came back green and were wrong, once because the substitution silently failed to apply and once because the fixture was too weak to trip the cap, so each was re-run with the sabotage confirmed on disk. The re-score was re-run after every round of fixes and never changed: one moved row, the same three figures, stable across five versions of the check.
+<!-- SECTION:FINAL_SUMMARY:END -->
