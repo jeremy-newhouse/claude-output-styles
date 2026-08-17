@@ -42,6 +42,7 @@
 - 2026-08-17T01:42:11-05:00 a00609741475a2a489b79cb6a1c933d8432cb371 chore(COS-10): record the out-of-scope score crash in the doc log
 - 2026-08-17T08:07:13-05:00 c04d1e248cb8c75c2b56489ec6e26736a1e77f52 Correct the one published conclusion that pooling an aborted cell had reversed
 - 2026-08-17T08:25:41-05:00 acadf1b99acc45c74cbc5e3d306a701f6bdc2c3d Make the agentic fixture green before and after a correct fix
+- 2026-08-17T08:27:33-05:00 58f6cff8b6d343cd3cb11bcbdd6e3d4ccdeca462 chore(COS-13): record the branch's commits in the doc log
 
 ## docs/adr
 
