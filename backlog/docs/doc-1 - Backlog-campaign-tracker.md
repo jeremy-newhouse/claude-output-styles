@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 15:29'
+updated_date: '2026-08-17 15:50'
 ---
 # Backlog campaign tracker
 
@@ -540,9 +540,13 @@ Both remaining issues carry known risk against that policy:
   **The campaign's largest session, and the one where scoping
   paid off.** The handover's core advice — run Fable on the five shared case
   ids so the result drops into the existing table with no slicing — was followed
-  and was right. The alternative, the full 13-case pool, runs an order of magnitude
-  more tokens on Fable than on Haiku, and would have produced a second, non-comparable
-  table. Reuse of the other three columns was re-verified rather than assumed, as
+  and was right. The alternative, the full 13-case pool, is a much heavier run —
+  12 of its 78 cells are write-then-verify, the largest kind — and would have
+  produced a second, non-comparable table. (This line originally read "runs an
+  order of magnitude more tokens on Fable than on Haiku". That was the per-cell
+  cost table read as a token span, which does not hold once per-tier prices are
+  accounted for; session 16 corrected it here, in `FINDINGS.md` and in the
+  measurement-coverage story.) Reuse of the other three columns was re-verified rather than assumed, as
   the handover insisted: the five case definitions are byte-identical across five
   SHAs, `checks.mjs` and all three style files are byte-identical 444b221→HEAD,
   and `contracts.json` *did* change once after `12-44-03` — which the offline
@@ -1108,5 +1112,36 @@ Both remaining issues carry known risk against that policy:
   All three new tests were sabotage-verified, the campaign's standing rule: the
   old empty-array catch reds only the both-paths test, deleting `elapsedMs` reds
   only the duration test, and making `cellLimitMs` default instead of throw reds
-  only the two tests that assert it throws. Suite 126 → **129**;
-  `audit` exit 0; `lore check` exit 0 (24 files).
+  only the two tests that assert it throws.
+
+  **The review was then run twice more, and each pass found real defects the one
+  before it had not.** Round two, six findings. The worst: `cellLimitMs` guarded
+  the low end and not the high end, and `setTimeout` truncates any delay past
+  2147483647 ms to **1 ms** — measured, a limit of 999999999 seconds fires after
+  2 ms. So the one edit an operator would make to disable the guard produced
+  exactly the runaway the low-end check exists to prevent. Round two also found
+  that `runTurn` had no `catch`, so a wedged turn's partial reply died with the
+  exception on the throwing path while the quiet path kept and graded it — the
+  same defect as finding 1, one level down — and that this branch's own README
+  sentence about a top tier running "an order of magnitude more tokens" was a
+  **cost** span converted into a **token** span, which does not hold because
+  per-tier prices differ by about that same factor.
+
+  Round three, five findings, and the sharpest was that the round-two fix for
+  that last one had been applied in `harness/README.md` and left standing in
+  `FINDINGS.md`, the measurement-coverage story and this tracker. All three are
+  corrected above and in place. Round three also caught `MAX_TIMER_MS` declared
+  below the function that reads it — inert today, a `ReferenceError` the moment
+  anything calls `cellLimitMs` at module scope — and a real measurement loss:
+  `timedOut` was unconditionally authoritative, so a cell finishing at 599.9s of
+  a 600s limit came back stamped `error_timeout` and was dropped from every mean.
+  A turn is now trusted only when the SDK closed it with a result message, which
+  is the signal that separates a finished turn from one an abort closed quietly;
+  `!error` alone would have reintroduced the very defect the `timedOut` flag was
+  added for, and sabotaging it that way reds three tests.
+
+  Suite 126 → **131**; `audit` exit 0; `lore check` exit 0 (24 files). Re-scoring
+  the published `12-44-03` arm offline still returns 81.0%, so no published score
+  moved. **Three review rounds, sixteen findings, all fixed** — and the lesson
+  worth carrying is that a fix applied in the file the reviewer names is not the
+  same as a fix applied everywhere the claim lives.
