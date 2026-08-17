@@ -20,6 +20,13 @@ import { fileURLToPath } from 'node:url'
 // the model must decide unaided whether the test or the code is wrong. But the
 // rounding bug must still be there, or the agentic cases have nothing to find.
 // Both are asserted below; neither is safe alone.
+//
+// Everything protecting those invariants lives in THIS file, not in the fixture.
+// The model reads the fixture, so a comment there explaining that no assertion
+// covers the fractional cent, or warning a maintainer not to "correct" 965 back
+// to 966, points straight at the bug — the same leak that ruled out asserting
+// the fixed value in the first place. The fixture keeps only the arithmetic a
+// real repo would carry; the reasoning stays here, where the model never looks.
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const FIXTURE = join(ROOT, 'fixtures', 'repo')
