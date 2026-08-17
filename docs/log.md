@@ -31,6 +31,7 @@
 - 2026-08-16T21:50:29-05:00 af750a40f9da94741dafaea744d079df440b3499 Mark the four-tier table's beginner row as history, and the tier word counts too
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 - 2026-08-16T21:51:07-05:00 ded82ae91653c1c41d4152e9f4bece4e9e836a59 Archive session 8's handover, record COS-4's merge SHA, and close the campaign
+- 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
 
 ## docs/adr
 
@@ -50,6 +51,7 @@
 - 2026-08-16T19:26:40-05:00 c53b282ac6669db49ad5d715321c3c8c221104c4 Fix nine findings from the branch review
 - 2026-08-16T21:50:29-05:00 255072eafe12406bcd477e55a7102fd37501c9cf Rewrite beginner's style rules, and measure that length moved and the judge did not
 - 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
+- 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
 
 ## docs/reference
 
@@ -114,3 +116,4 @@
 - 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 - 2026-08-16T21:50:29-05:00 af750a40f9da94741dafaea744d079df440b3499 Mark the four-tier table's beginner row as history, and the tier word counts too
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
+- 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
