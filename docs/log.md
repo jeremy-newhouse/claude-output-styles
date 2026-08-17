@@ -23,6 +23,7 @@
 - 2026-08-16T19:26:40-05:00 c53b282ac6669db49ad5d715321c3c8c221104c4 Fix nine findings from the branch review
 - 2026-08-16T19:26:40-05:00 e13835266201d02fce61c139482100af7e1ba80e Correct four figures found by re-deriving them from the saved rows
 - 2026-08-16T19:26:40-05:00 f67772d495ad2f610615ec6c3087190030cc06b0 Carry the fourth tier into the audience-level spec
+- 2026-08-16T19:30:03-05:00 e48a48dbd30d55bc086c83b037d40736bb6a1aab Archive session 6's handover, record COS-7's merge SHA, and fix two of my own claims
 
 ## docs/adr
 
@@ -91,3 +92,4 @@
 - 2026-08-16T19:26:40-05:00 b506e49dab163984e28c4f6c539a6f8d4217469e Say what the seam counts actually counted
 - 2026-08-16T19:26:40-05:00 c53b282ac6669db49ad5d715321c3c8c221104c4 Fix nine findings from the branch review
 - 2026-08-16T19:26:40-05:00 e13835266201d02fce61c139482100af7e1ba80e Correct four figures found by re-deriving them from the saved rows
+- 2026-08-16T19:30:03-05:00 e48a48dbd30d55bc086c83b037d40736bb6a1aab Archive session 6's handover, record COS-7's merge SHA, and fix two of my own claims

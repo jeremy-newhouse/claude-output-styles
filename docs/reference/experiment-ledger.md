@@ -48,13 +48,18 @@ runs belong in the optimizer table below.
 | `23-47-08` | 5 | $1.58 | advanced, Fable, all five variants, 1 case, 1 repeat | Model-id probe: the SDK accepts `claude-fable-5[1m]`. Meant to be one cell; `--variants` was omitted, so it ran five. The accident priced the variants on the top tier — baseline $0.1910, tail-reminder $0.1896, `claude-md` $0.1965, all-fixes $0.2686, **long-prompt $0.7384**, i.e. 3.9× baseline. |
 | `23-48-45` | 30 | $7.04 | all three styles, Fable, same 5 cases as `12-44-03`, 2 repeats | The Fable baseline, and the fourth and last tier. **Zero errored cells.** Rules 91.4–97.9, never more than 2.5 points behind the best of the other three; judge 53.9–78.3, leading on advanced and beginner but behind Sonnet on intermediate, and last of four on intermediate *rules* (93.1). Settled the tier question: word-cap overrun does not track tier (Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300 words ÷ cap). Confirmed the one-file decision at the top of the range. |
 | `23-53-02` | 6 | $5.81 | all three styles, Fable, `agentic-fix-verify` only, 2 repeats | The most expensive cells in the project: $0.9681 on average, $0.7970 to **$1.1315** across the six. Budget off the worst cell, not the mean. **Fable aborts 0 of 6** where Haiku aborts 5 of 6, so the top tier finishes write-then-verify work. It also stops obeying the style while doing it: rules 94.1 → 79.5 and judge 66.6 → 41.2 against its own shared-five figures, with `leads_with_conclusion` at 16.7. Reading these transcripts exposed the text-block seam described below. |
+| `00-44-03` | 12 | $2.40 | all three styles, both models, the two COS-1 target cases, 1 repeat | The first current-text baseline either case has ever had. Judge pooled across styles: `agentic-fix-verify` 50.0 Opus / 40.0 Sonnet, `conv-decision-holdout` 48.3 / 46.7. The "~48%" COS-1 was written against came from `20-10-29` and `23-36-59`, both on style text that no longer ships. |
+| `00-48-49` | 24 | $4.86 | same scope, 2 repeats, after COS-1's first authoring pass | **The shipped text.** 46.2 / 42.0 / 51.2 / 54.7 against a 65 bar — the gap is not closed. Arm mean judge 48.5 against the baseline's 46.2, inside the noise floor. Established that the judge does read the new rules: 13 violations across this run and `01-12-03` quote the new sections by name. |
+| `01-03-21` | 24 | $4.37 | same scope, after a second authoring pass | **Rejected and reverted.** Arm mean judge 43.6 — worse than the original text. Restating each style's own word cap, banning inter-tool narration and outlawing conditional recommendations lost ground on three of the four AC cells. Also produced the finding that an errored cell scores 0 on rules and **1.0 on the judge**. |
+| `01-12-03` | 6 | $0.95 | all three styles, Sonnet, the two new reserve cases, 1 repeat | Validation that COS-1's new cases run. 0 errors, every cell scored. `reserve-agentic-session` drew 8-10 tool calls per cell, so it does force the longer session it was written for. |
+| `01-13-15` | 30 | $0.73 | all three styles, Haiku, the five shared cases, 2 repeats | Regression check on the shipped text against `22-59-53` filtered to the same five cases and model. Every delta inside the three-point noise floor: rules −1.3/−1.1/+0.8, judge +0.9/−2.6/−0.2 for advanced/intermediate/beginner, n=10 each side. Haiku bought a same-model like-for-like before for $0.73; nothing is concluded from it beyond "nothing broke". |
 
-Total persisted: 388 cells, $50.99. Improve-loop spend before COS-3 is additional
+Total persisted: 484 cells, $64.30. Improve-loop spend before COS-3 is additional
 and was not tracked until late; from COS-3 onward it is carried on the rows.
 
 Two accounting caveats on that total. Cells that error carry `costUsd: 0` — the
 SDK's result message has no cost on a turn-limit abort — so `22-59-53`'s six
-failed cells burned tokens that no row records. And one aborted invocation under
+failed cells and `01-03-21`'s one burned tokens that no row records. And one aborted invocation under
 COS-5 (a `run --help` that the CLI treats as `run`, since there is no help flag
 on the subcommand) ran for about two minutes at concurrency 4 before being
 killed. It wrote no `rows.json`, so its spend is real but unquantified and is not
@@ -220,6 +225,53 @@ counts words, and the third does not depend on segmentation. Fixing the seam
 would move agentic figures already published in `FINDINGS.md` and in this ledger,
 so it is deliberately raised rather than patched inside a measurement task — the
 same handling as the `sentences()` newline gap and COS-9.
+
+**The seam reaches the judge, not only the two segmentation checks.** Found
+under COS-1, and it widens the entry above. The mechanism is one line of
+`run.mjs` — `if (b.type === 'text') text += b.text`, accumulated over every
+assistant message in the turn — so the text saved as a cell's reply is the
+*whole turn*, not the final message. On a conversational cell those are the same
+thing. On an agentic cell the model's pre-tool and inter-tool narration is
+prepended to the status update the case rubric actually asks about, and the judge
+is handed all of it.
+
+Measured over the 18 `agentic-fix-verify` cells in `00-44-03` and `00-48-49`,
+isolating the final update by its own `**What I did` label:
+
+| | |
+|---|---|
+| cells carrying text before the final update | 16 of 18 |
+| of those, cells where a judge violation **quotes that pre-update text** | 16 of 16 |
+| over the style's word cap on the saved text | 14 of 18 |
+| over the cap counting **only from the label to the end** | 10 of 18 |
+
+The judge diagnosed the artifact itself without being asked, in a violation that
+reads: *"Run-together sentences with no space ('first.Test results') show the
+trace was pasted in raw rather than composed as the polished single final
+message the guide requires."*
+
+Two things follow, and the second matters as much as the first. Every agentic
+judge score in this project is measured on the whole turn rather than the final
+message, so it is not a clean measure of the style. **But the artifact does not
+explain the scores away**: ten of eighteen updates are over the word cap on their
+own, so a style-file fix still has real work to do. Do not use this entry to
+dismiss a bad agentic number.
+
+*Instrument note.* A first attempt at attributing this used a seam detector,
+`[.!?](?=[A-Z`*])`. It fired on 10 of 18 cells that made **zero** tool calls,
+where there is one text block and a seam is impossible — ordinary markdown
+matches it. It was discarded rather than tuned. The counts above locate the final
+update by its own beat label and do not depend on detecting a seam at all.
+
+**An errored cell scores 0 on rules and 1.0 on the judge.** The rules half is
+recorded above under COS-5. The judge half is the opposite bias and was not:
+`evaluate.mjs` skips the judge call on an errored row and substitutes
+`{ score: 1 }`, so a cell that returned no text at all contributes a free 100% to
+every judge mean it lands in. Found in `01-03-21`, where one advanced/Opus cell
+hit the 12-turn limit: `agentic-fix-verify` on Opus reads **44.2 with it and 33.0
+without**. Pooling errors therefore inflates the judge while deflating rules, in
+the same run, and the two do not cancel. Filter on `!row.error` before quoting
+either.
 
 **Noise floor.** At one repeat and five cases, a single case moves the mean by
 about 0.03. Differences under three points are not real. `22-59-53` puts a

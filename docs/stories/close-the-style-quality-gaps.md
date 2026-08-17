@@ -21,12 +21,24 @@ lore_task_status: todo
 Two weaknesses survived every optimizer pass because neither is a wording
 problem. Both need new content in the style files themselves.
 
-**Scenario coverage.** `agentic-fix-verify` and `conv-decision-holdout` score
-around 48% on the judge across every style, original and rewritten alike. No
-style file says how to report a session containing a dozen tool calls, or how to
-handle a decision where neither option is clearly right. The optimizer can only
-re-express rules that already exist, so six rewrites across two rounds left this
-untouched.
+**Scenario coverage.** `agentic-fix-verify` and `conv-decision-holdout` are the
+two weakest cases in the pool. On the text that ships today they score, judge,
+pooled across the three styles: 50.0 Opus / 40.0 Sonnet and 48.3 / 46.7
+respectively (run `00-44-03`). No style file said how to report a session
+containing a dozen tool calls, or how to handle a decision where neither option
+is clearly right. The optimizer can only re-express rules that already exist, so
+six rewrites across two rounds left this untouched.
+
+**COS-1 wrote those rules by hand, and the gap stayed open.** All three style
+files now state both, and the judge grades against them — it quotes the new
+sections by name. The score did not follow: 46.2 / 42.0 / 51.2 / 54.7 against a
+bar of 65 (run `00-48-49`). A second, more forceful pass scored *below* the
+original text and was reverted (run `01-03-21`). What the judge's violations
+show instead is that **reply length is the binding constraint** — 75–83% of cells
+overrun their style's word cap in every arm — and that the agentic half of this
+measurement is contaminated by the harness handing the judge the whole turn
+rather than the final message. Both are recorded in `FINDINGS.md` under *A
+content gap that new content did not close*.
 
 **Beginner prose.** Beginner is the weakest style by a wide margin. Measured on
 the standard case set, ten cells each, now across all four model tiers:

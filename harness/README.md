@@ -292,6 +292,23 @@ depend on segmentation. Fixing the seam moves agentic numbers already published
 in `FINDINGS.md` and the experiment ledger, so it is tracked as its own change
 rather than folded into a measurement run.
 
+**The judge sees the same concatenated text, so agentic judge scores are affected
+too.** Found under COS-1 and easy to miss, because the two segmentation checks
+above are the obvious victims. The saved reply on an agentic cell is the whole
+turn, so the model's pre-tool and inter-tool narration is prepended to the final
+status update, and the judge grades all of it against a rubric that asks about
+the final message. Across the 18 `agentic-fix-verify` cells in `00-44-03` and
+`00-48-49`, 16 carry pre-update text and in **all 16** a judge violation quotes
+it. Do not read an agentic judge score as a clean measure of the style file — but
+do not use this to wave one away either: 10 of those 18 final updates are over
+the word cap on their own.
+
+**Filter errored rows before quoting any mean.** A cell that returns no text
+scores 0 on every rule *and* 1.0 on the judge — `evaluate.mjs` skips the judge
+call on an errored row and substitutes `{ score: 1 }`. The two biases run in
+opposite directions and do not cancel. One turn-limit abort in `01-03-21` moved
+that run's `agentic-fix-verify`-on-Opus judge from 33.0 to 44.2.
+
 ## Cost control
 
 `config/matrix.json` → `run.maxBudgetUsd` caps each cell; `run.concurrency`

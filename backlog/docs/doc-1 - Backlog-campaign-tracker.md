@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 00:28'
+updated_date: '2026-08-17 01:22'
 ---
 # Backlog campaign tracker
 
@@ -15,12 +15,16 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-1** — queue order confirmed by the user on 2026-08-16, who
+**Next issue: COS-4** — queue order confirmed by the user on 2026-08-16, who
 chose the "Safety-first" option from a presented comparison: "COS-6 → COS-3 →
 COS-2 → COS-8 → COS-5 → COS-7 → COS-1 → COS-4. Free doc task proves the loop,
 then harness plumbing, then the caps guard, then measurement, then the two hard
 style tasks last — after COS-2 has built the reserve split they need for honest
 validation."
+
+COS-1 was taken in session 7 and did **not** reach its bar. Under the risk
+policy below it is parked in "Not queued" rather than resolved, and the cursor
+advances past it to COS-4, the last item in the confirmed order.
 
 Do not re-ask before taking the next item.
 
@@ -28,16 +32,16 @@ Do not re-ask before taking the next item.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
-| 7 | COS-1 | styles | Multi-tool sessions and open-ended decisions. Judge bar 65%, currently ~48%. ~$15. |
 | 8 | COS-4 | styles | Beginner prose. Judge bar 70%, currently 45.9/48.4. Hardest. ~$20. |
 
 Not queued yet: **COS-9** (raised session 3) and two harness defects raised in
 sessions 5 and 6 — see "Raised, not queued" below. Deliberately left out of the
 confirmed order, which is the user's to change.
 
-Estimated remaining: ~$35. Spent so far: **$20.65** — COS-6 nothing, COS-3
-$0.7500, COS-2 $1.1800, COS-8 $2.4152, COS-5 $1.8770, COS-7 $14.4290 against a
-~$20 budget, by far the most expensive session and the last measurement task.
+Estimated remaining: ~$20, for COS-4 alone. Spent so far: **$33.96** — COS-6
+nothing, COS-3 $0.7500, COS-2 $1.1800, COS-8 $2.4152, COS-5 $1.8770, COS-7
+$14.4290 (the most expensive session, and the last measurement task), COS-1
+$13.3074 against a ~$15 budget.
 
 Note for anyone reconciling this against an earlier version: the pre-COS-7 total
 was recorded here and in session 5's handover as $5.93, but the five per-session
@@ -68,7 +72,28 @@ IS counted above.
 
 ## Not queued — needs a human / blocked
 
-None. See the risk policy below for how issues arrive here.
+- **COS-1** (session 7). ACs #1-#3 met and merged; **AC #4 not met and parked
+  under the risk policy.** Two authoring passes were measured against a bar of
+  judge > 65% on `agentic-fix-verify` and `conv-decision-holdout`, on Opus and
+  Sonnet. Pass 1 ships: 46.2 / 42.0 / 51.2 / 54.7 (run `00-48-49`) against a
+  first-ever current-text baseline of 50.0 / 40.0 / 48.3 / 46.7 (`00-44-03`).
+  Pass 2 was more forceful and scored *below the original text* — arm mean judge
+  43.6 against the baseline's 46.2 — and was reverted in full (`01-03-21`).
+
+  Two things have to change before AC #4 is attemptable again, and neither is a
+  style-file edit. **The agentic half is not measurable as written**: the judge
+  is handed the whole turn rather than the final message, so
+  `agentic-fix-verify`'s judge score is not a measure of the style file. That is
+  the text-block seam already raised in session 6, now known to reach the judge
+  and not only the two segmentation checks. **The conversational half is a
+  length problem**, which is COS-4's subject — 75-83% of cells overrun their
+  style's word cap in every arm, before and after, and no rule this task added
+  touched that.
+
+  Sequencing follows from that: COS-4 first, the seam fix before any retry of
+  AC #4. Do not re-open COS-1 with an `improve` run — the rules now exist and
+  the loop still has nothing to add, because what fails is length and an
+  instrument defect, neither of which the optimizer can see.
 
 ## Raised, not queued — needs the user's call
 
@@ -90,7 +115,21 @@ None. See the risk policy below for how issues arrive here.
   baseline table is unaffected in practice and no affected figure was published,
   but `sentence_length` and `paragraph_length` are currently unquotable on
   agentic cells for every model. Fixing it moves agentic numbers already in
-  `docs/` and `FINDINGS.md`.
+  `docs/` and `FINDINGS.md`. **Session 7 widened this and raised its priority:
+  the judge reads the same concatenated text**, so every agentic judge score in
+  the project is measured on the whole turn rather than the final message. In 16
+  of 18 `agentic-fix-verify` cells the reply carries pre-update narration, and in
+  all 16 a judge violation quotes it. This is now a blocker on COS-1's AC #4, not
+  only a caveat on two checks — though it is not the whole story either, since 10
+  of those 18 final updates are over the word cap on their own.
+- **An errored cell scores 0 on rules and 1.0 on the judge** (session 7, new).
+  `evaluate.mjs` skips the judge on an errored row and substitutes
+  `{ score: 1 }`, so a cell that returned no text contributes a free 100% to
+  every judge mean. The rules half is documented from COS-5; the judge half is
+  the opposite bias, is not documented, and the two do not cancel. One turn-limit
+  abort in `01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge from
+  33.0 to **44.2**. Small fix (drop errored rows from `summarize`, or carry them
+  in a separate column); until then, filter on `!row.error` before quoting.
 - **`sentences()` merges a list header into its first item** (session 4). It does
   not split on a single newline, so "Here's why:\nYou're paying twice." scores as
   one long sentence. Measured at 12.2% of over-cap sentences. Fixing it also
@@ -341,3 +380,19 @@ Both remaining issues carry known risk against that policy:
   Merged via PR #7 (rebase) as `0747cc8`; `dev` and `main` both pushed at
   that SHA, no branch litter, no open PRs. Cursor advanced to COS-1, the
   first of the two hard style tasks.
+- 2026-08-17 — session 7: took COS-1 on `feature/COS-1`. No drift at restore:
+  `dev`, `main` and both remotes level at e48a48d, clean tree, no leftover
+  branches, no open PRs. **The bar was not met and the issue is parked, not
+  resolved** — the campaign's first negative result. ACs #1-#3 shipped: all three
+  style files gained "Reporting a long/multi-tool session" and "When neither
+  option is clearly better", and two cases were added on the `reserve` split
+  (`reserve-agentic-session`, `reserve-decision-tie`) following COS-2's precedent
+  of writing new cases rather than moving existing ones. Five paid runs,
+  **$13.3074** against ~$15. The session's durable output is two instrument
+  findings rather than a score: the text-block seam reaches the **judge**, and an
+  errored cell scores 0 on rules but 1.0 on the judge. Both are in the ledger,
+  `harness/README.md` and the raised list. Also closed a parse-guard gap of
+  exactly the kind session 6's review found in `matrix.json`, one file over:
+  `cases/cases.json` was read at CLI startup with nothing asserting it parsed.
+  Suite 56 → 58, and all five new guards were proved to fire by breaking the file
+  on purpose. `audit` exit 0; `lore check` exit 0. Cursor advanced to COS-4.
