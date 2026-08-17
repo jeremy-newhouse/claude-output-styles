@@ -62,6 +62,44 @@ test('two_options_max scores structure, not literal labels', () => {
   assert.ok(CHECKS.two_options_max.run(neither, C).score < 0.5)
 })
 
+// The reply the label-blindness was written to protect: recommendation first,
+// both alternatives in prose, no labels anywhere. Making the check see prose
+// sprawl must not cost this reply a point — that regression is the whole reason
+// the literal-label scoring was removed in the first place.
+test('two_options_max leaves an unlabelled two-option reply at 1', () => {
+  const pivot = 'Recommendation: the covering index. Two hours and reversible. '
+    + 'Alternatively, denormalize into a summary table — faster reads, but you own a nightly job.'
+  assert.equal(CHECKS.two_options_max.run(pivot, C).score, 1)
+  const orYouCould = 'Add the index. It gets p95 to 40ms this afternoon. '
+    + 'Or you could raise the cache TTL, which is cheaper but goes stale. I recommend the index.'
+  assert.equal(CHECKS.two_options_max.run(orYouCould, C).score, 1)
+  const twoStated = 'Two options here. Ship the index now, or wait for the rewrite. '
+    + 'I recommend shipping — the rewrite is a quarter away and this is a one-line risk.'
+  assert.equal(CHECKS.two_options_max.run(twoStated, C).score, 1)
+})
+
+// AC #1: sprawl with no labels at all. Both the stated count and the pivot
+// chain have to land, because replies signal the sprawl one way or the other.
+test('two_options_max sees prose option sprawl without labels', () => {
+  const stated = 'Three ways to cut the p95. A covering index gets it to 40ms in an afternoon and is reversible. '
+    + 'A read-through cache gets it to 5ms but adds an invalidation path. '
+    + 'A managed search vendor removes the problem and costs $2k a month. I recommend the index.'
+  const statedResult = CHECKS.two_options_max.run(stated, C)
+  assert.ok(statedResult.score < 1, `expected sprawl below 1, got ${statedResult.score}`)
+  assert.match(statedResult.evidence.join(' '), /cap is 2/)
+
+  const chained = 'A covering index gets p95 to 40ms in an afternoon. '
+    + 'Another option is a read-through cache, faster still, but it adds an invalidation path. '
+    + 'Alternatively, a managed vendor removes the problem and costs $2k a month. I recommend the index.'
+  const chainedResult = CHECKS.two_options_max.run(chained, C)
+  assert.ok(chainedResult.score < 1, `expected sprawl below 1, got ${chainedResult.score}`)
+  assert.match(chainedResult.evidence.join(' '), /cap is 2/)
+
+  const ordinal = 'Ship the index. A second approach is the summary table, cheaper to read but it needs a nightly job. '
+    + 'A third approach is the vendor, which costs more. I recommend the index.'
+  assert.ok(CHECKS.two_options_max.run(ordinal, C).score < 1)
+})
+
 test('code_block_size treats maxCodeLines 0 as "no code"', () => {
   const beginner = { ...C, maxCodeLines: 0 }
   assert.equal(CHECKS.code_block_size.run('```js\na\n```', beginner).score, 0)
