@@ -590,9 +590,12 @@ that ran the tests met a failure it had not caused and that had nothing to do
 with the rounding bug it was sent to fix. A second assertion expected 850 while
 its own comment computed 849, so a model that *correctly* fixed the bug then
 broke a passing test and had to decide unaided whether the test or the code was
-wrong. Both are scoring noise on `agentic-fix-verify`, `reserve-agentic-write`
-and `reserve-agentic-session` — the more thoroughly a model worked, the more of
-this it met. COS-13 made the suite green both before and after a correct fix, so
+wrong. The two reach different sets of cases. The red suite reaches all three
+that run the tests — `agentic-fix-verify`, `reserve-agentic-write` and
+`reserve-agentic-session`. The break-on-fix assertion reaches only the two that
+fix the bug, `agentic-fix-verify` and `reserve-agentic-session`, since
+`reserve-agentic-write` is asked to add a test rather than to change the code.
+Either way the more thoroughly a model worked, the more of this it met. COS-13 made the suite green both before and after a correct fix, so
 figures measured after it are not comparable to the ones above on this axis.
 Like the glued turn, it cannot be applied backwards: replacing one of these
 figures costs a re-run, not a re-score.
