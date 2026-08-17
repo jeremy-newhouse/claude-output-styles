@@ -59,7 +59,7 @@ author model from the failures, rewrite, re-measure, keep or revert.
 | `judge.mjs` | rubric grading against the style body, on the view the case names |
 | `evaluate.mjs` | crosses the matrix, combines the two scores by `judgeWeight`, summarizes; calls back with the rows completed so far after every cell |
 | `results.mjs` | writes a run directory — rows, summary, report, and the `run.json` completeness manifest — atomically, and reads the manifest back |
-| `improve.mjs` | the optimizer loop, keep/revert rule, patience stop, reserve validation, spend tracking |
+| `improve.mjs` | the optimizer loop, keep/revert rule, patience stop, reserve validation |
 | `report.mjs` | console and Markdown rendering |
 
 ### Configuration
@@ -118,14 +118,14 @@ destructive operation in the project is that copy.
 `score`. This is why deterministic scores stay comparable across the project's
 whole history while judge scores do not. An improve run's rows carry the
 `iteration` that produced them, including the reverted ones, and the run's
-reported spend is the sum of those rows rather than a counter held only in
-memory — so the loop's own numbers can be recomputed by anyone holding the run
-directory.
+reported cell count is derived from those rows rather than from a counter held
+only in memory — so the loop's own numbers can be recomputed by anyone holding
+the run directory.
 
-**A cell that has been paid for is on disk before the next one starts.** `run`
-re-writes the whole run directory after every completed cell, through a temp file
-and a rename, so being killed — Ctrl-C, an OOM, a closed lid — costs at most the
-one cell in flight rather than the entire arm. `improve` flushes on the same
+**A measured cell is on disk before the next one starts.** `run` re-writes the
+whole run directory after every completed cell, through a temp file and a rename,
+so being killed — Ctrl-C, an OOM, a closed lid — loses at most the one cell in
+flight rather than the entire arm. `improve` flushes on the same
 writer but at its own granularity, once per measured split rather than per cell,
 which is what it has done since COS-3; a killed improve loses the measurement in
 flight, not the loop. `improve` claims `complete` only when every style finished:
@@ -140,13 +140,16 @@ reads it as one; the completeness flag lives beside it rather than inside it.
 
 **A grader failure must not kill a run.** Judge errors return a neutral 0.5 with
 the error on the row. An earlier version let the exception propagate and lost a
-paid multi-style run partway through.
+long multi-style run partway through.
 
 **Checks are pure.** No model calls, no filesystem, no clock. That is what makes
 them unit-testable and reproducible; `test/checks.test.mjs` covers all of them.
 
-### Cost control
+### Keeping a run bounded
 
-`run.maxBudgetUsd` caps each cell, `run.concurrency` caps parallelism, and
-`--no-judge` drops the grader. Cell count is
-`styles x variants x models x cases x repeats`.
+`run.maxCellSeconds` bounds each cell on wall-clock time through an
+`AbortController` — the only hard stop the SDK offers, since `maxTurns` bounds
+tool rounds but not the time inside one. `run.maxTurns` bounds those rounds,
+`run.concurrency` caps parallelism, and `--no-judge` drops the grader. Cell count
+is `styles x variants x models x cases x repeats`. A cell that trips the timeout
+returns `error: "error_timeout"` and is excluded from every mean.

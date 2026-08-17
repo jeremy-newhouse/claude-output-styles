@@ -33,7 +33,7 @@ four tiers and the claim now covers the full range.
 The two ends were untested for different reasons, and they answer different
 questions.
 
-**Haiku** is the cheapest model and the most likely to drop instructions under
+**Haiku** is the smallest model and the most likely to drop instructions under
 load, so a rule that survives there is a rule the file is genuinely carrying
 rather than one the larger models satisfy by disposition. Rules that Opus and
 Sonnet both score at 1.00 are invisible in the current data — Haiku is the only
@@ -66,21 +66,22 @@ corrected*). On the shipped text beginner reads rules 98.5 / 97.4 and judge 73.9
 **Word-cap overrun does not track tier.** Mean reply words divided by that
 style's own cap: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300. In tier
 order that sequence turns twice. Paired over the 15 (style × case) cells, the
-cheapest model overruns significantly *more* than the second cheapest
+smallest model overruns significantly *more* than the second smallest
 (haiku − sonnet +0.127, 95% CI [+0.034, +0.219]) and the top two tiers are
 indistinguishable (opus − fable +0.070, CI [−0.118, +0.259]). The only structure
 the data resolves is that Sonnet keeps to the cap and the other three do not —
 one model, not a gradient.
 
 **Fable finishes the agentic work and stops obeying the style.** On
-`agentic-fix-verify` it aborted 0 of 6 cells against Haiku's 5 of 6, at $0.9681 a
+`agentic-fix-verify` it aborted 0 of 6 cells against Haiku's 5 of 6, at 4.8× a
 cell — 4.8× a conversational Fable cell. Its own compliance falls from
 rules 94.1 / judge 66.6 on the shared five to 79.5 / 41.2 there, with
 `leads_with_conclusion` at 16.7: five of six replies open with "I'll look at the
 file first." No amount of capability removed the narration habit.
 
-Haiku was additionally run across the full 13-case pool (78 cells, $1.88), which
-no other tier has had; at Fable's measured rates the same pool costs about $27.
+Haiku was additionally run across the full 13-case pool (78 cells), which
+no other tier has had; on Fable the same pool would run an order of magnitude
+more tokens.
 Two results from that wider run shaped how COS-7 was run:
 
 - **Reserve a column for "no reply".** Six of Haiku's 78 cells hit the 12-turn
@@ -150,18 +151,19 @@ corrected figures are in `FINDINGS.md`.
 
 ## Notes
 
-Cost is asymmetric, and now measured. Three styles, one model, five cases, two
-repeats is thirty cells: $0.70 on Haiku, $3.04 on Sonnet, $4.48 on Opus, $7.04 on
-Fable. A single write-then-verify agentic cell runs $0.9681 on Fable. Scope the
-Fable case set before running rather than reusing the full matrix.
+Cell size is asymmetric, and now measured. Three styles, one model, five cases,
+two repeats is thirty cells, and the same thirty cells run roughly an order of
+magnitude more tokens on Fable than on Haiku. A single write-then-verify agentic
+cell is 4.8× a conversational one on Fable. Scope the Fable case set before
+running rather than reusing the full matrix.
 
 SDK model values: `haiku` and `claude-fable-5[1m]`. There is no bare `fable`
 alias in the model list. Fable is kept out of `config/matrix.json`'s `models` on
-price alone; since COS-14 that list is `run`'s only, and `improve` bills its own
-`improve.models`, so a model added there no longer multiplies through every
+run length alone; since COS-14 that list is `run`'s only, and `improve` runs its
+own `improve.models`, so a model added there no longer multiplies through every
 optimizer iteration. Pass the id explicitly, quoted, and name `--variants` while
 you are there: omitting it runs all five variants, which is how COS-7's one-cell
-model-id probe became a five-cell $1.58 one.
+model-id probe became a five-cell one.
 
 If Haiku exposes rules that the larger models satisfy without being told, those
 rules are candidates for deletion under the removing-beats-adding principle — but

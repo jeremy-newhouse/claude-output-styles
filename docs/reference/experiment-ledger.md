@@ -41,60 +41,58 @@ comparable with the rows here. Its `report.md` is titled *Optimizer trace* and
 its `summary.json` carries `kind: "improve"` for exactly this reason; improve
 runs belong in the optimizer table below.
 
-| stamp | cells | cost | scope | established |
-|---|---|---|---|---|
-| `20-09-49` | 4 | $0.43 | advanced, both models, 2 cases | Smoke test. Harness works end to end. |
-| `20-10-29` | 36 | $5.89 | advanced, both models, baseline vs all-fixes, 9 cases | Opus obeys 91% of rules to Sonnet's 93%. Gap concentrated in length and pre-tool narration. Combined reinforcement lost ground on **both** models. |
-| `20-12-55` | 25 | $4.49 | advanced, Opus, all five variants, 5 cases | Variant sweep. Bare style file wins at 90.2%. `CLAUDE.md` restatement costs 9.4 points, forced long prompt 4.5. |
-| `20-53-04` | 20 | $2.59 | advanced release vs optimized, both models, 5 cases | The Opus-authored rewrite improved **both** models — Opus +6.9, Sonnet +5.9 — and narrowed the model gap. Basis for adopting it and for the one-file decision. |
-| `21-10-34` | 20 | $2.13 | beginner and intermediate, release vs optimized, Sonnet, 5 cases | First sign of the rules-up/judge-down signature. Also exposed a judge grading against its own taste rather than the style guide. |
-| `21-12-58` | 40 | $4.28 | same, Sonnet, 2 repeats, corrected judge | Reproduced the split on the fixed instrument. Intermediate candidate −3.0 net with judge −12.3. Both candidates rejected. |
-| `23-36-59` | 32 | $4.93 | advanced and intermediate, in-use vs cross-model candidate, both models, 4 **never-seen** cases | The decisive reversal. Advanced candidate 6.8 points worse out of sample despite winning both in-loop splits. Basis for the out-of-sample ADR. |
-| `12-44-03` | 60 | $7.52 | all three styles, both models, 5 cases, 2 repeats | The per-model baseline. Filled the beginner-on-Opus gap, which had never been measured in a saved run. |
-| `22-18-53` | 8 | $0.18 | beginner 20-word vs 12-word cap, Haiku, 4 cases | A tighter stated cap appeared to change Haiku: mean sentence 15.5 → 11.6 words, over 20 words 28.1% → 10.3%, reply length flat (16.6 → 12.3 and 30.0% → 10.8% before COS-10 re-segmented the rows). Read alone it argues for tightening. Both arms re-derive exactly from the saved rows on either segmentation. What does not survive is reading the 15.5 arm as *Haiku's baseline* — see "A cheap-model probe can point the wrong way". |
-| `22-27-15` | 24 | $2.24 | beginner 20-word vs 12-word cap, both models, 6 cases across all three splits, paired | **The change was rejected.** Mean sentence length moved +0.25 words, 95% CI [−0.83, +1.34], six of twelve pairs shorter (+0.26, [−0.77, +1.29] before COS-10 re-segmented the same rows; the verdict is identical either way). Judge 0.557 → 0.532, reply length 105 → 114 words. Basis for keeping one sentence cap for all three levels. |
-| `22-59-53` | 78 | $1.88 | all three styles, Haiku, **full 13-case pool**, 2 repeats | The Haiku baseline, and the first run on the whole pool. Rule compliance holds at the third tier (90.9–96.0 on the five shared cases, never more than 1.8 points behind the better of Opus and Sonnet); the judge does not (37.5–62.2, last on all three styles). **Six cells returned no reply at all** — the 12-turn limit, only on cases that edit a file then run tests. Also refuted the 16.6-word sentence claim below. |
-| `23-47-08` | 5 | $1.58 | advanced, Fable, all five variants, 1 case, 1 repeat | Model-id probe: the SDK accepts `claude-fable-5[1m]`. Meant to be one cell; `--variants` was omitted, so it ran five. The accident priced the variants on the top tier — baseline $0.1910, tail-reminder $0.1896, `claude-md` $0.1965, all-fixes $0.2686, **long-prompt $0.7384**, i.e. 3.9× baseline. |
-| `23-48-45` | 30 | $7.04 | all three styles, Fable, same 5 cases as `12-44-03`, 2 repeats | The Fable baseline, and the fourth and last tier. **Zero errored cells.** Rules 91.4–97.9, never more than 2.5 points behind the best of the other three; judge 53.9–78.3, leading on advanced and beginner but behind Sonnet on intermediate, and last of four on intermediate *rules* (93.1). Settled the tier question: word-cap overrun does not track tier (Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300 words ÷ cap). Confirmed the one-file decision at the top of the range. |
-| `23-53-02` | 6 | $5.81 | all three styles, Fable, `agentic-fix-verify` only, 2 repeats | The most expensive cells in the project: $0.9681 on average, $0.7970 to **$1.1315** across the six. Budget off the worst cell, not the mean. **Fable aborts 0 of 6** where Haiku aborts 5 of 6, so the top tier finishes write-then-verify work. It also stops obeying the style while doing it: rules 94.1 → 79.5 and judge 66.6 → 41.2 against its own shared-five figures, with `leads_with_conclusion` at 16.7. Reading these transcripts exposed the text-block seam described below, and **every figure in this row is measured on the glued turn** — re-scoring the saved rows moves none of them, but the seam fix would, and it cannot be applied backwards. |
-| `00-44-03` | 12 | $2.40 | all three styles, both models, the two COS-1 target cases, 1 repeat | The first current-text baseline either case has ever had. Judge pooled across styles: `agentic-fix-verify` 50.0 Opus / 40.0 Sonnet, `conv-decision-holdout` 48.3 / 46.7. The "~48%" COS-1 was written against came from `20-10-29` and `23-36-59`, both on style text that no longer ships. |
-| `00-48-49` | 24 | $4.86 | same scope, 2 repeats, after COS-1's first authoring pass | **The shipped text.** 46.2 / 42.0 / 51.2 / 54.7 against a 65 bar — the gap is not closed. Arm mean judge 48.5 against the baseline's 46.2, inside the noise floor. Established that the judge does read the new rules: 13 violations across this run and `01-12-03` quote the new sections by name. |
-| `01-03-21` | 24 | $4.37 | same scope, after a second authoring pass | **Rejected and reverted.** Arm mean judge 43.6 **with the errored cell excluded** (45.9 if it is pooled, which is the bias described below) — worse than the original text. Restating each style's own word cap, banning inter-tool narration and outlawing conditional recommendations lost ground on three of the four AC cells. Also produced the finding that an errored cell scores 0 on rules and **1.0 on the judge**. |
-| `01-12-03` | 6 | $0.95 | all three styles, Sonnet, the two new reserve cases, 1 repeat | Validation that COS-1's new cases run. 0 errors, every cell scored. `reserve-agentic-session` drew 8-10 tool calls, which is **inside** `agentic-fix-verify`'s own 5-13 range — this run does not show the new case is the longer session, and Sonnet is not the model that aborts. See `01-33-41`. |
-| `01-13-15` | 30 | $0.73 | all three styles, Haiku, the five shared cases, 2 repeats | Regression check on the shipped text against `22-59-53` filtered to the same five cases and model. Every delta inside the three-point noise floor: rules −1.3/−1.1/+0.8, judge +0.9/−2.6/−0.2 for advanced/intermediate/beginner, n=10 each side. Haiku bought a same-model like-for-like before for $0.73; nothing is concluded from it beyond "nothing broke". |
-| `01-33-41` | 6 | $0.35 | all three styles, Haiku, `reserve-agentic-session` only, 2 repeats | Run because the branch review asked what the new case does on the model that aborts — `01-12-03` had only measured Sonnet. **It aborts 3 of 6 on the 12-turn limit.** The three cells that finished used 13, 17 and 17 tool calls, against the single `agentic-fix-verify` Haiku cell that ever finished, at 9 (`22-59-53`, 5 of 6 aborted). Suggestive that the new case really is the longer session, on n=3 against n=1 — not established, and Sonnet's 8-10 points the other way. What *is* established is that it is abort-prone, which is why the reserve gate was made error-aware in the same change. |
-| `02-10-45` | 20 | $2.18 | beginner only, both models, the five shared cases, 2 repeats | COS-4's before arm, and the first clean beginner measurement in the project. Rules 92.1 / 93.4, judge 58.7 / 70.7 — 12.8 and 22.3 points above the four-tier table's 45.9 / 48.4, which predates both COS-1's added sections and the contract fix at `3370e4d`. Per case the gap is in three shapes: conv-status-holdout 96.0, conv-status-auth 92.5, then agentic-read-report 45.0, conv-followup-drift 32.5, conv-explain-cache 27.5 on Opus. |
-| `02-12-24` | 12 | $1.87 | beginner only, both models, the six reserve cases, 1 repeat | The reserve before arm. Rules 87.2 / 86.4, judge 49.2 / 31.7, 0 errors. Verified uncontaminated by the style rewrite that followed: `cli.mjs` loads style text eagerly at process start, the run began 02:12:24Z and the file was not rewritten until 02:14:21Z. |
-| `02-15-14` | 20 | $2.15 | same as `02-10-45`, after COS-4's authoring pass 1 | Rules 98.0 / 97.7, judge 77.8 / 65.8. `total_length` 66.9 → 99.0 and `leads_with_conclusion` 90.0 → 100.0 carry most of the rules gain; `three_question_structure` held at 100.0, so the new shape router did not cost the beats on the cases that check for them. |
-| `02-16-47` | 12 | $1.92 | same as `02-12-24`, after pass 1 | The AC #3 validation. Rules 95.6 / 93.5, judge 45.3 / 49.7, 0 errors. Paired over the twelve cells this is the strongest arm in the task: rules **+7.7 [+5.3, +10.1]**, reply words **−55.7 [−83.2, −28.1]**, composite **+7.4 [+0.8, +14.0]**. |
-| `02-20-01` | 30 | $3.93 | same shared five, 3 repeats, after a second authoring pass | **Rejected and reverted.** Rules 98.7 / 97.1, judge 68.4 / 74.1 — arm mean 71.2 against pass 1's 71.8, statistically identical. Its five edits each quoted a pass-1 violation, but one introduced a false premise ("There was no job to report") on a tool-using case, and that case fell on both models. No bullet was kept: COS-1's precedent is that unmeasured text does not ship. |
-| `02-25-39` | 50 | $6.64 | same shared five, 5 repeats, byte-identical pass-1 text | **The arm that corrected this task's own conclusion.** Judge 72.4 Opus / **55.0 Sonnet**, against 77.8 / 65.8 from the same text at n=10. Pooled to n=35 a model the shipped text reads 73.9 [66.0, 81.9] and 58.1 [50.5, 65.6], and the paired judge delta against the before arm collapses from +7.1 to **+1.3 [−15.0, +17.6]**. Sonnet across four arms of the same five cases: 70.7, 65.8, 74.1, 55.0. |
-| `05-29-31` | 2 | $0.07 | beginner, Haiku, baseline, 4 cases, SIGKILLed after cell 2 | **COS-12's evidence.** A run killed with SIGKILL — no handler, no graceful shutdown — left both completed cells fully scored in `rows.json` and a `run.json` reading `complete: false, completed: 2, expected: 4`. `score --rows=` re-read them at exit 0 behind the line `PARTIAL run — 2 cells of 4 expected (2 never ran)`. Under the previous code the same kill would have left the directory empty. |
-| `05-31-40` | 1 | $0.02 | beginner, Haiku, baseline, 1 case | COS-12's happy path: a run allowed to finish writes `complete: true`, and `score` says so. Re-scoring `12-44-03` in the same session still reproduced 81.0% and $7.517, so the flush changed no published figure. |
-| `06-21-03` | 1 | $0.03 | beginner, Haiku, baseline, `agentic-read-report`, 1 repeat | COS-10's first post-fix cell. It made a tool call and emitted **no** pre-tool text, so `trace` and `final` came back byte-identical — the case the fix has to leave alone. `judgeReads: trace`, as `agentic-read-report` declares. |
-| `06-21-53` | 2 | $0.38 | beginner, Opus and Sonnet, baseline, `agentic-fix-verify`, 1 repeat | **COS-10's evidence.** The Opus cell made 8 tool calls and opened *"I'll look at the file first."* — the exact sentence this project has quoted since COS-7. The row now carries it in `trace` (642 chars) and not in `text` (612). Segmenting the two: the glued string the old code would have saved reads one 22-word opening sentence, over beginner's 20-word cap; `final` reads the same sentence at 17 words, under it; `trace` reads the narration as its own 6-word sentence. One check changed answer on one cell, which is the whole defect in miniature. The Sonnet cell aborted on the 12-turn limit and wrote `trace: ''`, confirming the error path. |
+| stamp | cells | scope | established |
+|---|---|---|---|
+| `20-09-49` | 4 | advanced, both models, 2 cases | Smoke test. Harness works end to end. |
+| `20-10-29` | 36 | advanced, both models, baseline vs all-fixes, 9 cases | Opus obeys 91% of rules to Sonnet's 93%. Gap concentrated in length and pre-tool narration. Combined reinforcement lost ground on **both** models. |
+| `20-12-55` | 25 | advanced, Opus, all five variants, 5 cases | Variant sweep. Bare style file wins at 90.2%. `CLAUDE.md` restatement costs 9.4 points, forced long prompt 4.5. |
+| `20-53-04` | 20 | advanced release vs optimized, both models, 5 cases | The Opus-authored rewrite improved **both** models — Opus +6.9, Sonnet +5.9 — and narrowed the model gap. Basis for adopting it and for the one-file decision. |
+| `21-10-34` | 20 | beginner and intermediate, release vs optimized, Sonnet, 5 cases | First sign of the rules-up/judge-down signature. Also exposed a judge grading against its own taste rather than the style guide. |
+| `21-12-58` | 40 | same, Sonnet, 2 repeats, corrected judge | Reproduced the split on the fixed instrument. Intermediate candidate −3.0 net with judge −12.3. Both candidates rejected. |
+| `23-36-59` | 32 | advanced and intermediate, in-use vs cross-model candidate, both models, 4 **never-seen** cases | The decisive reversal. Advanced candidate 6.8 points worse out of sample despite winning both in-loop splits. Basis for the out-of-sample ADR. |
+| `12-44-03` | 60 | all three styles, both models, 5 cases, 2 repeats | The per-model baseline. Filled the beginner-on-Opus gap, which had never been measured in a saved run. |
+| `22-18-53` | 8 | beginner 20-word vs 12-word cap, Haiku, 4 cases | A tighter stated cap appeared to change Haiku: mean sentence 15.5 → 11.6 words, over 20 words 28.1% → 10.3%, reply length flat (16.6 → 12.3 and 30.0% → 10.8% before COS-10 re-segmented the rows). Read alone it argues for tightening. Both arms re-derive exactly from the saved rows on either segmentation. What does not survive is reading the 15.5 arm as *Haiku's baseline* — see "A small-model probe can point the wrong way". |
+| `22-27-15` | 24 | beginner 20-word vs 12-word cap, both models, 6 cases across all three splits, paired | **The change was rejected.** Mean sentence length moved +0.25 words, 95% CI [−0.83, +1.34], six of twelve pairs shorter (+0.26, [−0.77, +1.29] before COS-10 re-segmented the same rows; the verdict is identical either way). Judge 0.557 → 0.532, reply length 105 → 114 words. Basis for keeping one sentence cap for all three levels. |
+| `22-59-53` | 78 | all three styles, Haiku, **full 13-case pool**, 2 repeats | The Haiku baseline, and the first run on the whole pool. Rule compliance holds at the third tier (90.9–96.0 on the five shared cases, never more than 1.8 points behind the better of Opus and Sonnet); the judge does not (37.5–62.2, last on all three styles). **Six cells returned no reply at all** — the 12-turn limit, only on cases that edit a file then run tests. Also refuted the 16.6-word sentence claim below. |
+| `23-47-08` | 5 | advanced, Fable, all five variants, 1 case, 1 repeat | Model-id probe: the SDK accepts `claude-fable-5[1m]`. Meant to be one cell; `--variants` was omitted, so it ran five. The accident sized the variants on the top tier: tail-reminder and `claude-md` land within a few percent of baseline and all-fixes about 1.4×, while **long-prompt runs 3.9× baseline** — the one variant that materially enlarges a cell. |
+| `23-48-45` | 30 | all three styles, Fable, same 5 cases as `12-44-03`, 2 repeats | The Fable baseline, and the fourth and last tier. **Zero errored cells.** Rules 91.4–97.9, never more than 2.5 points behind the best of the other three; judge 53.9–78.3, leading on advanced and beginner but behind Sonnet on intermediate, and last of four on intermediate *rules* (93.1). Settled the tier question: word-cap overrun does not track tier (Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300 words ÷ cap). Confirmed the one-file decision at the top of the range. |
+| `23-53-02` | 6 | all three styles, Fable, `agentic-fix-verify` only, 2 repeats | The largest cells in the project: roughly 4.8× a conversational Fable cell, and **1.4× from the smallest of the six to the largest**. Size an arm off the worst cell, not the mean. **Fable aborts 0 of 6** where Haiku aborts 5 of 6, so the top tier finishes write-then-verify work. It also stops obeying the style while doing it: rules 94.1 → 79.5 and judge 66.6 → 41.2 against its own shared-five figures, with `leads_with_conclusion` at 16.7. Reading these transcripts exposed the text-block seam described below, and **every figure in this row is measured on the glued turn** — re-scoring the saved rows moves none of them, but the seam fix would, and it cannot be applied backwards. |
+| `00-44-03` | 12 | all three styles, both models, the two COS-1 target cases, 1 repeat | The first current-text baseline either case has ever had. Judge pooled across styles: `agentic-fix-verify` 50.0 Opus / 40.0 Sonnet, `conv-decision-holdout` 48.3 / 46.7. The "~48%" COS-1 was written against came from `20-10-29` and `23-36-59`, both on style text that no longer ships. |
+| `00-48-49` | 24 | same scope, 2 repeats, after COS-1's first authoring pass | **The shipped text.** 46.2 / 42.0 / 51.2 / 54.7 against a 65 bar — the gap is not closed. Arm mean judge 48.5 against the baseline's 46.2, inside the noise floor. Established that the judge does read the new rules: 13 violations across this run and `01-12-03` quote the new sections by name. |
+| `01-03-21` | 24 | same scope, after a second authoring pass | **Rejected and reverted.** Arm mean judge 43.6 **with the errored cell excluded** (45.9 if it is pooled, which is the bias described below) — worse than the original text. Restating each style's own word cap, banning inter-tool narration and outlawing conditional recommendations lost ground on three of the four AC cells. Also produced the finding that an errored cell scores 0 on rules and **1.0 on the judge**. |
+| `01-12-03` | 6 | all three styles, Sonnet, the two new reserve cases, 1 repeat | Validation that COS-1's new cases run. 0 errors, every cell scored. `reserve-agentic-session` drew 8-10 tool calls, which is **inside** `agentic-fix-verify`'s own 5-13 range — this run does not show the new case is the longer session, and Sonnet is not the model that aborts. See `01-33-41`. |
+| `01-13-15` | 30 | all three styles, Haiku, the five shared cases, 2 repeats | Regression check on the shipped text against `22-59-53` filtered to the same five cases and model. Every delta inside the three-point noise floor: rules −1.3/−1.1/+0.8, judge +0.9/−2.6/−0.2 for advanced/intermediate/beginner, n=10 each side. Haiku gave a same-model like-for-like across 30 cells; nothing is concluded from it beyond "nothing broke". |
+| `01-33-41` | 6 | all three styles, Haiku, `reserve-agentic-session` only, 2 repeats | Run because the branch review asked what the new case does on the model that aborts — `01-12-03` had only measured Sonnet. **It aborts 3 of 6 on the 12-turn limit.** The three cells that finished used 13, 17 and 17 tool calls, against the single `agentic-fix-verify` Haiku cell that ever finished, at 9 (`22-59-53`, 5 of 6 aborted). Suggestive that the new case really is the longer session, on n=3 against n=1 — not established, and Sonnet's 8-10 points the other way. What *is* established is that it is abort-prone, which is why the reserve gate was made error-aware in the same change. |
+| `02-10-45` | 20 | beginner only, both models, the five shared cases, 2 repeats | COS-4's before arm, and the first clean beginner measurement in the project. Rules 92.1 / 93.4, judge 58.7 / 70.7 — 12.8 and 22.3 points above the four-tier table's 45.9 / 48.4, which predates both COS-1's added sections and the contract fix at `3370e4d`. Per case the gap is in three shapes: conv-status-holdout 96.0, conv-status-auth 92.5, then agentic-read-report 45.0, conv-followup-drift 32.5, conv-explain-cache 27.5 on Opus. |
+| `02-12-24` | 12 | beginner only, both models, the six reserve cases, 1 repeat | The reserve before arm. Rules 87.2 / 86.4, judge 49.2 / 31.7, 0 errors. Verified uncontaminated by the style rewrite that followed: `cli.mjs` loads style text eagerly at process start, the run began 02:12:24Z and the file was not rewritten until 02:14:21Z. |
+| `02-15-14` | 20 | same as `02-10-45`, after COS-4's authoring pass 1 | Rules 98.0 / 97.7, judge 77.8 / 65.8. `total_length` 66.9 → 99.0 and `leads_with_conclusion` 90.0 → 100.0 carry most of the rules gain; `three_question_structure` held at 100.0, so the new shape router did not cost the beats on the cases that check for them. |
+| `02-16-47` | 12 | same as `02-12-24`, after pass 1 | The AC #3 validation. Rules 95.6 / 93.5, judge 45.3 / 49.7, 0 errors. Paired over the twelve cells this is the strongest arm in the task: rules **+7.7 [+5.3, +10.1]**, reply words **−55.7 [−83.2, −28.1]**, composite **+7.4 [+0.8, +14.0]**. |
+| `02-20-01` | 30 | same shared five, 3 repeats, after a second authoring pass | **Rejected and reverted.** Rules 98.7 / 97.1, judge 68.4 / 74.1 — arm mean 71.2 against pass 1's 71.8, statistically identical. Its five edits each quoted a pass-1 violation, but one introduced a false premise ("There was no job to report") on a tool-using case, and that case fell on both models. No bullet was kept: COS-1's precedent is that unmeasured text does not ship. |
+| `02-25-39` | 50 | same shared five, 5 repeats, byte-identical pass-1 text | **The arm that corrected this task's own conclusion.** Judge 72.4 Opus / **55.0 Sonnet**, against 77.8 / 65.8 from the same text at n=10. Pooled to n=35 a model the shipped text reads 73.9 [66.0, 81.9] and 58.1 [50.5, 65.6], and the paired judge delta against the before arm collapses from +7.1 to **+1.3 [−15.0, +17.6]**. Sonnet across four arms of the same five cases: 70.7, 65.8, 74.1, 55.0. |
+| `05-29-31` | 2 | beginner, Haiku, baseline, 4 cases, SIGKILLed after cell 2 | **COS-12's evidence.** A run killed with SIGKILL — no handler, no graceful shutdown — left both completed cells fully scored in `rows.json` and a `run.json` reading `complete: false, completed: 2, expected: 4`. `score --rows=` re-read them at exit 0 behind the line `PARTIAL run — 2 cells of 4 expected (2 never ran)`. Under the previous code the same kill would have left the directory empty. |
+| `05-31-40` | 1 | beginner, Haiku, baseline, 1 case | COS-12's happy path: a run allowed to finish writes `complete: true`, and `score` says so. Re-scoring `12-44-03` in the same session still reproduced 81.0%, so the flush changed no published figure. |
+| `06-21-03` | 1 | beginner, Haiku, baseline, `agentic-read-report`, 1 repeat | COS-10's first post-fix cell. It made a tool call and emitted **no** pre-tool text, so `trace` and `final` came back byte-identical — the case the fix has to leave alone. `judgeReads: trace`, as `agentic-read-report` declares. |
+| `06-21-53` | 2 | beginner, Opus and Sonnet, baseline, `agentic-fix-verify`, 1 repeat | **COS-10's evidence.** The Opus cell made 8 tool calls and opened *"I'll look at the file first."* — the exact sentence this project has quoted since COS-7. The row now carries it in `trace` (642 chars) and not in `text` (612). Segmenting the two: the glued string the old code would have saved reads one 22-word opening sentence, over beginner's 20-word cap; `final` reads the same sentence at 17 words, under it; `trace` reads the narration as its own 6-word sentence. One check changed answer on one cell, which is the whole defect in miniature. The Sonnet cell aborted on the 12-turn limit and wrote `trace: ''`, confirming the error path. |
 
-Total persisted: 640 cells, $83.84. Improve-loop spend before COS-3 is additional
-and was not tracked until late; from COS-3 onward it is carried on the rows.
+Total persisted: 640 cells. Improve-loop cells before COS-3 are additional and
+were not saved at all; from COS-3 onward every one of them is on disk.
 
-Four accounting caveats on that total. Cells that error carry `costUsd: 0` — the
-SDK's result message has no cost on a turn-limit abort — so `22-59-53`'s six
-failed cells, `01-03-21`'s one, `01-33-41`'s three and `06-21-53`'s one burned
-tokens that no row records. And one aborted invocation under
-COS-5 (a `run --help` that the CLI then treated as `run`; COS-5 added the guard
-that now short-circuits it before any config is read) ran for about two minutes
-at concurrency 4 before being killed. It wrote no `rows.json`, so its spend is
-real but unquantified and is not in the total above.
+Two completeness caveats on that count, both about work the record cannot see.
+Runs measured more than they persisted: `22-59-53`'s six failed cells,
+`01-03-21`'s one, `01-33-41`'s three and `06-21-53`'s one each ran a real turn
+and left a row with no usable reply in it. And one aborted invocation under COS-5
+(a `run --help` that the CLI then treated as `run`; COS-5 added the guard that
+now short-circuits it before any config is read) ran for about two minutes at
+concurrency 4 before being killed. It wrote no `rows.json` at all, so nothing it
+measured is in the count above.
 
-Third, the same gap survives the COS-12 flush in a much smaller form: the cell in
-flight when a run is killed has already spent tokens and will never be written,
-so `05-29-31`'s $0.07 is the two cells that landed and not what the process cost.
-Flushing recovers the completed cells, not the interrupted one. Fourth, the total
-is the sum of the per-run costs as rounded in the table above; the pre-COS-12
-figure was carried as $83.33 while its own rows summed to $83.34.
+The same gap survives the COS-12 flush in a much smaller form: the cell in flight
+when a run is killed will never be written, so `05-29-31` shows the two cells
+that landed and not the three the process actually started. Flushing recovers the
+completed cells, not the interrupted one.
 
 `22-18-53`, `22-27-15` and `22-59-53` are one story and belong together.
-`22-18-53` was a cheap Haiku probe run to decide whether a tighter sentence cap
+`22-18-53` was a small Haiku probe run to decide whether a tighter sentence cap
 was worth validating; `22-27-15` is the validation, and it reversed the probe's
 answer on Opus and Sonnet; `22-59-53` then measured Haiku's own baseline at six
 times the probe's sample and removed the reason the probe had been believed.
@@ -109,8 +107,8 @@ Five `improve` invocations, eight candidate rewrites, one survivor.
 | first | advanced, Opus only, 2 iterations | v1 reverted, **v2 kept** and adopted. The only rewrite that ever survived. |
 | second | intermediate then beginner, both models, patience 2 | Intermediate converged at v2 and was later rejected out of sample. Crashed into beginner on an unwrapped judge call at `maxTurns: 1`. |
 | third | beginner and advanced, both models, after the crash fix | Beginner converged at **v0** — both rewrites raised train ~6 and dropped holdout ~8, rejected twice. Advanced kept a v2 that was later rejected out of sample. |
-| `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells, $0.61. v1 reverted. **Restated under COS-11**, which found one of the four v0 holdout cells was an `agentic-fix-verify` abort scored 0 on rules and 1.0 on the judge. The in-loop verdict used the pooled figures and read the *usual* signature on holdout — rules 70.8 → 83.3, judge 72.5 → **21.2**, deltas train −0.029 holdout −0.193. Excluding the silent cell, v0 holdout is rules **94.3** and judge **63.3**, so the rewrite dropped rules 94.3 → 83.3 as well: **both halves fell on both splits**, and the holdout delta is −0.265, not −0.193. The reverted verdict is unchanged and was never in doubt; the "rules up, judge down" reading of this run was an artifact of one aborted cell. Scope was always too small to conclude anything about Haiku — the run existed to prove persistence. First improve run whose transcripts survive; re-scoring reproduced all four in-loop numbers exactly at the time, and no longer does, because `score` now reports the error-excluded reading and the in-loop numbers were pooled. |
-| `05-46-38` | beginner, Haiku only, `--iterations=0`, 1 train + 1 holdout case — under COS-12 | 4 cells, $0.09. Not a measurement and not an optimization: the loop measured its baseline and adopted v0. It exists because nothing else exercises `improve`'s persistence path, and COS-12 moved that path onto a shared writer. `run.json` reads `kind: "improve", complete: true, expected: null` — an improve loop's cell count is not known until it stops — and `report.md` still opens with the optimizer-trace warning. |
+| `14-48-09` | beginner, Haiku only, 1 iteration, repeats 1 — the first run under COS-3 | 18 cells. v1 reverted. **Restated under COS-11**, which found one of the four v0 holdout cells was an `agentic-fix-verify` abort scored 0 on rules and 1.0 on the judge. The in-loop verdict used the pooled figures and read the *usual* signature on holdout — rules 70.8 → 83.3, judge 72.5 → **21.2**, deltas train −0.029 holdout −0.193. Excluding the silent cell, v0 holdout is rules **94.3** and judge **63.3**, so the rewrite dropped rules 94.3 → 83.3 as well: **both halves fell on both splits**, and the holdout delta is −0.265, not −0.193. The reverted verdict is unchanged and was never in doubt; the "rules up, judge down" reading of this run was an artifact of one aborted cell. Scope was always too small to conclude anything about Haiku — the run existed to prove persistence. First improve run whose transcripts survive; re-scoring reproduced all four in-loop numbers exactly at the time, and no longer does, because `score` now reports the error-excluded reading and the in-loop numbers were pooled. |
+| `05-46-38` | beginner, Haiku only, `--iterations=0`, 1 train + 1 holdout case — under COS-12 | 4 cells. Not a measurement and not an optimization: the loop measured its baseline and adopted v0. It exists because nothing else exercises `improve`'s persistence path, and COS-12 moved that path onto a shared writer. `run.json` reads `kind: "improve", complete: true, expected: null` — an improve loop's cell count is not known until it stops — and `report.md` still opens with the optimizer-trace warning. |
 
 ### What the sequence taught
 
@@ -127,7 +125,7 @@ out of every split caught it — twice.
 literal "Option A / Option B" labels and penalised a reply that led with the
 recommendation instead. `three_question_structure` matched keywords anywhere and
 so survived a structural collapse the judge caught. Both were fixed and the saved
-transcripts re-graded offline at no cost — which is the argument for persisting
+transcripts re-graded offline without re-running a cell — which is the argument for persisting
 transcripts.
 
 **Comparability has limits.** Deterministic scores are comparable across the
@@ -145,10 +143,10 @@ conclusion changed. All figures quoted elsewhere in the bundle are post-
 correction. `node src/cli.mjs audit` now catches this class of drift, and the
 same comparison runs under `npm test`.
 
-**A cheap-model probe can point the wrong way.** `22-18-53` cost $0.18 and said a
-tighter sentence cap works; `22-27-15` cost $2.24 and said it does nothing. The
-$2.24 answer is the right one, and `22-59-53` later explained why more simply
-than the original account did.
+**A small-model probe can point the wrong way.** `22-18-53` ran 8 cells on Haiku
+alone and said a tighter sentence cap works; `22-27-15` ran 24 across both models
+and said it does nothing. The 24-cell answer is the right one, and `22-59-53`
+later explained why more simply than the original account did.
 
 That original account said the cap bound on Haiku because Haiku writes 16.6-word
 sentences while Opus and Sonnet write 11–12. The probe's own arms are sound — both
@@ -162,7 +160,7 @@ and so re-segmented every saved reply. The pre-COS-10 figures are given beside
 each one, because they are what earlier revisions of this ledger published:
 
 | sample of the untightened 20-word file | cells | sentences | mean words | over 12 words |
-|---|---|---|---|---|
+|---|---|---|---|
 | `22-18-53` — the probe's baseline arm | 4 | 32 (was 30) | **15.5** (was 16.6) | **56.3%** (was 60.0%) |
 | `22-59-53`, same 4 cases | 8 | 88 (was 79) | **10.8** (was 12.1) | **35.2%** (was 43.0%) |
 | `22-59-53`, beginner, all 13 cases | 25 | 315 (was 268) | **10.4** (was 12.2) | **30.2%** (was 38.4%) |
@@ -201,12 +199,12 @@ Haiku exception to explain. The decision to revert stands and is strengthened;
 only its stated mechanism was doing work the data did not support.
 
 The lesson survives, restated more usefully. The original version — probe the
-cheap model to learn whether an instruction *can* bind, measure the target models
+small model to learn whether an instruction *can* bind, measure the target models
 before believing it *does* — was built on a gap that a larger sample dissolved.
-The durable version: **a probe small enough to be cheap is small enough that its
-baseline arm may not reproduce.** Before explaining why a probe shows an effect,
-re-measure its own baseline at a larger n. Here that check was available for free
-in saved rows and would have cost nothing at the time.
+The durable version: **a probe small enough to run quickly is small enough that
+its baseline arm may not reproduce.** Before explaining why a probe shows an
+effect, re-measure its own baseline at a larger n. Here that check was already
+sitting in saved rows and needed no new cells at the time.
 
 **A cell that never answered is not a badly-styled cell.** `22-59-53` is the
 first run where this mattered: six of 78 Haiku cells hit the 12-turn limit and
@@ -229,7 +227,7 @@ That distinction was carried into COS-7 in advance rather than rediscovered, and
 in the event Fable did not need it: `23-48-45` and `23-53-02` errored on 0 of 36
 cells between them, including 0 of 6 on the very case Haiku failed 5 of 6 times.
 The precaution was still correct to take — the alternative was finding out from
-a $7 run.
+a 30-cell run.
 
 **Text blocks were concatenated with no separator, so two rules could not be
 quoted on agentic cells.** Found under COS-7 while reading Fable's
@@ -419,12 +417,11 @@ times on the same five cases with only the repeat count differing, read 70.7
 computed at two cells per pair became **+1.3 [−15.0, +17.6]** at seven.
 
 Two rules follow. Pair by case × model and report the interval, never a bare arm
-mean. And price the arm before agreeing to a bar. At COS-4's measured $0.1297 a
-cell — its six arms ran $0.1074 to $0.1602 — narrowing one arm's 95% half-width
-costs ~24 cells per model for ±10 points (~$3), 48 for ±7 (~$6), 94 for ±5
-(~$12), 146 for ±4 (~$19). Detecting a real difference *between* two arms costs
-about twice that: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
-Note what this does and does not buy — sample size narrows an interval, it does
-not move a point estimate above a bar. A judge bar stated to the point is not
-affordable at this project's arm sizes, and two tasks have now been written
+mean. And size the arm before agreeing to a bar. Narrowing one arm's 95%
+half-width takes ~24 cells per model for ±10 points, 48 for ±7, 94 for ±5 and
+146 for ±4. Detecting a real difference *between* two arms takes about twice
+that: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
+Note what this does and does not give you — sample size narrows an interval, it
+does not move a point estimate above a bar. A judge bar stated to the point is not
+resolvable at this project's arm sizes, and two tasks have now been written
 against one.

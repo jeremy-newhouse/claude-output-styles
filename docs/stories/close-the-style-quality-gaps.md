@@ -164,8 +164,7 @@ a ten-cell arm — the size every judge figure in this project rests on — carr
 95% interval about 30 points wide. Sonnet read 70.7, 65.8, 74.1 and 55.0 across
 four arms of the same five cases. Placing a style above a 70% bar with confidence
 does not place a score above a bar — Sonnet measures 58.1 and no arm size moves a
-point estimate. What it buys is precision: at the measured $0.1297 a cell,
-narrowing one arm's 95% half-width to ±7 points takes 48 cells per model (~$6)
-and ±4 takes 146 (~$19); detecting a real 5-point difference between two arms
-takes 187 cells per arm. Any future bar of this kind should be priced before it
-is agreed.
+point estimate. What it gives you is precision: narrowing one arm's 95%
+half-width to ±7 points takes 48 cells per model and ±4 takes 146; detecting a
+real 5-point difference between two arms takes 187 cells per arm. Any future bar
+of this kind should be sized before it is agreed.
