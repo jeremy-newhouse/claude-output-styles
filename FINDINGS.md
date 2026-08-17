@@ -640,12 +640,19 @@ and a 60-word status update was failed because it "never establishes what a
 database is". Two more contradictions sat beside it: "skip all internal details"
 was read as forbidding the evidence the status shape requires, so "All 14 checks
 pass" was quoted as a violation; and the prose invited glossing a technical term
-while `no_jargon` bans 27 of them outright at weight 2.
+while `no_jargon` bans 28 of them outright at weight 2 — and the file's own
+worked example of that rule, "I updated the API (the messenger that lets two
+programs talk)", uses one of the 28, so following the example scores 0.667 on the
+heaviest-weighted check.
 
-**And the file never said which of its shapes a reply should take.** Eight of the
-24 judge violations on the three weakest cases were "missing the What I did / Did
-it work / Next structure" on replies that are not status updates — an
-explanation, a code-reading report, a third-turn follow-up. The harness already
+**And the file never said which of its shapes a reply should take.** Ten of the
+40 judge violations on the three weakest cases in run `02-10-45` say the reply is
+missing, omitting or dropping the What I did / Did it work / Next structure — on
+replies that are not status updates. They fall on all three: `conv-explain-cache`
+3, `agentic-read-report` 3, `conv-followup-drift` 4. (Counted by matching a
+missing/omits/lacks/drops/skips verb against a beat name, over the twelve beginner
+rows for those cases. The superseded run `12-44-03` gives 4 of 48, all on
+`conv-followup-drift`, which is one more reason not to quote that run.) The harness already
 disagreed with that: `three_question_structure` is not among the checks for any
 of those three cases, and `reserve-scope-estimate`'s rubric says outright that "a
 status-update shape or a list of implementation steps is wrong here". The style
@@ -657,7 +664,8 @@ the 80-word budget to every reply with a stated cut order, added shapes for
 example of the kind `plain-english-advanced.md` has always had, and resolved the
 three contradictions.
 
-**What it did, on 128 cells across two disjoint case sets, paired by case × model:**
+**What it did, over 144 cells in six arms — 114 of them in the two paired
+comparisons below, the other 30 in a rejected second authoring pass:**
 
 | | five shared cases, 10 pairs | six reserve cases, 12 pairs |
 |---|---|---|
@@ -682,10 +690,18 @@ with an interval four times as wide as the effect.** Sonnet in particular read
 70.7 at n=10, 65.8 at n=10, 74.1 at n=15 and 55.0 at n=25 across arms of the same
 five cases; pooled over 35 cells of the shipped text it is 58.1 [50.5, 65.6].
 
-**That is the transferable finding.** Per-cell judge SD is 22 to 32, so the
-ten-cell arms every judge figure in this project rests on carry 95% intervals
-about 30 points wide. Placing a style above a 70% bar with confidence needs
-roughly 151 cells per model — about $32 an arm at the measured $0.107 a cell.
+**That is the transferable finding.** Per-cell judge SD on the shipped text is
+24.6 pooled (24.1 Opus, 22.8 Sonnet), so the ten-cell arms every judge figure in
+this project rests on carry 95% intervals about 30 points wide.
+
+What sample size does *not* buy is a score. Sonnet measures 58.1 on the shipped
+text; no arm size moves a point estimate, and none places it above 70. What it
+buys is precision. At $0.1297 a cell — this task's measured mean, with arms
+ranging $0.1074 to $0.1602 — narrowing one arm's 95% half-width to ±10 points
+takes 24 cells per model (~$3), ±7 takes 48 (~$6), ±5 takes 94 (~$12) and ±4
+takes 146 (~$19). Detecting a real difference *between* two arms costs about
+twice that: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
+
 Deterministic rules and reply length are cheap to establish and were established
 here; the judge is not, and a ten-cell judge difference under about 20 points
 should be read as unmeasured rather than as a movement.

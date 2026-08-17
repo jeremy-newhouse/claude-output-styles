@@ -307,9 +307,13 @@ times on the same five cases with only the repeat count differing, read 70.7
 (n=10), 65.8 (n=10), 74.1 (n=15) and 55.0 (n=25). A paired judge delta of +7.1
 computed at two cells per pair became **+1.3 [−15.0, +17.6]** at seven.
 
-Two rules follow. Pair by case × model and report the interval, never a bare
-arm mean. And price the arm before agreeing to a bar: at the measured SD and
-$0.107 a cell, resolving 10 points needs ~25 cells per model-arm (~$3), 7 points
-~49 (~$5), 5 points ~97 (~$10), and 4 points ~151 (~$16 per model-arm, ~$32 for
-both). A judge bar stated to the point is not affordable at this project's arm
-sizes, and two tasks have now been written against one.
+Two rules follow. Pair by case × model and report the interval, never a bare arm
+mean. And price the arm before agreeing to a bar. At COS-4's measured $0.1297 a
+cell — its six arms ran $0.1074 to $0.1602 — narrowing one arm's 95% half-width
+costs ~24 cells per model for ±10 points (~$3), 48 for ±7 (~$6), 94 for ±5
+(~$12), 146 for ±4 (~$19). Detecting a real difference *between* two arms costs
+about twice that: 47 cells per arm for 10 points, 95 for 7, 187 for 5, 291 for 4.
+Note what this does and does not buy — sample size narrows an interval, it does
+not move a point estimate above a bar. A judge bar stated to the point is not
+affordable at this project's arm sizes, and two tasks have now been written
+against one.
