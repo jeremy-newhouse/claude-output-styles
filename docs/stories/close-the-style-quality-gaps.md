@@ -56,10 +56,36 @@ optimizer fix it — both cross-model rewrites raised train by roughly 6 points 
 dropped holdout by roughly 8, so the keep rule rejected them and the loop
 converged having changed nothing.
 
+**COS-4 rewrote the file, and the beginner row above no longer describes it.**
+Two things had to be corrected before the work could start. That row's Opus and
+Sonnet judge figures were graded with the judge told a 15-word sentence cap the
+file never stated — `FINDINGS.md`, *The judge column carries a defect the rules
+column had corrected* — and COS-1 had since added two sections. A fresh arm on
+the shipped text read 58.7 Opus / 70.7 Sonnet, not 45.9 / 48.4, and the two
+causes are not separable.
+
+The defect underneath was not wording and not missing content: beginner's rules
+contradicted each other, and the judge enforced both sides. Its 80-word budget
+was scoped to status updates while the harness applied it to every reply; its
+demands for analogies and for explaining what a thing *is* were unbounded and
+cost 15–25 words each; "skip all internal details" was read as forbidding the
+evidence its own status shape requires. And nothing in the file said which of its
+shapes a reply should take, so 8 of 24 judge violations on the weakest cases were
+"missing the three beats" on replies that are not status updates.
+
+The rewrite is measured on 128 cells across two disjoint case sets. **Rules and
+reply length moved and are established** — rules +5.2 shared and +7.7 on reserve
+(t=7.06), reply words −42.0 and −55.7, over-cap share 40.0% → 14.3%, and rules on
+the shipped text at 98.5 / 97.4, the highest beginner has recorded. **The judge
+did not move**: +1.3 [−15.0, +17.6]. Sonnet pooled over 35 cells reads 58.1
+[50.5, 65.6], below this story's 70% bar and established as below it, so that
+criterion is not met and COS-4 is parked rather than closed.
+
 **Two tiers were added after this story was written, and neither rescued it.**
-Beginner is last on the judge on every one of the four, and the best score any
-model reaches is Fable's 53.9 — the most capable tier available, still 16 points
-under the bar. A more capable model does not write better beginner prose from
+(This paragraph describes the pre-COS-4 file; the rewrite is measured on Opus and
+Sonnet only.) Beginner was last on the judge on every one of the four, and the
+best score any model reached was Fable's 53.9 — the most capable tier available,
+still 16 points under the bar. A more capable model does not write better beginner prose from
 this file, which is what would have to be true for the gap to be a model problem
 rather than a content one. COS-7 also measured the mechanism directly: on the
 five shared cases beginner averages 135 words on Opus, 132 on Fable, 113 on Haiku
@@ -103,7 +129,11 @@ tier would be a scope change, and nobody has asked for one.
 
 Beginner may need a different instrument rather than a different wording. Its
 rules pass while its prose does not, which is the signature of a style whose
-stated rules do not capture what makes it good.
+stated rules do not capture what makes it good. **COS-4 half-settled this.** The
+rules did not capture it, and three self-contradictions plus a missing shape
+router were found and fixed. Fixing them moved everything the deterministic side
+measures and nothing the judge measures, so what the judge is responding to in
+beginner prose is still unidentified.
 
 COS-8 narrowed where to look. Sentence length is not the lever: tightening
 beginner's stated cap to 12 words changed nothing measurable on either model
@@ -113,3 +143,16 @@ stated 80, with half its replies over — and where the two can be told apart, t
 judge tracks reply length far more strongly than sentence length. Any attempt at
 COS-4 that works on sentence-level wording alone is likely to repeat the six
 optimizer rewrites that already failed.
+
+**COS-4 closed the reply-length half of that and the judge did not follow.** Mean
+reply length fell 103 → 61 words and the over-cap share 40.0% → 14.3%, both
+significant on two disjoint case sets, while the judge moved +1.3 [−15.0, +17.6].
+The correlation COS-8 measured is real; length is evidently not the *cause*, or
+not the only one.
+
+**The measurement lesson is the durable part.** Per-cell judge SD is 22 to 32, so
+a ten-cell arm — the size every judge figure in this project rests on — carries a
+95% interval about 30 points wide. Sonnet read 70.7, 65.8, 74.1 and 55.0 across
+four arms of the same five cases. Placing a style above a 70% bar with confidence
+needs roughly 151 cells per model, about $32 an arm. Any future bar of this kind
+should be priced before it is agreed.

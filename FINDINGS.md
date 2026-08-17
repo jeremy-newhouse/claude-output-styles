@@ -305,6 +305,45 @@ best beginner judge score in this table and still 16 points under the 70% bar.
 (Individual two-cell samples inside optimizer runs have scored higher; those are
 not comparable with a ten-cell baseline and are not a style's score.)
 
+### The judge column carries a defect the rules column had corrected
+
+`contracts.json` held beginner to 15-word sentences and intermediate to 18 until
+commit `3370e4d`, while all three style files said 20. That commit corrected the
+numbers and re-graded the saved transcripts offline, which is where this table's
+rules column comes from — the caveat above says so.
+
+**It could not correct the judge, and the judge was reading the same numbers.**
+`judge.mjs` puts them in the prompt verbatim: `HARD LIMITS: sentences under
+${contract.maxSentenceWords} words`. Re-scoring is free because a deterministic
+check recomputes from the saved reply; a judge score cannot be recomputed without
+paying for the call again, so `score` copies the stored value through. Running
+`node src/cli.mjs score --rows=results/2026-08-16T12-44-03-883Z/rows.json` today
+returns beginner 91.5 / 92.3 on rules — corrected — beside 45.9 / 48.4 on the
+judge, which are the originals.
+
+How far it reached, counted over `12-44-03`'s own violation strings:
+
+| style | cap in force | violations | citing 15 words | citing 18 | citing 20 |
+|---|---|---|---|---|---|
+| beginner | 15 | 64 | **13** | 1 | 3 |
+| intermediate | 18 | 47 | 0 | **7** | 1 |
+| advanced | 20 | 42 | 0 | 0 | 6 |
+
+Each style's judge quotes its own contract value and almost never another, so
+this is not incidental: a fifth of every beginner violation in the run marks the
+reply down against a rule no reader of the style could see.
+
+Advanced was graded at 20 throughout and is unaffected. For beginner and
+intermediate the Opus and Sonnet columns come from `12-44-03`, before the fix,
+and the Haiku and Fable columns from `22-59-53` and `23-48-45`, after it — so
+**those two rows' judge columns are not comparable across models**. "Haiku is
+last every time" survives only because Haiku is last by margins larger than the
+effect. The rule is simply that a judge figure predating `3370e4d` is quotable
+only for advanced; anything resting on the other two needs a fresh arm. COS-4
+paid for one, and beginner read 12.8 and 22.3 points higher on it. **How much of
+that is the corrected cap and how much is COS-1's added text is not separable** —
+both changed between the two runs, and no arm isolates either.
+
 ### Does word-cap overrun track model tier? No
 
 Opus overruns the stated word cap more than Sonnet, and with only those two
@@ -569,6 +608,74 @@ file until `run.mjs` separates the final message from the trace.
 No regression came with the change. Run `01-13-15` re-measured the five shared
 cases on Haiku against `22-59-53`; every delta is inside the three-point noise
 floor.
+
+## Beginner's rules contradicted each other, and fixing that moved length but not the judge
+
+COS-4 rewrote `plain-english-beginner.md`. It is the largest measured change to a
+style file in the project and the first one to move reply length at all. It did
+not move the judge, and the second half of that sentence is the more useful
+result.
+
+**The diagnosis was not a wording gap.** Beginner's file asked for content its own
+budget could not fit, and the judge enforced both sides in the same run. "Keep
+the whole update under about 80 words" was scoped to status updates, while the
+harness applies 80 to *every* reply and tells the judge it is a hard limit;
+meanwhile "use everyday analogies" and "explain what a thing IS before you say
+what happened to it" were unbounded and cost 15–25 words each. A 222-word
+explanation was failed for running "several times over the ~80-word hard limit",
+and a 60-word status update was failed because it "never establishes what a
+database is". Two more contradictions sat beside it: "skip all internal details"
+was read as forbidding the evidence the status shape requires, so "All 14 checks
+pass" was quoted as a violation; and the prose invited glossing a technical term
+while `no_jargon` bans 27 of them outright at weight 2.
+
+**And the file never said which of its shapes a reply should take.** Eight of the
+24 judge violations on the three weakest cases were "missing the What I did / Did
+it work / Next structure" on replies that are not status updates — an
+explanation, a code-reading report, a third-turn follow-up. The harness already
+disagreed with that: `three_question_structure` is not among the checks for any
+of those three cases, and `reserve-scope-estimate`'s rubric says outright that "a
+status-update shape or a list of implementation steps is wrong here". The style
+file was the only place that failed to say so.
+
+The rewrite added a router naming which of four shapes a reply takes, generalised
+the 80-word budget to every reply with a stated cut order, added shapes for
+"why does this happen" and for follow-up turns, added a word-counted target
+example of the kind `plain-english-advanced.md` has always had, and resolved the
+three contradictions.
+
+**What it did, on 128 cells across two disjoint case sets, paired by case × model:**
+
+| | five shared cases, 10 pairs | six reserve cases, 12 pairs |
+|---|---|---|
+| deterministic rules | +5.2 [+0.0, +10.4] | **+7.7 [+5.3, +10.1]**, t=7.06 |
+| reply words | **−42.0 [−78.2, −5.9]** | **−55.7 [−83.2, −28.1]**, t=−4.41 |
+| composite | +3.3 [−6.1, +12.6] | **+7.4 [+0.8, +14.0]**, t=2.52 |
+| LLM judge | +1.3 [−15.0, +17.6] | +7.1 [−7.0, +21.2] |
+
+Over-cap share on the shared five fell from 40.0% to 14.3% and mean reply length
+from 103 to 61 words. Rules on the shipped text read 98.5 on Opus and 97.4 on
+Sonnet — the highest beginner has recorded, against 90.9–92.3 in the four-tier
+baseline. `three_question_structure` held at 100.0, so telling the model not to
+force the three beats onto an explanation did not cost the beats where they
+belong.
+
+**The judge did not move, and the first reading of this run said it did.** At two
+cells per pair the shared set showed +7.1 and the reserve set +7.0, and the
+agreement between two independent case sets looked like a result. A confirmation
+arm on byte-identical text at five repeats — 50 cells, `02-25-39` — took the
+shipped arm to seven cells per pair and the shared-set estimate fell to **+1.3,
+with an interval four times as wide as the effect.** Sonnet in particular read
+70.7 at n=10, 65.8 at n=10, 74.1 at n=15 and 55.0 at n=25 across arms of the same
+five cases; pooled over 35 cells of the shipped text it is 58.1 [50.5, 65.6].
+
+**That is the transferable finding.** Per-cell judge SD is 22 to 32, so the
+ten-cell arms every judge figure in this project rests on carry 95% intervals
+about 30 points wide. Placing a style above a 70% bar with confidence needs
+roughly 151 cells per model — about $32 an arm at the measured $0.107 a cell.
+Deterministic rules and reply length are cheap to establish and were established
+here; the judge is not, and a ten-cell judge difference under about 20 points
+should be read as unmeasured rather than as a movement.
 
 ## Sources
 

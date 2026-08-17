@@ -56,6 +56,12 @@ errored cells in any column.
 | intermediate | rules 94.3 / judge 62.2 | rules 95.6 / judge 72.6 | rules 94.2 / judge 63.9 | rules 93.1 / judge 67.7 |
 | beginner | rules 90.9 / judge 37.5 | rules 92.3 / judge 48.4 | rules 91.5 / judge 45.9 | rules 91.4 / judge 53.9 |
 
+The beginner row measures a file COS-4 has since rewritten, and its Sonnet and
+Opus judge cells were graded against a 15-word sentence cap the file never stated
+(`FINDINGS.md`, *The judge column carries a defect the rules column had
+corrected*). On the shipped text beginner reads rules 98.5 / 97.4 and judge 73.9
+/ 58.1 on Opus and Sonnet; Haiku and Fable have not been re-measured since.
+
 **Word-cap overrun does not track tier.** Mean reply words divided by that
 style's own cap: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300. In tier
 order that sequence turns twice. Paired over the 15 (style × case) cells, the
