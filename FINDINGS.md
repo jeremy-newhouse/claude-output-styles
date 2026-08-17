@@ -597,6 +597,13 @@ threshold, or close by asking the reader for figures. Length is the binding
 constraint, which is what COS-8 concluded from the opposite direction and what
 COS-4 owns.
 
+Those over-cap figures are all on the pre-COS-4 beginner file and on the two
+COS-1 cases; COS-4 later took beginner's over-cap share on its own five cases to
+14.3%. **And "length is the binding constraint" did not survive being acted on.**
+COS-4 cut beginner's mean reply from 103 words to 61 and the judge moved +1.3
+[−15.0, +17.6]. The correlation COS-8 measured is real and the length problem was
+real; length was not the cause, or not the only one.
+
 **A harness artifact contaminates the agentic half of this measurement.** The
 judge is handed the whole turn, not the final message — see the ledger entry
 "The seam reaches the judge". In 16 of 16 agentic cells that carry pre-update

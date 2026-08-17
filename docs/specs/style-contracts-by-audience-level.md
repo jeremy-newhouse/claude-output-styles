@@ -167,11 +167,13 @@ Re-scoring the same replies at a cap of 3 moves `paragraph_length` by 0.000 to
 0.017. The constraint does not bind at any level, so differentiating it cannot
 change behaviour.
 
-**Where the real gap is.** The cap that already varies by level — reply length,
-80/100/120 — is the one being missed, and missed worst at the lowest level:
-beginner averages 119 words against 80 with half its replies over, intermediate
-120 against 100 with 45% over, while advanced sits at 85 against 120 with 15%
-over. Where sentence length and reply length can be told apart (intermediate,
+**Where the real gap was.** The cap that already varies by level — reply length,
+80/100/120 — was the one being missed, and missed worst at the lowest level:
+beginner averaged 119 words against 80 with half its replies over, intermediate
+120 against 100 with 45% over, while advanced sat at 85 against 120 with 15%
+over. **Beginner's half of this is closed** — COS-4 took it to 61 words with
+14.3% over, without changing the cap; see the open question below. Intermediate
+and advanced are unchanged and the rest of this section still describes them. Where sentence length and reply length can be told apart (intermediate,
 where they correlate at only −0.05), the judge tracks reply length at −0.647 and
 sentence length at only −0.368.
 
