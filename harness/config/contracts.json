@@ -6,6 +6,7 @@
     "maxParagraphSentences": 4,
     "maxUpdateWords": 80,
     "maxCodeLines": 0,
+    "codeOnRequest": true,
     "bannedTerms": [
       "API",
       "endpoint",
@@ -63,6 +64,7 @@
     "maxParagraphSentences": 4,
     "maxUpdateWords": 100,
     "maxCodeLines": 5,
+    "codeOnRequest": true,
     "bannedTerms": [
       "idempotent",
       "mutex",
