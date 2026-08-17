@@ -90,7 +90,7 @@ test('two_options_max sees prose option sprawl without labels', () => {
 
   const chained = 'A covering index gets p95 to 40ms in an afternoon. '
     + 'Another option is a read-through cache, faster still, but it adds an invalidation path. '
-    + 'Alternatively, a managed vendor removes the problem and costs $2k a month. I recommend the index.'
+    + 'Another option is a managed vendor, which removes the problem and costs $2k a month. I recommend the index.'
   const chainedResult = CHECKS.two_options_max.run(chained, C)
   assert.ok(chainedResult.score < 1, `expected sprawl below 1, got ${chainedResult.score}`)
   assert.match(chainedResult.evidence.join(' '), /cap is 2/)
@@ -98,6 +98,24 @@ test('two_options_max sees prose option sprawl without labels', () => {
   const ordinal = 'Ship the index. A second approach is the summary table, cheaper to read but it needs a nightly job. '
     + 'A third approach is the vendor, which costs more. I recommend the index.'
   assert.ok(CHECKS.two_options_max.run(ordinal, C).score < 1)
+
+  // One "another option" claims a second, which is the cap rather than a breach.
+  const justTwo = 'Add the covering index; it is reversible and ships today. '
+    + 'Another option is the cache, cheaper but it goes stale. I recommend the index.'
+  assert.equal(CHECKS.two_options_max.run(justTwo, C).score, 1)
+})
+
+// Connectives were in the sprawl detection and were taken back out. They cost
+// the exact reply the label-blindness rewrite existed to protect, and they
+// never caught anything: across the 96 saved rows carrying this check they
+// matched zero times, while the stated count matched the two real sprawl
+// replies. An estimator with no observed true positive and a live false-
+// positive path is worse than no estimator.
+test('two_options_max does not count connectives as separate options', () => {
+  const twoConnectives = 'Add the covering index today; it is reversible. '
+    + 'Alternatively, raise the cache TTL, which is cheaper but goes stale. '
+    + 'I recommend the index — or you could hand it to on-call if you would rather not touch it today.'
+  assert.equal(CHECKS.two_options_max.run(twoConnectives, C).score, 1)
 })
 
 // Both found by probing the new detection rather than by any failing test, so
@@ -115,11 +133,20 @@ test('two_options_max does not read benefit lists or code as option sprawl', () 
   assert.ok(CHECKS.two_options_max.run('Three ways to fix it. Index, cache, or vendor. I recommend the index. Cheaper.', C).score < 1)
 
   // Code is not the reply offering the reader a choice.
-  const withCode = 'I recommend the index.\n\n```sh\n# or you can run this instead, as a third option\npsql -c "create index"\n```\n\n'
-    + 'Alternatively, raise the TTL. Cheaper, but it goes stale.'
+  const withCode = 'I recommend the index.\n\n```sh\n# a third option, if you prefer: run this instead\npsql -c "create index"\n```\n\n'
+    + 'The cache is cheaper but goes stale.'
   assert.equal(CHECKS.two_options_max.run(withCode, C).score, 1)
   const labelsInCode = 'Ship it. Faster. I recommend it.\n\n```\noption a\noption b\noption c\n```'
   assert.equal(CHECKS.two_options_max.run(labelsInCode, C).score, 1)
+
+  // The label pattern needs its trailing boundary. Without it "option adds"
+  // reads as "option a", and three such clauses trip the cap while reporting
+  // the confidently wrong "3 labelled options" — on a reply with no labels.
+  const prosePastLabels = 'The obvious option adds latency, the cheap option burns a week, '
+    + 'and the safe option costs nothing. I recommend the index — faster, and reversible.'
+  const proseResult = CHECKS.two_options_max.run(prosePastLabels, C)
+  assert.equal(proseResult.score, 1)
+  assert.deepEqual(proseResult.evidence, [])
 })
 
 test('code_block_size treats maxCodeLines 0 as "no code"', () => {

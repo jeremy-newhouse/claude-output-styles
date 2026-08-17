@@ -27,9 +27,27 @@ const IRREGULAR_PP = 'been|done|made|found|seen|taken|given|written|built|run|se
 
 const EMOJI = /\p{Extended_Pictographic}/u
 
-// Counts a reply can state out loud when it enumerates alternatives. Only
-// three and up: "two options" is the rule being followed, not broken.
-const OPTION_WORDS = { three: 3, four: 4, five: 5, six: 6, 3: 3, 4: 4, 5: 5, 6: 6 }
+// Counts a reply can state out loud ("three options"), and ordinals it can
+// claim one with ("a third option"). Only three and up for the stated counts:
+// "two options" is the rule being followed, not broken.
+const COUNT_WORDS = { three: 3, four: 4, five: 5, six: 6, 3: 3, 4: 4, 5: 5, 6: 6 }
+const ORDINAL_WORDS = { second: 2, third: 3, fourth: 4, fifth: 5 }
+
+// Nouns a reply picks between. `ways` is the one that is usually a manner
+// adverbial instead — "it helps in three ways" enumerates benefits, not choices
+// — so it has to point at a course of action.
+const OPTION_NOUN = '(?:option|approach|choice|alternative|way|route|path)'
+const COUNTED_NOUN = '(?:(?:options|approaches|choices|alternatives|paths|routes)\\b|ways\\s+(?:to|forward)\\b)'
+
+// Each alternation is built from its own map so the pattern and the lookup
+// cannot drift apart. As two hand-written literals, a word added to one but not
+// the other made the lookup `undefined`, `Math.max` `NaN`, and every comparison
+// against it false — the reply would have lost the cap point with no evidence
+// line saying why.
+const alt = map => Object.keys(map).join('|')
+const STATED_COUNT = new RegExp(`\\b(${alt(COUNT_WORDS)})\\s+(?:\\w+\\s+){0,2}?${COUNTED_NOUN}`)
+const CLAIMED_ORDINAL = new RegExp(`\\b(?:a|the|my)\\s+(${alt(ORDINAL_WORDS)})\\s+${OPTION_NOUN}\\b`, 'g')
+const ONE_MORE = new RegExp(`\\banother\\s+${OPTION_NOUN}\\b`, 'g')
 
 // ---------- text utilities ----------
 
@@ -294,33 +312,39 @@ export const CHECKS = {
     //
     // That stayed true, but nothing replaced the cap for unlabelled replies, so
     // three alternatives walked through in prose scored a clean 1.0. The cap now
-    // reads the signals a sprawling reply carries anyway: a stated count ("three
-    // ways"), or the pivots that introduce each alternative past the first
-    // ("another option", "alternatively", "or you could", "a third approach").
-    // Whichever estimate is largest — those or the literal labels — is the count.
+    // also reads the two signals that *assert* a count rather than merely imply
+    // one: a reply stating how many it has ("three ways to…"), and the phrases
+    // that claim an additional item ("another option", "a third approach").
+    // The largest of those and the literal label count wins.
+    //
+    // Connectives were tried here and taken back out. "Alternatively" and "or
+    // you could" introduce *an* alternative, singular; a compliant two-option
+    // reply reaches for both, and counting each as its own option scored the
+    // reply the label-blindness was written to protect at 0.70 — the original
+    // defect, rebuilt. They also never fired on a true positive: across the 96
+    // re-scorable saved rows carrying this check, the connective set matched
+    // zero times while the stated count matched the two `reserve-three-options`
+    // replies and nothing else.
     //
     // What this deliberately does NOT do is identify alternatives semantically.
-    // A reply naming three approaches with no stated count and no pivot is still
-    // invisible to this check and is the judge's to catch. Counting nouns or
-    // sentences would re-break the reply above, which is the trade the original
-    // comment refused and this one keeps refusing.
+    // A reply naming three approaches without asserting a count is still
+    // invisible here and is the judge's to catch. Counting nouns or sentences
+    // would re-break the reply above, which is the trade the original comment
+    // refused and this one keeps refusing.
     //
     // Reads the prose with code stripped, like every other shape check here.
-    // "or you can", "another option" and "alternatively" are ordinary English in
-    // a code comment, and a fenced block is not the reply offering the reader a
-    // choice.
+    // "another option" is ordinary English in a code comment, and a fenced block
+    // is not the reply offering the reader a choice.
     run: text => {
       const t = stripCode(text).toLowerCase()
-      const labelled = new Set([...t.matchAll(/option\s+([a-d1-4])/g)].map(m => m[1]))
-      // `ways` is the one noun here that is usually a manner adverbial — "it
-      // helps in three ways" enumerates benefits, not choices — so it has to be
-      // pointed at a course of action. The rest already mean "things to pick
-      // between".
-      const stated = /\b(three|four|five|six|3|4|5|6)\s+(?:\w+\s+){0,2}?(?:(?:options|approaches|choices|alternatives|paths|routes)\b|ways\s+(?:to|forward)\b)/.exec(t)
-      const pivots = [...t.matchAll(/\banother\s+(?:option|approach|choice|alternative|way|route|path)\b|\balternatively\b|\bor\s+(?:you|we)\s+(?:could|can)\b|\b(?:a|the|my)\s+(?:second|third|fourth|fifth)\s+(?:option|approach|choice|alternative|way|route|path)\b/g)]
-      // Each pivot introduces one alternative beyond the one the reply opened
-      // with, so a reply with no pivots reads as one option, not zero.
-      const counted = Math.max(labelled.size, stated ? OPTION_WORDS[stated[1]] : 0, pivots.length + 1)
+      const labelled = new Set([...t.matchAll(/option\s+([a-d1-4])\b/g)].map(m => m[1]))
+      const stated = STATED_COUNT.exec(t)
+      // "a third approach" states its own ordinal; take the highest claimed.
+      const ordinals = [...t.matchAll(CLAIMED_ORDINAL)].map(m => ORDINAL_WORDS[m[1]])
+      // Each "another option" claims one more than the reply already had, so one
+      // of them means two — which is the cap, not a breach of it.
+      const another = [...t.matchAll(ONE_MORE)].length
+      const counted = Math.max(labelled.size, stated ? COUNT_WORDS[stated[1]] : 0, ...ordinals, another + 1)
       const hasReco = /recommend|i'd pick|my pick|i suggest|go with|do (a|b)\b/.test(t)
       const hasTradeoff = /trade-?off|faster|slower|cheaper|cost|risk|quality|instead of|\bvs\.?\b/.test(t)
       let score = 0
