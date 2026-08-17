@@ -147,8 +147,15 @@ check; 96 are re-scorable, the other 10 naming optimizer-candidate styles that n
 longer have a contract. The one that moved is `22-59-53`, beginner on Haiku,
 `reserve-three-options`, 1.00 → 0.70. That reply labels two options, tells the
 reader they "have three paths", then names the third in prose in its closing line
-— the exact blind spot, on the one case written to provoke it. No published
-figure moves; nothing outside that run changed at all.
+— the exact blind spot, on the one case written to provoke it.
+
+The published figures are settled by the model split rather than by tracing each
+claim to its run: **0 of 34 Opus rows and 0 of 32 Sonnet rows move**, and the
+single moved row is one of the 30 Haiku rows. Both published `two_options_max`
+figures — the one-style-file ADR's `1.00 / 0.85` Opus-versus-Sonnet row, and
+FINDINGS' account of the Sonnet regression that prompted the original label fix —
+are Opus/Sonnet numbers, so neither can move whichever run backs it. Nothing
+outside `22-59-53` changed at all.
 
 **The connectives were tried and taken back out, which is the more useful
 lesson.** "Alternatively" and "or you could" look like option markers and are
