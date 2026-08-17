@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-16 13:07'
-updated_date: '2026-08-17 00:05'
+updated_date: '2026-08-17 00:11'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies: []
@@ -120,7 +120,7 @@ has since been replaced.
 
 - **Rules ranking is identical on all four models**: advanced > intermediate > beginner (fable 97.9/93.1/91.4; opus 97.8/94.2/91.5; sonnet 96.8/95.6/92.3; haiku 96.0/94.3/90.9).
 - Fable's rule compliance is 91.4–97.9, i.e. the top tier gives up nothing. It is never more than 2.5 points behind the best of the other three (its worst gap is intermediate, 93.1 against Sonnet's 95.6).
-- Per-rule, Fable drops the same subsets the others do, not different ones: `total_length` 75.0, `leads_with_conclusion` 83.3, `sentence_length` 90.6, `no_process_narration` 91.7 — every other rule 96.7–100.0. Eight of twelve rules score 97.8–100.0 on all four models.
+- Per-rule, Fable drops the same subsets the others do, not different ones: `total_length` 75.0, `leads_with_conclusion` 83.3, `sentence_length` 90.6, `no_process_narration` 91.7. Those four are exactly the rules the other tiers drop; the **remaining eight score 96.7–100.0 on all four models at once** — the binding minima are haiku `no_jargon` 96.7, sonnet `three_question_structure` 97.2 and opus `active_voice` 97.6.
 - No rule is Fable's requirement and another model's exception, which is the ADR's actual test.
 
 **One correction the fourth tier forces.** The ADR's COS-5 paragraph says 'the
@@ -138,7 +138,8 @@ measured.
 `agentic-fix-verify` is the one write-then-verify case all four tiers have now
 run. **Fable: 0 aborts in 6 cells** (Haiku 5 in 6, Opus 0 in 6, Sonnet 0 in 6).
 The top tier finishes the task the cheapest tier cannot. It is also the most
-expensive cell in the project at $0.9681, roughly four times a conversational one.
+expensive cell in the project at $0.9681 — 4.8x a conversational Fable cell
+($0.1998) and 4.1x its five-case average.
 
 Finishing is not obeying. Same model, same style files, same scorer, different case:
 
@@ -219,7 +220,7 @@ AC #2 — FINDINGS.md's per-model table, the epic status snapshot and the story'
 
 AC #3 — **word-cap overrun does not track model tier.** Mean reply words divided by that style's own cap, counted with `checks.mjs`'s own `words()`: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300. In tier order the sequence turns twice. Paired over the 15 (style x case) cells, the cheapest model overruns significantly MORE than the second cheapest (+0.127, 95% CI [+0.034, +0.219]) and the top two tiers are indistinguishable (+0.070, CI [-0.118, +0.259]). The only structure the data resolves is that Sonnet keeps to the cap and the other three do not — one model, not a gradient. The document's 'roughly twice as often' figure is from a run whose style text has since been replaced; on the shipped files it is 1.44x.
 
-AC #4 — the one-file decision is **confirmed** at the top of the range. Fable drops the same rule subsets the others do, never more than 2.5 points behind the best of the other three, with eight of twelve rules at 97.8–100.0 on all four tiers at once. No rule is one tier's requirement and another's exception. One overstatement in the ADR was corrected while confirming it: the ranking of styles is identical on every model for rules, but the judge's top two swap (Haiku and Sonnet rank intermediate above advanced; Opus and Fable the reverse) — a swap already present in the three-model data.
+AC #4 — the one-file decision is **confirmed** at the top of the range. Fable drops the same rule subsets the others do, never more than 2.5 points behind the best of the other three, and the eight rules it does not drop scoring 96.7–100.0 on all four tiers at once. No rule is one tier's requirement and another's exception. One overstatement in the ADR was corrected while confirming it: the ranking of styles is identical on every model for rules, but the judge's top two swap (Haiku and Sonnet rank intermediate above advanced; Opus and Fable the reverse) — a swap already present in the three-model data.
 
 Two findings beyond the ACs. Fable aborts 0 of 6 cells on `agentic-fix-verify` where Haiku aborts 5 of 6, at $0.9681 a cell — but its own compliance falls from rules 94.1 / judge 66.6 to 79.5 / 41.2 there, with `leads_with_conclusion` at 16.7 because five of six replies open with 'I'll look at the file first.' The narration failure this project opens with is worst at the top of the range, which makes it a Claude Code habit rather than an Opus trait.
 
