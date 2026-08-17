@@ -243,6 +243,88 @@ if (cmd === 'run') {
   console.log(describeManifest(manifest))
   console.log(renderConsole(summarize(rescored)))
 
+} else if (cmd === 'judge') {
+  // Re-judge saved replies with one or more judge models, several times each.
+  // This runs no cell: it reads a finished run's rows.json and spends judge
+  // calls only, which is what makes characterising the judge affordable.
+  const { createHash } = await import('node:crypto')
+  const { planJudgements, rejudge, analyzeJudgements, renderJudgeReport, JUDGE_MANIFEST } = await import('./rejudge.mjs')
+  const rowsPath = args.rows ? resolve(args.rows) : newestRows()
+  if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
+  const rows = readJson(rowsPath)
+  const judges = pick(args.judges, [opts.judgeModel])
+  const judgeRepeats = Number(args['judge-repeats'] ?? 3)
+  const reference = args.reference ?? judges[0]
+  // Bodies for every style with a contract, not just the ones matrix.styles
+  // names: the filter that matters here is which styles the saved rows use.
+  // The text is today's, exactly as `score` re-scores against today's checks —
+  // and the sha is recorded because a style file that has moved since the run
+  // makes this a different question from the one the run answered.
+  const styleBodies = {}
+  const styleShas = {}
+  for (const [id, c] of Object.entries(contracts)) {
+    const s = loadStyle(resolve(ROOT, c.styleFile))
+    styleBodies[id] = s.body ?? s.text
+    styleShas[id] = createHash('sha256').update(s.text).digest('hex').slice(0, 12)
+  }
+  const { tasks, eligible, skipped } = planJudgements({
+    rows,
+    cases: allCases,
+    contracts,
+    judges,
+    repeats: judgeRepeats,
+    styleIds: args.styles ? styleIds : null,
+    caseIds: args.cases ? pick(args.cases) : null
+  })
+  console.error(`re-judging ${rowsPath}`)
+  console.error(`${eligible.length} of ${rows.length} rows eligible x ${judges.length} judges (${judges.join(', ')}) x ${judgeRepeats} repeats = ${tasks.length} judge calls`)
+  for (const [id, n] of skipped.noContract) console.error(`  skipped ${n} rows: style "${id}" has no contract`)
+  for (const [id, n] of skipped.noCase) console.error(`  skipped ${n} rows: case "${id}" is not in the pool`)
+  if (skipped.noReply) console.error(`  skipped ${skipped.noReply} rows that produced no reply`)
+  mkdirSync(outDir, { recursive: true })
+  const flush = (records, complete = false) => {
+    const analysis = analyzeJudgements(records, { reference })
+    const manifest = {
+      kind: 'judge',
+      stamp,
+      complete,
+      completed: records.length,
+      expected: tasks.length,
+      source: rowsPath,
+      sourceManifest: readManifest(rowsPath),
+      judges,
+      reference,
+      repeats: judgeRepeats,
+      rowsEligible: eligible.length,
+      rowsInSource: rows.length,
+      styleShas
+    }
+    writeAtomic(join(outDir, 'judgements.json'), JSON.stringify(records, null, 2))
+    writeAtomic(join(outDir, 'analysis.json'), JSON.stringify(analysis, null, 2))
+    writeAtomic(join(outDir, 'report.md'), `# Judge validation ${stamp}\n\nsource: \`${rowsPath}\`\n\n\`\`\`\n${renderJudgeReport(analysis)}\`\`\`\n`)
+    // Manifest last, for the reason results.mjs writes its own last.
+    writeAtomic(join(outDir, JUDGE_MANIFEST), JSON.stringify(manifest, null, 2))
+    return analysis
+  }
+  const judgeProgress = (done, total, r) => process.stderr.write(`\r[${String(done).padStart(4)}/${total}] ${r.judgeModel.padEnd(20)} ${r.ok ? (r.score * 100).toFixed(0).padStart(3) : 'ERR'}  ${r.caseId ?? ''}          `)
+  const records = await rejudge({
+    rows,
+    tasks,
+    cases: allCases,
+    contracts,
+    styleBodies,
+    concurrency: opts.concurrency,
+    onProgress: judgeProgress,
+    onRecords: rs => flush(rs)
+  })
+  process.stderr.write('\n')
+  const analysis = flush(records, true)
+  const failed = records.filter(r => !r.ok).length
+  if (failed) console.log(`${failed} of ${records.length} judge calls returned no parseable score and are excluded from every figure below.`)
+  if (analysis.legacyRecords) console.log(`${analysis.legacyRecords} of ${records.length} judgements grade a row saved before the COS-10 text-block fix; on an agentic case that string is the whole turn glued.`)
+  console.log(renderJudgeReport(analysis))
+  console.log(`wrote ${outDir}`)
+
 } else {
   console.error(`unknown command "${cmd}"`)
   console.log(USAGE)

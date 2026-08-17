@@ -313,8 +313,10 @@ test('judge defaults to the final message and honours an explicit trace', async 
   // No API call: an empty view short-circuits before the query, so this asserts
   // the selection without running a cell.
   const views = { final: '', trace: 'narration only' }
-  assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r' }, contract: C }), { score: 1, violations: [] })
-  assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r', judgeOn: 'final' }, contract: C }), { score: 1, violations: [] })
+  // ok: false — the 1.0 is a substitution for a call that never happened, not a
+  // judgement, and nothing downstream can tell the two apart by value.
+  assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r' }, contract: C }), { score: 1, violations: [], ok: false })
+  assert.deepEqual(await judge({ views, caseDef: { id: 'a', judge: 'r', judgeOn: 'final' }, contract: C }), { score: 1, violations: [], ok: false })
 })
 
 test('producedReply separates a cell that said something from one that did not', () => {
