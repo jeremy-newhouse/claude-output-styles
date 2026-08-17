@@ -59,13 +59,18 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
       ? { total: 0, checks: [] }
       : scoreDeterministic(views, contract, cell.caseDef)
 
-    const j = opts.judge && !run.error
+    const judged = opts.judge && !run.error
+    const j = judged
       ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })
       : { score: 1, violations: [] }
 
     const wJudge = contract.judgeWeight ?? DEFAULT_JUDGE_WEIGHT
     const total = Number((rules.total * (1 - wJudge) + j.score * wJudge).toFixed(3))
-    const row = { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeReads: cell.caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT, judgeViolations: j.violations, total }
+    // judgeReads is null when the judge never ran, so a --no-judge row and an
+    // errored row cannot be read as judged rows that happened to score 1.0. The
+    // substituted 1.0 is the bias COS-11 owns; the point of recording the view
+    // is provenance, and provenance for a call that did not happen is a lie.
+    const row = { ...run, rulesScore: rules.total, checks: rules.checks, judgeScore: j.score, judgeReads: judged ? (cell.caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT) : null, judgeViolations: j.violations, total }
     landed[idx] = row
     onProgress?.(++done, cells.length, { ...run, total })
     onRows?.(landed.filter(Boolean))

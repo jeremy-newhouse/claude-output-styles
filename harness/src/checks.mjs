@@ -90,13 +90,25 @@ export function viewsOf (row) {
 // are the same string, so an implied default stays invisible right up until it
 // is wrong on an agentic cell.
 //
-// The line is drawn from what the case rubrics in cases/cases.json actually ask
-// about, not from taste. Three of the four agentic rubrics grade "the final
-// message ... in style", so every check that measures how the answer is written
-// reads 'final'. The exception is a rule the style states as an outright ban
-// rather than a cap: narration, celebration and emoji are violations wherever
-// they appear, and grading them on the final message alone would score a turn
-// that opened "Let me search the repo 🚀" as clean. Those read 'trace'.
+// The line is a ban/cap distinction, and it is drawn from what the style files
+// state rather than from taste:
+//
+//   'final' — the check is a RATE over the answer's own units: sentences,
+//             paragraphs, words, options, beats. Three of the four agentic case
+//             rubrics grade "the final message ... in style", and pre-tool
+//             narration is not part of that message. Counting it would dilute
+//             the rate with sentences no rubric asked about.
+//   'trace'  — the check is a BAN LIST: a set of things the style says must not
+//             appear, where one occurrence anywhere in the turn is a violation.
+//             Filler, celebration, emoji, narration, unglossed jargon and — for
+//             a level whose cap is 0 — code. Grading these on the final message
+//             alone would score a turn that opened "Let me grep the repo 🚀" and
+//             pasted a 30-line diff before the last tool call as clean.
+//
+// code_block_size sits on 'trace' even where the cap is nonzero. Its cap is
+// about what is on the reader's screen, and a cap cannot be conditional on the
+// contract from here; erring toward seeing more of the turn is the direction
+// that cannot silently lose a violation.
 //
 // `agentic-read-report` grades the whole turn on purpose — its rubric is "no
 // narration of the search process", which needs the narration present. That is a
@@ -120,8 +132,15 @@ export const CHECKS = {
   paragraph_length: {
     reads: 'final',
     describe: c => `paragraphs under ${c.maxParagraphSentences} sentences`,
+    // The cap is about walls of prose, so a list is exempt — but the exemption
+    // used to test only the paragraph's first character, which misses the shape
+    // models actually write: a lead-in line and then the bullets, all in one
+    // block with no blank line between them. That was harmless while sentences()
+    // ignored single newlines and read the whole block as one sentence. Once it
+    // stopped, every bullet became a sentence and a five-item list failed a cap
+    // of four. Test every line instead.
     run: (text, c) => {
-      const ps = paragraphs(text).filter(p => !/^[-*|\d]/.test(p))
+      const ps = paragraphs(text).filter(p => !p.split('\n').some(l => /^[-*|\d]/.test(l.trim())))
       if (!ps.length) return { score: 1, evidence: [] }
       const bad = ps.filter(p => sentences(p).length > c.maxParagraphSentences)
       return { score: 1 - bad.length / ps.length, evidence: bad.slice(0, 3).map(p => p.slice(0, 120)) }
@@ -140,7 +159,7 @@ export const CHECKS = {
   },
 
   no_filler: {
-    reads: 'final',
+    reads: 'trace',
     describe: () => 'no filler or buzzwords',
     run: text => {
       const h = hit(stripCode(text), FILLER)
@@ -188,7 +207,7 @@ export const CHECKS = {
   },
 
   code_block_size: {
-    reads: 'final',
+    reads: 'trace',
     describe: c => c.maxCodeLines === 0 ? 'shows no code' : `code blocks under ${c.maxCodeLines} lines`,
     run: (text, c) => {
       const blocks = codeBlocks(text)
@@ -255,7 +274,7 @@ export const CHECKS = {
   },
 
   no_jargon: {
-    reads: 'final',
+    reads: 'trace',
     describe: c => `avoids unglossed jargon (${c.level} level)`,
     run: (text, c) => {
       const banned = c.bannedTerms ?? []

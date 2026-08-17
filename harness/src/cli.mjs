@@ -169,17 +169,33 @@ if (cmd === 'run') {
   const agenticCases = new Set(allCases.filter(c => c.agentic).map(c => c.id))
   let legacy = 0
   let legacyAgentic = 0
+  const orphans = new Map()
   const rescored = rows.map(r => {
     const caseDef = allCases.find(c => c.id === r.caseId)
+    const contract = contracts[r.styleId]
     const views = viewsOf(r)
     if (views.legacy) {
       legacy++
       if (agenticCases.has(r.caseId)) legacyAgentic++
     }
-    const s = r.text ? scoreDeterministic(views, contracts[r.styleId], caseDef) : { total: 0, checks: [] }
-    const wJudge = contracts[r.styleId]?.judgeWeight ?? 0.3
+    // A saved run can name a style that no longer has a contract — every
+    // optimizer candidate does, and so do the two arms of the sentence-cap
+    // experiment. Re-scoring is this project's free way to re-derive a published
+    // figure, and passing an undefined contract into the first check threw,
+    // taking the whole file down over rows nobody asked about. Carry the row
+    // with its saved scores instead, and name what was skipped.
+    if (!contract) {
+      orphans.set(r.styleId, (orphans.get(r.styleId) ?? 0) + 1)
+      return r
+    }
+    const s = r.text ? scoreDeterministic(views, contract, caseDef) : { total: 0, checks: [] }
+    const wJudge = contract.judgeWeight ?? 0.3
     return { ...r, rulesScore: s.total, checks: s.checks, total: Number((s.total * (1 - wJudge) + (r.judgeScore ?? 1) * wJudge).toFixed(3)) }
   })
+  if (orphans.size) {
+    const named = [...orphans].map(([id, n]) => `${id} (${n})`).join(', ')
+    console.log(`${[...orphans.values()].reduce((a, b) => a + b, 0)} of ${rows.length} rows name a style with no contract and were NOT re-scored — they carry the scores saved with them: ${named}.`)
+  }
   // Re-scoring is the project's cheap way to re-derive a published figure, and
   // the one thing it cannot re-derive is the text-block seam: a row saved before
   // COS-10 holds the turn already glued, so its agentic cells are re-scored on a

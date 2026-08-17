@@ -325,11 +325,20 @@ them. `leads_with_conclusion`, `total_length` and the abort counts were never
 affected — the first reads the genuine opening text, the second counts words, the
 third does not depend on segmentation — and neither is any conversational figure.
 
-**Filter errored rows before quoting any mean.** A cell that returns no text
-scores 0 on every rule *and* 1.0 on the judge — `evaluate.mjs` skips the judge
-call on an errored row and substitutes `{ score: 1 }`. The two biases run in
-opposite directions and do not cancel. One turn-limit abort in `01-03-21` moved
-that run's `agentic-fix-verify`-on-Opus judge from 33.0 to 44.2.
+**Filter errored rows before quoting any mean.** A cell that errors and returns
+no text scores 0 on every rule *and* 1.0 on the judge — `evaluate.mjs` substitutes
+`{ total: 0, checks: [] }` for the rules and skips the judge call, substituting
+`{ score: 1 }`. The two biases run in opposite directions and do not cancel. One
+turn-limit abort in `01-03-21` moved that run's `agentic-fix-verify`-on-Opus judge
+from 33.0 to 44.2.
+
+Note what that sentence turns on: **the error flag, not the empty reply.** The
+zero comes from the guard, not from the checks — `scoreDeterministic` on an empty
+string returns 0.931 for beginner on `agentic-fix-verify`, because every "no X
+found" check finds no X. So a cell that returns no text *without* the SDK
+reporting an error scores near-perfect on rules and a free 1.0 on the judge. That
+combination has not been seen in a saved run and the guard has always been written
+this way; it is recorded under COS-11, which owns both halves of this bias.
 
 ## Cost control
 
