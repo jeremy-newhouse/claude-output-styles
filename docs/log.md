@@ -21,6 +21,7 @@
 - 2026-08-16T19:14:32-05:00 f07302c891d70a95c4a9b7c166c296fa000c64b7 Replace two unbounded superlatives with the measurements that back them
 - 2026-08-16T19:15:57-05:00 3f939b7e3719cf2002719c5e94e2d26331f133e0 Carry the fourth tier into the audience-level spec
 - 2026-08-16T19:19:04-05:00 979a5549394fa68c0bb162f5dcf197bb2bfb736c Say what the seam counts actually counted
+- 2026-08-16T19:25:16-05:00 e8dfa82ccaddd5c442a4f3e1e933349ff07404b2 Fix nine findings from the branch review
 
 ## docs/adr
 
@@ -37,6 +38,7 @@
 - 2026-08-16T08:14:52-05:00 3370e4d5169f1ce8c937bccdd200627a9b9a9c9e Complete the docs bundle; fix contracts that graded unwritten rules
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
+- 2026-08-16T19:25:16-05:00 e8dfa82ccaddd5c442a4f3e1e933349ff07404b2 Fix nine findings from the branch review
 
 ## docs/reference
 
@@ -50,6 +52,7 @@
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:19:04-05:00 979a5549394fa68c0bb162f5dcf197bb2bfb736c Say what the seam counts actually counted
+- 2026-08-16T19:25:16-05:00 e8dfa82ccaddd5c442a4f3e1e933349ff07404b2 Fix nine findings from the branch review
 
 ## docs/runbooks
 
@@ -70,6 +73,7 @@
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
 - 2026-08-16T19:15:57-05:00 3f939b7e3719cf2002719c5e94e2d26331f133e0 Carry the fourth tier into the audience-level spec
+- 2026-08-16T19:25:16-05:00 e8dfa82ccaddd5c442a4f3e1e933349ff07404b2 Fix nine findings from the branch review
 
 ## docs/stories
 
@@ -85,3 +89,4 @@
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
 - 2026-08-16T19:19:04-05:00 979a5549394fa68c0bb162f5dcf197bb2bfb736c Say what the seam counts actually counted
+- 2026-08-16T19:25:16-05:00 e8dfa82ccaddd5c442a4f3e1e933349ff07404b2 Fix nine findings from the branch review
