@@ -18,6 +18,7 @@
 - 2026-08-16T19:08:45-05:00 73eea97f69d5e4f08608f1532c2305c547920e8c Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:11:49-05:00 c7d3981c4dcf23601994af68e2757cdfd4547414 Correct four figures found by re-deriving them from the saved rows
 - 2026-08-16T19:12:39-05:00 8546012ae659bd460c18e08c79314fe7d09ac637 Correct the campaign spend total, which never matched its own parts
+- 2026-08-16T19:14:32-05:00 f07302c891d70a95c4a9b7c166c296fa000c64b7 Replace two unbounded superlatives with the measurements that back them
 
 ## docs/adr
 
