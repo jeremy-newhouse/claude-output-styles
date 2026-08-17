@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 18:59'
+updated_date: '2026-08-17 19:10'
 ---
 # Backlog campaign tracker
 
@@ -96,9 +96,9 @@ before taking one.
 | 17 | COS-23 | protocol | `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
 | — | COS-25 | harness | **Resolved out of band, sessions 15 and 16.** Not a queue item: taken at the user's direction ahead of the cursor. Removed cost and budget tracking from the harness, the published record and this tracker, and replaced `maxBudgetUsd` with a wall-clock runaway guard. Session 15 implemented and reviewed it; session 16 fixed the review's findings and merged. Runs no cells. |
 | 18 | COS-24 | harness | The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. Runs no cells. |
+| 19 | COS-26 | harness | The judge call in `judge.mjs` and the optimizer's `rewrite()` in `improve.mjs` take no `abortController` and no timeout, so either stalling hangs a run that has already bought hours of cells. `maxCellSeconds` bounds a cell, not a run, and `maxBudgetUsd` never covered these two either — the gap predates both guards. Opened by session 16 from COS-25's review; **appended after item 18 rather than slotted into the order the user confirmed.** Runs no cells. |
 | 20 | COS-27 | measurement | The paired confidence intervals in `FINDINGS.md` have no recorded computation and cannot be reproduced to the last digit, so a scoring change cannot update them. Opened by session 19; **appended**. Runs no cells. |
 | 21 | COS-28 | styles | Advanced states "under 120, headers and code included" while `total_length` counts `stripCode(text)`. A basis mismatch, not a conditional, so COS-15 could not reach it. Opened by session 19; **appended**. Costs a run or a re-score, depending on which side moves. |
-| 19 | COS-26 | harness | The judge call in `judge.mjs` and the optimizer's `rewrite()` in `improve.mjs` take no `abortController` and no timeout, so either stalling hangs a run that has already bought hours of cells. `maxCellSeconds` bounds a cell, not a run, and `maxBudgetUsd` never covered these two either — the gap predates both guards. Opened by session 16 from COS-25's review; **appended after item 18 rather than slotted into the order the user confirmed.** Runs no cells. |
 
 The order is a valid topological sort of the recorded dependencies, and every
 phase boundary is a real constraint rather than a preference:
