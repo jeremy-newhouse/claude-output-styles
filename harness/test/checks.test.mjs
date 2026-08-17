@@ -174,20 +174,26 @@ test('a request does not lift a cap the contract never said was liftable', () =>
   assert.equal(CHECKS.code_block_size.run('```js\na\n```', strict, { requestsCode: true }).score, 0)
 })
 
-test('codeOnRequest lifts the ban, never the size cap', () => {
-  // Intermediate's shape. No style file states how long a REQUESTED snippet may
-  // be, so the stated cap keeps applying; inventing an on-request length would
-  // put a number in the scorer that no reader of the style could find.
+test('codeOnRequest lifts a nonzero cap too, because the prose states no length on the asked branch', () => {
+  // Intermediate's shape: "Show code only when asked, OR when a snippet under 5
+  // lines says it faster than prose." The 5 belongs to the second trigger, so
+  // keeping it on a requested snippet would apply a number the asked branch
+  // never states — the unstated threshold this task exists to remove.
   const intermediate = { ...C, maxCodeLines: 5, codeOnRequest: true }
   const long = '```js\n' + 'a\n'.repeat(9) + '```'
-  assert.equal(CHECKS.code_block_size.run(long, intermediate, { requestsCode: true }).score, 0)
-  const short = '```js\na\nb\n```'
-  assert.equal(CHECKS.code_block_size.run(short, intermediate, { requestsCode: true }).score, 1)
+  assert.equal(CHECKS.code_block_size.run(long, intermediate, { requestsCode: true }).score, 1)
+  // Unasked, the stated cap still bites.
+  assert.equal(CHECKS.code_block_size.run(long, intermediate, {}).score, 0)
+  assert.equal(CHECKS.code_block_size.run('```js\na\nb\n```', intermediate, {}).score, 1)
 })
 
 test('code_block_size says out loud when the cap is conditional', () => {
+  // describe() is what the optimizer is briefed with, so a lift the scorer
+  // performs has to appear in it at every level, not only where the cap is 0.
   assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 0 }), 'shows no code')
-  assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 0, codeOnRequest: true }), 'shows no code unless the reader asks')
+  assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 0, codeOnRequest: true }), 'shows no code, unless the reader asks')
+  assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 5 }), 'code blocks under 5 lines')
+  assert.equal(CHECKS.code_block_size.describe({ maxCodeLines: 5, codeOnRequest: true }), 'code blocks under 5 lines, unless the reader asks')
 })
 
 test('no_jargon forgives a glossed first use and still catches a bare one', () => {
@@ -228,6 +234,16 @@ test('no_jargon forgives a bare bracketed term with any two words in front of it
   assert.deepEqual(CHECKS.no_jargon.run('I turned on (CI).', c).evidence, [])
   // Nothing in front of it in the clause is still a violation.
   assert.deepEqual(CHECKS.no_jargon.run('Done. (CI) next.', c).evidence, ['CI'])
+})
+
+test('no_jargon sees a gloss through bold markers and a possessive', () => {
+  // Beginner's file writes bold labels throughout, and stripCode leaves ** in
+  // place, so the adjacency test used to miss the shape a compliant reply takes.
+  const c = { ...C, bannedTerms: ['API'] }
+  assert.deepEqual(CHECKS.no_jargon.run('**API** (the messenger that lets two programs talk) is slow.', c).evidence, [])
+  assert.deepEqual(CHECKS.no_jargon.run("The API's (the messenger that lets two programs talk) limit changed.", c).evidence, [])
+  // Still a violation when there is no gloss behind the markers.
+  assert.deepEqual(CHECKS.no_jargon.run('**API** changed.', c).evidence, ['API'])
 })
 
 test('no_jargon does not accept an em-dash appositive as a gloss', () => {
