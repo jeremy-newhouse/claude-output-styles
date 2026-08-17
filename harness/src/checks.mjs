@@ -304,10 +304,19 @@ export const CHECKS = {
     // invisible to this check and is the judge's to catch. Counting nouns or
     // sentences would re-break the reply above, which is the trade the original
     // comment refused and this one keeps refusing.
+    //
+    // Reads the prose with code stripped, like every other shape check here.
+    // "or you can", "another option" and "alternatively" are ordinary English in
+    // a code comment, and a fenced block is not the reply offering the reader a
+    // choice.
     run: text => {
-      const t = text.toLowerCase()
+      const t = stripCode(text).toLowerCase()
       const labelled = new Set([...t.matchAll(/option\s+([a-d1-4])/g)].map(m => m[1]))
-      const stated = /\b(three|four|five|six|3|4|5|6)\s+(?:\w+\s+){0,2}?(?:options|ways|approaches|choices|alternatives|paths|routes)\b/.exec(t)
+      // `ways` is the one noun here that is usually a manner adverbial — "it
+      // helps in three ways" enumerates benefits, not choices — so it has to be
+      // pointed at a course of action. The rest already mean "things to pick
+      // between".
+      const stated = /\b(three|four|five|six|3|4|5|6)\s+(?:\w+\s+){0,2}?(?:(?:options|approaches|choices|alternatives|paths|routes)\b|ways\s+(?:to|forward)\b)/.exec(t)
       const pivots = [...t.matchAll(/\banother\s+(?:option|approach|choice|alternative|way|route|path)\b|\balternatively\b|\bor\s+(?:you|we)\s+(?:could|can)\b|\b(?:a|the|my)\s+(?:second|third|fourth|fifth)\s+(?:option|approach|choice|alternative|way|route|path)\b/g)]
       // Each pivot introduces one alternative beyond the one the reply opened
       // with, so a reply with no pivots reads as one option, not zero.
