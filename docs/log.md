@@ -14,6 +14,7 @@
 - 2026-08-16T17:45:40-05:00 bb8c6fdcf742090f9dcde0e3e6a808f819c5eb2d Guard style files against their contracts, and settle the caps question
 - 2026-08-16T18:38:38-05:00 14d72ea77ef03a715c242c526929b1e976e7010f Fix ten findings from the branch review
 - 2026-08-16T18:38:38-05:00 df1f99899e46883134e806ee2bd6011fe03908a0 Measure all three styles on Haiku, and correct what a four-cell probe claimed
+- 2026-08-16T18:40:23-05:00 82d32e5f105b05c18fabcac8af95fdd8cce58283 Archive session 5's handover and record COS-5's merge SHA
 
 ## docs/adr
 

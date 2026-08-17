@@ -45,8 +45,11 @@ runs belong in the optimizer table below.
 | `22-18-53` | 8 | $0.18 | beginner 20-word vs 12-word cap, Haiku, 4 cases | A tighter stated cap appeared to change Haiku: mean sentence 16.6 → 12.3 words, over-cap 30.0% → 10.8%, reply length flat. Read alone it argues for tightening. Both arms re-derive exactly from the saved rows. What does not survive is reading the 16.6 arm as *Haiku's baseline* — see "A cheap-model probe can point the wrong way". |
 | `22-27-15` | 24 | $2.24 | beginner 20-word vs 12-word cap, both models, 6 cases across all three splits, paired | **The change was rejected.** Mean sentence length moved +0.26 words, 95% CI [−0.77, +1.29], six of twelve pairs shorter. Judge 0.557 → 0.532, reply length 105 → 114 words. Basis for keeping one sentence cap for all three levels. |
 | `22-59-53` | 78 | $1.88 | all three styles, Haiku, **full 13-case pool**, 2 repeats | The Haiku baseline, and the first run on the whole pool. Rule compliance holds at the third tier (90.9–96.0 on the five shared cases, never more than 1.8 points behind the better of Opus and Sonnet); the judge does not (37.5–62.2, last on all three styles). **Six cells returned no reply at all** — the 12-turn limit, only on cases that edit a file then run tests. Also refuted the 16.6-word sentence claim below. |
+| `23-47-08` | 5 | $1.58 | advanced, Fable, all five variants, 1 case, 1 repeat | Model-id probe: the SDK accepts `claude-fable-5[1m]`. Meant to be one cell; `--variants` was omitted, so it ran five. The accident priced the variants on the top tier — baseline $0.1910, tail-reminder $0.1896, `claude-md` $0.1965, all-fixes $0.2686, **long-prompt $0.7384**, i.e. 3.9× baseline. |
+| `23-48-45` | 30 | $7.04 | all three styles, Fable, same 5 cases as `12-44-03`, 2 repeats | The Fable baseline, and the fourth and last tier. **Zero errored cells.** Rules 91.4–97.9, never more than 2.5 points behind the best of the other three; judge 53.9–78.3, leading on advanced and beginner but behind Sonnet on intermediate, and last of four on intermediate *rules* (93.1). Settled the tier question: word-cap overrun does not track tier (Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300 words ÷ cap). Confirmed the one-file decision at the top of the range. |
+| `23-53-02` | 6 | $5.81 | all three styles, Fable, `agentic-fix-verify` only, 2 repeats | The most expensive cells in the project, $0.9681 each. **Fable aborts 0 of 6** where Haiku aborts 5 of 6, so the top tier finishes write-then-verify work. It also stops obeying the style while doing it: rules 94.1 → 79.5 and judge 66.6 → 41.2 against its own shared-five figures, with `leads_with_conclusion` at 16.7. Reading these transcripts exposed the text-block seam described below. |
 
-Total persisted: 347 cells, $36.56. Improve-loop spend before COS-3 is additional
+Total persisted: 388 cells, $50.99. Improve-loop spend before COS-3 is additional
 and was not tracked until late; from COS-3 onward it is carried on the rows.
 
 Two accounting caveats on that total. Cells that error carry `costUsd: 0` — the
@@ -170,8 +173,51 @@ rule. Left pooled, that reads as a ten-point collapse in Haiku's rule compliance
 finish a fix-then-test task at all. Both numbers are worth having and they answer
 different questions — how well the style is followed when the model speaks, and
 what a user experiences. Report them in separate columns, and never quote the
-pooled figure as a style score. This will matter more for Fable, not less: it is
-the tier meant for the longest agentic runs.
+pooled figure as a style score.
+
+That distinction was carried into COS-7 in advance rather than rediscovered, and
+in the event Fable did not need it: `23-48-45` and `23-53-02` errored on 0 of 36
+cells between them, including 0 of 6 on the very case Haiku failed 5 of 6 times.
+The precaution was still correct to take — the alternative was finding out from
+a $7 run.
+
+**Text blocks are concatenated with no separator, so two rules cannot be quoted
+on agentic cells.** Found under COS-7 while reading Fable's `agentic-fix-verify`
+transcripts. `run.mjs` accumulates the assistant's visible text with
+`text += b.text`. On a conversational turn there is one text block and nothing
+happens. On an agentic turn there are several, split around the tool calls, and
+they are glued together without so much as a space — a saved transcript reads
+
+    "I'll look at the file first.The bug is in `applyDiscount` — ..."
+
+`sentences()` splits on `[.!?]` *followed by whitespace* and `paragraphs()`
+splits on a blank line, so the run-on scores as one very long sentence inside one
+paragraph. Prevalence, measured by searching for a no-whitespace seam after
+sentence-ending punctuation:
+
+| cells | with a seam |
+|---|---|
+| conversational, all four tiers | **0 of 131** |
+| agentic — Opus | 3 of 6 |
+| agentic — Sonnet | 1 of 7 |
+| agentic — Haiku | 10 of 12 |
+| agentic — Fable, shared five | 5 of 6 |
+| Fable, `agentic-fix-verify` | 6 of 6 |
+
+The damage is concentrated where the model interleaves many tool calls with
+narration. On `agentic-read-report`, a read-only case, `paragraph_length` still
+scores 95.8–100.0 on every tier, so the four-tier baseline table is unaffected in
+practice — and the artifact is identical in all four columns, so the comparison
+stays like-for-like either way. On `agentic-fix-verify`, where Fable made ten
+tool calls per cell, `paragraph_length` reads 16.7 and is measuring the harness.
+
+Treat `sentence_length` and `paragraph_length` as unquotable on agentic cells for
+every model until this is fixed. `leads_with_conclusion`, `total_length` and the
+abort counts are unaffected: the first reads the genuine opening text, the second
+counts words, and the third does not depend on segmentation. Fixing the seam
+would move agentic figures already published in `FINDINGS.md` and in this ledger,
+so it is deliberately raised rather than patched inside a measurement task — the
+same handling as the `sentences()` newline gap and COS-9.
 
 **Noise floor.** At one repeat and five cases, a single case moves the mean by
 about 0.03. Differences under three points are not real. `22-59-53` puts a

@@ -22,6 +22,13 @@ three-question status structure — Opus holds about as well as Sonnet.
 The felt experience of "ignored" comes from those two failures landing on the
 first thing you read in every message.
 
+Both numbers above are from run `20-10-29`, on an advanced style file that has
+since been replaced. Two later results qualify them, and neither softens the
+conclusion. On the shipped files Opus overruns 1.44× as often as Sonnet, not
+twice; and **neither failure is an Opus trait** — all four tiers, from Haiku to
+Fable, overrun the word cap and narrate before the first tool call. See the
+per-model baseline below.
+
 ## Three separate causes
 
 ### 1. Your global setting points at a style that does not exist
@@ -219,49 +226,101 @@ new. Multi-tool sessions and open-ended decisions are handled poorly by all
 three styles. That is a content gap, not a wording gap — rewriting the same
 rules will not close it.
 
-## Per-model baseline, all three styles
+## Per-model baseline, all four tiers
 
 Baseline variant, 2 repeats, five cases, 10 cells per pair. Every cell in this
 table answered the *same five prompts* under the *same style text* and was graded
 by the *same scoring code*, so the columns are directly comparable. Opus and
-Sonnet come from run `12-44-03`, Haiku from `22-59-53`; the two runs are separate
-invocations on the same day, which is the only difference between the columns.
+Sonnet come from run `12-44-03`, Haiku from `22-59-53`, Fable from `23-48-45`;
+the three runs are separate invocations on the same day, which is the only
+difference between the columns. No cell in any column errored.
 
-| style | rules haiku | rules sonnet | rules opus | judge haiku | judge sonnet | judge opus |
-|---|---|---|---|---|---|---|
-| advanced | 96.0 | 96.8 | 97.8 | 52.9 | 66.0 | 73.9 |
-| intermediate | 94.3 | 95.6 | 94.2 | 62.2 | 72.6 | 63.9 |
-| beginner | 90.9 | 92.3 | 91.5 | **37.5** | **48.4** | **45.9** |
+| style | rules haiku | rules sonnet | rules opus | rules fable | judge haiku | judge sonnet | judge opus | judge fable |
+|---|---|---|---|---|---|---|---|---|
+| advanced | 96.0 | 96.8 | 97.8 | 97.9 | 52.9 | 66.0 | 73.9 | **78.3** |
+| intermediate | 94.3 | 95.6 | 94.2 | 93.1 | 62.2 | **72.6** | 63.9 | 67.7 |
+| beginner | 90.9 | 92.3 | 91.5 | 91.4 | **37.5** | 48.4 | 45.9 | 53.9 |
 
 The composite score is deliberately omitted: each style carries a different
 `judgeWeight` (0.3 / 0.4 / 0.5), so composites are not comparable across rows.
 Rules and judge are.
 
 Three things this settles. Rule compliance is high everywhere and roughly
-model-independent — the spread across all nine cells is 90.9 to 97.8, and adding
-a tier that costs a quarter of Sonnet per cell ($0.024 against $0.101, measured)
-widened that spread by 0.6 points. Prose quality is neither: beginner sits 15 to
-28 points below advanced depending on the model, and it is the only style where
-the two halves disagree sharply. And Haiku is last on the judge for all three
-styles while never giving up more than 1.8 points of rule score against the best
-of the other two — and on intermediate it beats Opus outright. Whatever the cheap
-model gives up, it is not rule-following.
+model-independent — the spread across all twelve cells is 90.9 to 97.9, and it
+holds across a **tenfold cost range**: $0.0232 per cell on Haiku to $0.2345 on
+Fable, measured. Prose quality is not: beginner sits 15 to 28 points below
+advanced depending on the model, and it is the only style where the two halves
+disagree sharply. And the two ends of the range fail in opposite halves — Haiku is
+last on the judge for all three styles while never giving up more than 1.8 points
+of rule score, and Fable is last on *intermediate rules* (93.1) while leading the
+judge on two styles of three. Whatever a tier gives up, it is not rule-following.
 
-The judge column is *not* a clean tier ranking, though. Opus leads on advanced,
-but Sonnet beats it on intermediate (72.6 to 63.9) and on beginner (48.4 to 45.9).
-Only the bottom of the range is stable: Haiku is last every time.
+The judge column is *not* a tier ranking. Fable leads on advanced and beginner,
+but Sonnet — three tiers down and a fifth of the price — beats it on intermediate,
+72.6 to 67.7. The only stable fact is at the bottom: Haiku is last every time.
 
-Beginner follows its own rules at over 90% and still reads worst, on all three
+There is one clean split, and it is not a gradient. **Haiku and Sonnet both rank
+intermediate above advanced on the judge (62.2 > 52.9 and 72.6 > 66.0); Opus and
+Fable both rank advanced above intermediate (73.9 > 63.9 and 78.3 > 67.7).** Read
+that as a hypothesis, not a result: it is 10 cells per figure, one judge model,
+and the three-model data already showed the same split without enough points to
+name it.
+
+Beginner follows its own rules at over 90% and still reads worst, on all four
 models. That is the signature of a style whose stated rules do not capture what
 makes it good, which is why the optimizer could not fix it by rewording them.
-A third model, at a quarter of the cost, reproduces the pattern exactly — so it
-is a property of the style file, not of any one model's taste.
+Four models across a tenfold cost spread reproduce the pattern exactly — so it is
+a property of the style file, not of any one model's taste. Fable's 53.9 is the
+best beginner judge score ever measured and still 16 points under the 70% bar.
+
+### Does word-cap overrun track model tier? No
+
+Opus overruns the stated word cap more than Sonnet, and with only those two
+points it was impossible to tell whether that was Opus or the tier. Two more
+points answer it.
+
+The measure is mean reply words divided by *that style's own cap*, so all three
+levels pool onto one scale. Reply length is counted with `checks.mjs`'s own
+`words()`, the tokenizer `total_length` scores with.
+
+| model | $/cell | mean words ÷ cap | share over cap | `total_length` |
+|---|---|---|---|---|
+| haiku | 0.0232 | 1.088 | 33.3% | 74.7 |
+| sonnet | 0.1013 | **0.961** | 30.0% | 79.1 |
+| opus | 0.1493 | **1.300** | 43.3% | 71.7 |
+| fable | 0.2345 | 1.229 | 40.0% | 75.0 |
+
+In tier order the sequence is 1.088, 0.961, 1.300, 1.229 — it turns twice. Paired
+over the 15 (style × case) cells, which removes case and style as confounds:
+
+| comparison | mean difference | 95% CI |
+|---|---|---|
+| haiku − sonnet | **+0.127** | [+0.034, +0.219] |
+| sonnet − opus | **−0.339** | [−0.643, −0.034] |
+| sonnet − fable | **−0.268** | [−0.434, −0.103] |
+| opus − fable | +0.070 | [−0.118, +0.259] |
+| haiku − opus | −0.212 | [−0.557, +0.133] |
+| haiku − fable | −0.142 | [−0.350, +0.067] |
+
+Both ends break the tier story. The **cheapest** model overruns significantly
+*more* than the second cheapest, and the **top two tiers are indistinguishable**.
+The only structure the data resolves is that Sonnet keeps to the cap and the
+other three do not — one model, not a gradient.
+
+Two corrections this forces on the summary at the top of this document. The
+"roughly twice as often" figure is from run `20-10-29`, whose advanced style text
+has since been replaced; on the shipped files the ratio is 1.44× (43.3% against
+30.0%). And spending more per token does not buy cap adherence: Fable overruns
+its cap on 40% of replies.
 
 ### Haiku on the full case set, and what it cannot do at all
 
-The table above uses five cases because that is what Opus and Sonnet were
+The table above uses five cases because that is what Opus, Sonnet and Fable were
 measured on. Haiku was also run across the full 13-case pool — 78 cells, $1.88 —
-and that run exposes something five conversational cases cannot.
+and that run exposes something five conversational cases cannot. Haiku is the
+only tier cheap enough to afford the whole pool: at Fable's measured rates the
+same 78 cells come to roughly $27 — 66 at $0.2345 plus the 12 cells of its two
+write-then-verify cases at $0.9681.
 
 **Six of the 78 cells produced no reply at all.** Every one is
 `Reached maximum number of turns (12)`, and every one is a case that requires
@@ -274,8 +333,10 @@ editing a file and then running the tests:
 | `agentic-read-report` | read the code and report (no writes) | 0 of 6 |
 
 The like-for-like comparison is `agentic-fix-verify`, the one write-then-verify
-case all three models have run: **Haiku 5 aborts in 6 cells, Opus 0 in 6, Sonnet
-0 in 6.** Widening to every saved agentic cell does not change the picture but
+case all four tiers have now run: **Haiku 5 aborts in 6 cells, Opus 0 in 6,
+Sonnet 0 in 6, Fable 0 in 6** (see below for what Fable's six cells cost, and
+what it gave up to finish them). Widening to every saved agentic cell does not
+change the picture but
 does pad the denominator with work that does not discriminate — Opus is 0 of 21
 and Sonnet 0 of 28, but 15 and 22 of those are the read-only case, where Haiku is
 also clean at 0 of 8. Neither larger model has ever been run on
@@ -304,9 +365,10 @@ which one it is.
 Two rules where the cheap model was expected to fail, and did not:
 
 - **Sentence length.** On the shared five, Haiku averages 11.8-word sentences
-  against Sonnet's 13.5 and Opus's 11.3, and runs over the 20-word cap on 11.3%
-  of sentences against Sonnet's 19.1% and Opus's 10.6%. Haiku is not the
-  long-sentence model — Sonnet is. Across the full 13-case pool Haiku holds at
+  against Sonnet's 13.5, Opus's 11.3 and Fable's 11.8, and runs over the 20-word
+  cap on 11.3% of sentences against Sonnet's 19.1%, Opus's 10.6% and Fable's
+  10.7%. Haiku is not the long-sentence model — Sonnet is, and it stays the
+  outlier with the top tier added. Across the full 13-case pool Haiku holds at
   12.0 words and 12.3% over cap, so this is not an artifact of the easier
   subset. All figures use `checks.mjs`'s own `words()`, the tokenizer
   `sentence_length` scores with. This **reverses** the reading taken from a
@@ -317,7 +379,56 @@ Two rules where the cheap model was expected to fail, and did not:
 Where Haiku is genuinely worse, on the like-for-like five cases, it is worse at
 *opening the reply*, not at obeying caps: `leads_with_conclusion` 83.3 against
 Sonnet's 100.0 and Opus's 90.0 — the same pre-tool-call narration failure this
-document opens with, one tier more pronounced.
+document opens with, one tier more pronounced. Fable scores 83.3 on the same
+rule, so the top tier is no better at it than the cheapest.
+
+### Fable finishes the agentic work and stops obeying the style
+
+`agentic-fix-verify` — fix a bug, then run the tests — is the case that separated
+the tiers. Haiku hit the 12-turn limit and returned nothing on 5 of 6 cells.
+Fable was run on the same case, three styles, two repeats (`23-53-02`):
+
+| model | aborts on `agentic-fix-verify` |
+|---|---|
+| haiku | 5 of 6 |
+| sonnet | 0 of 6 |
+| opus | 0 of 6 |
+| fable | 0 of 6 |
+
+Those cells cost $0.9681 each, four times a conversational Fable cell and forty
+times a Haiku one. The top tier buys completion, and completion is the only thing
+it buys. Same model, same style files, same scorer, only the case changes:
+
+| Fable on | rules | judge |
+|---|---|---|
+| the shared five (30 cells) | 94.1 | 66.6 |
+| `agentic-fix-verify` (6 cells) | 79.5 | 41.2 |
+
+`leads_with_conclusion` scores **16.7** across those six cells. Five of six
+replies open with a variant of *"I'll look at the file first."* before the first
+tool call — the exact failure this document opens with, measured at the top of
+the range and worse there than anywhere else. No amount of capability removed it,
+which makes it the strongest evidence in the project that this is a Claude Code
+narration habit rather than a model limitation.
+
+**Two rules are not quotable on agentic cells, for a harness reason.**
+`run.mjs` accumulates assistant text blocks with `text += b.text` and no
+separator, so on an agentic turn the pre-tool narration is glued to the post-tool
+answer: the saved transcript literally reads `"I'll look at the file first.The
+bug is in ..."`. `sentences()` needs whitespace after the full stop to split, and
+`paragraphs()` needs a blank line, so the run-on counts as one very long sentence
+in one paragraph. Checked by searching for a no-whitespace seam after
+sentence-ending punctuation, it appears in **0 of 131 conversational cells** and
+in most agentic ones — 3 of 6 Opus, 1 of 7 Sonnet, 10 of 12 Haiku, 5 of 6 Fable,
+and 6 of 6 on Fable's `agentic-fix-verify`.
+
+The four-tier table above is essentially unaffected: only one of its five cases
+is agentic, `paragraph_length` still scores 95.8–100.0 on it for every model, and
+the artifact is identical in all four columns. `agentic-fix-verify` is where it
+bites — `paragraph_length` there reads 16.7, which is the harness, not the style.
+So the numbers quoted in this section are `leads_with_conclusion`, `total_length`
+and the abort count, all of which the seam cannot touch. Fixing it would move
+agentic figures already published here, so it is tracked as its own change.
 
 ## Sources
 

@@ -42,26 +42,33 @@ decision.
 - [Harden the optimizer loop](../stories/harden-the-optimizer-loop.md) —
   a reserve split and auditable improve runs
 - [Extend measurement coverage](../stories/extend-measurement-coverage.md) —
-  Haiku
+  Haiku and Fable, the two ends of the model range
 - [Make the install path safe](../stories/make-the-install-path-safe.md) —
   stop the silent name-resolution failure
 
 ## Where things stand
 
-Five shared cases, ten cells per pair, three of the four model tiers. Rules and
-judge are directly comparable across styles; the composite is not, because each
-style carries a different `judgeWeight`.
+Five shared cases, ten cells per pair, **all four model tiers**, no errored cells
+in any column. Rules and judge are directly comparable across styles; the
+composite is not, because each style carries a different `judgeWeight`.
 
-| style | rules (opus / sonnet / haiku) | judge (opus / sonnet / haiku) |
+| style | rules (opus / sonnet / haiku / fable) | judge (opus / sonnet / haiku / fable) |
 |---|---|---|
-| advanced | 97.8 / 96.8 / 96.0 | 73.9 / 66.0 / 52.9 |
-| intermediate | 94.2 / 95.6 / 94.3 | 63.9 / 72.6 / 62.2 |
-| beginner | 91.5 / 92.3 / 90.9 | 45.9 / 48.4 / 37.5 |
+| advanced | 97.8 / 96.8 / 96.0 / 97.9 | 73.9 / 66.0 / 52.9 / 78.3 |
+| intermediate | 94.2 / 95.6 / 94.3 / 93.1 | 63.9 / 72.6 / 62.2 / 67.7 |
+| beginner | 91.5 / 92.3 / 90.9 / 91.4 | 45.9 / 48.4 / 37.5 / 53.9 |
 
-Adding the cheapest tier changed the rules picture barely at all and the judge
-picture a lot, which is the epic's central result in miniature: the style files
-carry their rules down the range, and what the cheap model loses is prose
-quality. Fable, the top tier, is still unmeasured (COS-7).
+The four tiers span a tenfold cost range — $0.0232 to $0.2345 per cell, measured
+— and rule compliance holds across all of it, 90.9 to 97.9. Prose quality does
+not: the judge ranges 37.5 to 78.3 over the same twelve cells. That is the epic's
+central result. The style files carry their rules everywhere; what a tier changes
+is how well it writes, not how well it complies.
+
+The top tier is not a clean win. Fable leads the judge on advanced and beginner
+but is last of four on intermediate rules, and Sonnet — three tiers down and a
+fifth of the price — still writes the best intermediate. Nor does paying more buy
+cap adherence: word-cap overrun does not track tier, and the model that keeps
+best to the cap is Sonnet.
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a

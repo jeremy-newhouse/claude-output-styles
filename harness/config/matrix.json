@@ -1,4 +1,16 @@
 {
+  "//models": [
+    "This list is the DEFAULT for both `run` and `improve`, so anything added",
+    "here is paid on every iteration of every optimizer loop that omits",
+    "--models. Fable is therefore deliberately not in it: measured cost per",
+    "baseline cell on the five shared cases is haiku $0.0232, sonnet $0.1013,",
+    "opus $0.1493, fable $0.2345 — and $0.9681 on a write-then-verify agentic",
+    "case, the most expensive cell in the project.",
+    "Fable has no bare alias. Measure the top tier by passing its full SDK id:",
+    "  node src/cli.mjs run --models='claude-fable-5[1m]' --variants=baseline",
+    "Quote the id: the [1m] is a glob pattern in zsh. And name --variants —",
+    "omitting it runs all five, which is 5x the cells you meant."
+  ],
   "models": [
     "opus",
     "sonnet",
