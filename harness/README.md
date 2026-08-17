@@ -310,9 +310,11 @@ Measured cost per baseline cell on the five shared cases:
 | `opus` | 0.1493 | $4.48 |
 | `claude-fable-5[1m]` | 0.2345 | $7.04 |
 
-Agentic cells cost more than conversational ones, and write-then-verify cells
-cost far more: `agentic-fix-verify` runs $0.9681 per cell on Fable, four times
-its own conversational rate. The `long-prompt` variant is also about 3.9× the
+The table's per-cell figures pool one read-only agentic case with four
+conversational ones. Split out, Fable's conversational cells run $0.1998 and its
+read-only agentic cells $0.3736. Write-then-verify costs far more again:
+`agentic-fix-verify` runs $0.9681 per cell on Fable, **4.8× its conversational
+rate.** The `long-prompt` variant is a separate multiplier, about 3.9× the
 baseline variant on Fable ($0.7384 against $0.1910).
 
 Probe on Haiku to decide whether an experiment is worth running, but do not
