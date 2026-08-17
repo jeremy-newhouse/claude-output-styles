@@ -82,11 +82,11 @@ all, on all three styles alike.
 measured all three styles on Fable (`23-48-45`, 30 cells, no errors): rule
 compliance 91.4–97.9, never more than 2.5 points behind the best of the other
 three. Fable drops the same subsets the others do rather than different ones —
-`total_length` 75.0, `leads_with_conclusion` 83.3, `sentence_length` 90.6,
-`no_process_narration` 91.7, and every remaining rule 96.7–100.0. Eight of twelve
-rules score 97.8–100.0 on all four tiers at once. No rule is one tier's
-requirement and another's exception, which is this decision's actual test, and it
-now holds across a tenfold cost range.
+`total_length` 75.0, `leads_with_conclusion` 83.3, `sentence_length` 90.6 and
+`no_process_narration` 91.7. Those four are exactly the rules the other tiers
+drop; the **remaining eight score 96.7–100.0 on all four tiers at once.** No rule
+is one tier's requirement and another's exception, which is this decision's
+actual test, and it now holds across a tenfold cost range.
 
 One earlier sentence here overstated the evidence and is corrected. It said the
 ranking of styles is identical on every model. That is true of the rules ranking
