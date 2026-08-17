@@ -1,11 +1,11 @@
 ---
 id: COS-25
 title: Remove cost and budget tracking from the harness and its record
-status: In Progress
+status: Done
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 14:43'
-updated_date: '2026-08-17 16:00'
+updated_date: '2026-08-17 16:01'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -176,5 +176,15 @@ FOUR ROUNDS, TWENTY FINDINGS, ALL FIXED. The pattern worth carrying: rounds 1-2 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-IN PROGRESS — do not treat the earlier summary as final. The implementation is complete and all 7 ACs were verified, but /code-review high then returned five findings and finding 1 is a real defect introduced by this change: on the throwing abort path every completed turn of a multi-turn cell is discarded, while the quiet abort path keeps them. The branch is committed but unpushed, no PR is open, and the task is not finishable until that is fixed. See the implementation notes for all five findings, which is confirmed, which is pre-existing, and which one is disputed on evidence.
+Removed cost and budget tracking from the harness, the published record and the campaign tracker, and replaced matrix.json's maxBudgetUsd spend ceiling with run.maxCellSeconds — a per-cell wall-clock guard on an AbortController, the only hard stop the Agent SDK offers.
+
+All 7 acceptance criteria verified by running things rather than reading them. costUsd/totalCostUsd/spentUsd/spendOf return zero hits across harness/src and harness/test, confirmed on a real written run directory rather than on source. The guard was watched aborting a real cell: a controlled pair on one Haiku cell, same style and case and only the limit differing, gave error_timeout with no reply at 5.0s under a 3s limit and a 480-char reply at 6.6s under a 600s limit. The 146-cell sample-size figure and its siblings kept their statistical basis and lost only the price annotations. Re-scoring the published 12-44-03 arm offline still returns 81.0%, so no published score moved.
+
+Four rounds of /code-review high returned twenty findings. All twenty are fixed.
+
+The four that were real defects in this change: turns was scoped inside runCell's try, so a timed-out multi-turn cell discarded every completed transcript on the throwing abort path while the quiet path kept them; runTurn had no catch, so the same asymmetry applied one level down to a wedged turn's partial reply; cellLimitMs guarded the low end but not setTimeout's 32-bit ceiling, so the obvious way to disable the guard truncated the delay to 1ms and would have aborted every cell in the matrix while looking green to every completeness check; and timedOut was unconditionally authoritative, so a cell finishing at 599.9s of a 600s limit was stamped error_timeout and dropped from every mean. Each fix is sabotage-verified — reverting it reds exactly the tests that assert it and nothing else.
+
+The rest were in the documentation sweep, and two are worth recording as a class. A cost table converted into a claim about tokens does not survive the conversion across model tiers, because per-token prices differ by roughly the factor the costs did; the within-model ratios (4.8x, 1.4x, 3.9x) do survive and were kept. And the cost-column removal silently broke a five-column table two tables away from the one it was editing, so a load-bearing figure block rendered as plain text while the test suite, the contract audit and the link checker all passed.
+
+Suite 124 -> 131. node src/cli.mjs audit exit 0. lore check exit 0 across 24 files, 0 errors, 0 warnings. Follow-up COS-26 opened for the judge and rewrite calls, which remain unbounded; the docs now say the guard bounds a cell rather than a run and cite it.
 <!-- SECTION:FINAL_SUMMARY:END -->
