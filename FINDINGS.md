@@ -414,10 +414,20 @@ overruns its cap on 40% of replies.
 
 The table above uses five cases because that is what Opus, Sonnet and Fable were
 measured on. Haiku was also run across the full 13-case pool — 78 cells —
-and that run exposes something five conversational cases cannot. Haiku is the only
-tier fast enough to take the whole pool in one run: the same 78 cells on Fable
-would run an order of magnitude more tokens, because 12 of them are its two
-write-then-verify cases and those are the project's largest cells.
+and that run exposes something five conversational cases cannot. Haiku is the
+only tier the full pool has ever been run on. Twelve of its 78 cells are the two
+write-then-verify cases — the project's largest kind, about 4.8× a conversational
+cell — so the full pool is a far heavier run than the five-case table on any
+model.
+
+**How much heavier on another tier is not something this project has measured.**
+An earlier version of this passage said the same 78 cells on Fable would run "an
+order of magnitude more tokens". That figure came from the deleted per-cell
+dollar table, and the conversion does not hold: per-token prices differ across
+tiers by roughly the same factor the costs did, so a cost span says nothing about
+a token span. The per-case ratios above survive because they compare cells at one
+price. `elapsedMs`, added under COS-25, is the first per-cell measurement that
+means the same thing on every model.
 
 **Six of the 78 cells produced no reply at all.** Every one is
 `Reached maximum number of turns (12)`, and every one is a case that requires

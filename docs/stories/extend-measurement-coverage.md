@@ -79,9 +79,13 @@ rules 94.1 / judge 66.6 on the shared five to 79.5 / 41.2 there, with
 `leads_with_conclusion` at 16.7: five of six replies open with "I'll look at the
 file first." No amount of capability removed the narration habit.
 
-Haiku was additionally run across the full 13-case pool (78 cells), which
-no other tier has had; on Fable the same pool would run an order of magnitude
-more tokens.
+Haiku was additionally run across the full 13-case pool (78 cells), which no
+other tier has had. Twelve of those cells are the two write-then-verify cases,
+the largest kind, so the full pool is a much heavier run than the five-case
+table on any tier — but **how much heavier on another tier has not been
+measured.** This line previously said Fable would run "an order of magnitude
+more tokens"; that was the deleted cost table read as a token span, and per-token
+prices differ across tiers by about the factor the costs did.
 Two results from that wider run shaped how COS-7 was run:
 
 - **Reserve a column for "no reply".** Six of Haiku's 78 cells hit the 12-turn

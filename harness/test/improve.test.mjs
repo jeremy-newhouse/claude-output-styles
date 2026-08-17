@@ -408,7 +408,7 @@ test('reserve rows are tagged with the iteration each one validates', async () =
   })
 })
 
-test('no reserve pass runs, and nothing is spent on it, when no rewrite was kept', async () => {
+test('no reserve pass runs, and no cells are measured for it, when no rewrite was kept', async () => {
   await withTmpDir(async dir => {
     // Flat scores: the candidate never beats the baseline, so there is no
     // adoption to validate and the extra measurement is not worth paying for.
