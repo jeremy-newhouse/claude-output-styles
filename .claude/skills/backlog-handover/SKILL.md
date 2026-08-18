@@ -252,10 +252,20 @@ archive the final handover (no new one), and suggest `init` for a fresh queue.
      (`<default>` moved under the PR): `git fetch`, rebase the feature branch
      onto `origin/<default>`, re-run the verification the rebase could have
      invalidated, `git push -f` the feature branch, retry `gh pr merge`.
-9. **Sync local `<default>`, then promote to `main`**:
+9. **Sync local `<default>`, re-sync the docs log, then promote to `main`**:
    `git checkout <default> && git pull --ff-only origin <default>` brings the
    local checkout in line with what `gh pr merge` (or the fallback) already did.
-   Then promote, per the Conventions table:
+   Then run `lore sync` on `<default>` — `gh pr merge --rebase` just rewrote
+   every SHA the branch's own mid-branch syncs baked into `docs/log.md`, and
+   `lore sync` regenerates that file's per-directory sections from
+   `<default>`'s actual reachable history, so this call replaces the now-dead
+   pre-rebase SHAs with the live ones and captures any trailing docs/-touching
+   commit (a late review fix, the doc-log commit itself) made after the
+   branch's last mid-branch sync. Unconditional — run it even when this
+   session's own branch never touched docs/, since it also closes any gap a
+   *previous* session's merge left open. If it changes anything, commit
+   directly to `<default>` (tracker-admin style, no branch or PR) and
+   `git push origin <default>`. Then promote, per the Conventions table:
    `git checkout main && git merge dev --ff-only && git push origin main && git checkout dev`.
    A non-fast-forward means `main` diverged — STOP, report it, do not force.
 10. **Prune**: `--delete-branch` on `gh pr merge` already removed the remote
