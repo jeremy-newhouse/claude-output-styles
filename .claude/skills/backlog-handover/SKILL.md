@@ -263,8 +263,10 @@ archive the final handover (no new one), and suggest `init` for a fresh queue.
    commit (a late review fix, the doc-log commit itself) made after the
    branch's last mid-branch sync. Unconditional — run it even when this
    session's own branch never touched docs/, since it also closes any gap a
-   *previous* session's merge left open. If it changes anything, commit
-   directly to `<default>` (tracker-admin style, no branch or PR) and
+   *previous* session's merge left open. If it changes anything, `lore check`
+   must exit 0 before the commit — the same docs/ gate as step 3, not skipped
+   just because the change is a regeneration — then commit directly to
+   `<default>` (tracker-admin style, no branch or PR) and
    `git push origin <default>`. Then promote, per the Conventions table:
    `git checkout main && git merge dev --ff-only && git push origin main && git checkout dev`.
    A non-fast-forward means `main` diverged — STOP, report it, do not force.
