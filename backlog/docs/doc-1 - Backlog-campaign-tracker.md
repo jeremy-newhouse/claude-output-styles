@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 14:00'
+updated_date: '2026-08-18 14:54'
 ---
 # Backlog campaign tracker
 
@@ -15,9 +15,9 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**ACTIVE CAMPAIGN: 3 (cell-free housekeeping). Next issue: COS-22.** Campaign 2's
+**ACTIVE CAMPAIGN: 3 (cell-free housekeeping). Next issue: COS-24.** Campaign 2's
 cursor (COS-16) is HELD, not resolved and not abandoned — see below. A
-`restore` session should take COS-22 next, in Campaign 3's confirmed order.
+`restore` session should take COS-24 next, in Campaign 3's confirmed order.
 
 **Why the cursor moved off COS-16.** COS-16 needs one more clean measurement
 arm (the E1+E2+E3 candidate's Sonnet half) before it can ship, and that
@@ -51,8 +51,8 @@ active cursor until Campaign 3 empties or the user redirects.
 |---|---|---|---|
 | 1 | COS-23 | protocol | **Resolved, session 22.** `docs/log.md` cites SHAs `gh pr merge --rebase` destroys — systemic across the campaign. See Resolved. |
 | 2 | COS-27 | measurement/harness | **Resolved, session 23.** FINDINGS.md's paired confidence intervals have no recorded, reproducible method. See Resolved. |
-| 3 | COS-22 | harness | Harden the fixture guard COS-13 added — 4 gaps, one already fired unnoticed. **The active cursor.** |
-| 4 | COS-24 | harness | CLI silently substitutes defaults for malformed flags — 10 ACs, all unit-testable. |
+| 3 | COS-22 | harness | **Resolved, session 24.** Harden the fixture guard COS-13 added — 4 gaps, one already fired unnoticed. See Resolved. |
+| 4 | COS-24 | harness | CLI silently substitutes defaults for malformed flags — 10 ACs, all unit-testable. **The active cursor.** |
 | 5 | COS-26 | harness | Bound the judge/rewrite calls so a stalled grader cannot hang a run. |
 
 ## Campaign 2 (held at COS-16)
@@ -151,7 +151,7 @@ before taking one.
 | 13 | COS-19 | measurement | The four-tier baseline at a sample size its claims need. Last of the measurement work, so it measures final text. |
 | 14 | COS-4 | styles | Beginner judge > 70% on Opus and Sonnet. Currently 73.9 / 58.1. Achievability unproven. |
 | 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
-| 16 | COS-22 | harness | **Moved to Campaign 3, item 3, 2026-08-18.** Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
+| 16 | COS-22 | harness | **Moved to Campaign 3, item 3, 2026-08-18; resolved session 24.** Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
 | 17 | COS-23 | protocol | **Moved to Campaign 3 item 1, 2026-08-18; resolved session 22.** `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
 | — | COS-25 | harness | **Resolved out of band, sessions 15 and 16.** Not a queue item: taken at the user's direction ahead of the cursor. Removed cost and budget tracking from the harness, the published record and this tracker, and replaced `maxBudgetUsd` with a wall-clock runaway guard. Session 15 implemented and reviewed it; session 16 fixed the review's findings and merged. Runs no cells. |
 | 18 | COS-24 | harness | **Moved to Campaign 3, item 4, 2026-08-18.** The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. Runs no cells. |
@@ -252,6 +252,7 @@ that omitted `--variants` ran five cells instead of one.
 |---|---|---|---|
 | 1 | COS-23 | Task Done — 2026-08-18, session 22 | All 5 ACs verified, **no cells run** — every criterion was a reachability/history question. **AC #1**: swept every SHA in `docs/log.md` against `origin/dev` (`git merge-base --is-ancestor`) — 0/77 dead at the branch point. Cross-checked the specific SHAs COS-13 (`acadf1b`, `e71e38c`, `3d2635a`) and COS-14 (`374378a`) had diagnosed as dead: all four are gone from the file's text and unreachable, but each has a live replacement entry under the *same subject line* with a different, currently-reachable SHA (e.g. `374378a`'s "Give improve its own model list instead of run's" now cites `e0bb46e5`). Root cause: `lore sync` regenerates `docs/log.md`'s per-directory sections from a `git log` walk of the *current* HEAD, not an append-only ledger — so a dead pre-rebase SHA a mid-branch sync records self-heals the next time any later session's branch (descended from the merged `dev`) syncs again. The defect is real but strictly bounded to a one-session-cycle window between a PR's rebase-merge and the next docs-touching session's sync, never a permanent injury — confirmed tight: COS-14's own doc-log-recording commit (`2833a95`, rebased to `cb638d4`) is present in today's log, i.e. it self-healed within one cycle. The one gap open today was `ea48ed7` (session 21's own "record the campaign-3 log entry" commit), absent from `docs/log.md` until this session ran `lore sync` — the concrete AC #5 instance: a session whose doc-log commit was absent from the log today, closed by this fix. (COS-14's review-fix commit `b0014af` is correctly absent forever: it touches `harness/` and `README.md`, not `docs/`, and the log is scoped to `docs/` subdirectories by design — not a defect.) **AC #2**: chose "regenerate post-merge" over dropping SHAs or changing the merge strategy — since sync already regenerates the log from live history, the fix is one more `lore sync` call on `dev` right after every PR merge, before the `main` fast-forward, closing the gap in the same session instead of leaving it to the next one. Keeps the SHA provenance the task calls out as reader value, and does not touch the rebase-merge strategy the campaign locked in for linear history. **AC #3**: re-swept all 78 SHAs in the fixed `docs/log.md` against `origin/dev` — 0 dead. **AC #4**: `.claude/skills/backlog-handover/SKILL.md` step 9 now runs `lore sync` on `dev` unconditionally after every merge, commits+pushes if it changes anything, before promoting to `main`. `lore check` exit 0 (24 files, 0 errors, 0 warnings); `npm --prefix harness test` 179/179 (no code touched, so the count is unchanged from session 21's baseline). |
 | 2 | COS-27 | Task Done — 2026-08-18, session 23 | All 3 ACs verified, **no cells run** — traced every published paired figure to its raw saved rows and reverse-engineered the exact computation by testing candidate formulas against them. **AC #1**: implemented `harness/src/interval.mjs` (`pairedInterval` + `tCritical95` + `METRICS`), exposed as `node src/cli.mjs interval --before=<rows> --after=<rows> --metric=rules|words|composite|judge`; 10 new tests including a real-data regression anchored to the reserve-arm rules figure. Suite 179 -> 189, 189/189 pass. **AC #2**: paired by (case, model), repeats averaged, sample-SD (n-1) Student-t interval. Found by testing candidates against the reserve arm (`02-12-24`->`02-16-47`, n=12, no repeat-averaging ambiguity) — the sample-SD formula reproduced the published rules figure (+7.7 [+5.3,+10.1] t=7.06) exactly on the first matching attempt. Extending to the shared-five arm (`02-10-45`->`02-15-14`, n=10) initially failed to reproduce any of its four metrics until the after-side was pooled with `02-25-39` — a later, larger re-run of the same byte-identical text the ledger already names as a noise fix for the judge reading — which then reproduced all four (rules, words, composite, judge) exactly. 7 of 8 published COS-4 table cells now reproduce to the last digit; reserve reply-words did not (-54.7 vs published -55.7, a ~1-word gap with no cause found after checking code blocks and tokenizer drift) and was restated per AC #2's second branch, with the original value and the investigation recorded in FINDINGS.md's footnote. **AC #3**: the CLI command re-derives any published figure from saved rows in one invocation. Updated FINDINGS.md's COS-4 table/footnote and the ledger's `02-16-47` row to match the tool's output; every conclusion (rules moved on reserve, shared-five rules interval still touches zero) is unchanged. `lore check` exit 0 (24 files, 0 errors, 0 warnings); `npm --prefix harness test` 189/189. |
+| 3 | COS-22 | Task Done — 2026-08-18, session 24 | All 5 ACs verified against a review that found 4 gaps in COS-13's `harness/test/fixture.test.mjs` guard plus one docs-accuracy point, each closed with a sabotage-verified regression test proving the specific failure mode is caught. **AC #1**: `verdict()` now requires `skipped===0`, `todo===0` and an actual `pass` count >=2 pulled from the same `ℹ` summary lines, not just the source-derived assertion count — a fixture whose two tests are rewritten to `{ skip: true }` now fails the guard (it read green before: `pass 0`, `fail 0`, `assertions 2`). **AC #2**: the pinned-value scan walks every file under `fixtures/repo` (`readdirSync` recursive) instead of `test/pricing.test.mjs` alone; reintroducing acadf1b's original comment ("keeps 850 where rounding to the nearest cent keeps 849") into `src/pricing.js` now fails the guard, closing the exact leak that shipped green in that commit. **AC #3**: the `npm test` guard now runs the same `verdict()` parsing (not bare `r.status===0`) and asserts `result.error` is undefined; a sabotaged empty `PATH` surfaces `spawnSync npm ENOENT` instead of an opaque empty diff, and a `"test": "true"` no-op script that exits 0 without running anything now fails on `passedCount`. **AC #4**: replaced `.includes()` substring matching with a `\\b850\\b`/`\\b849\\b` word-boundary regex; `8500`, `1850`, `18500` and `$8.50` no longer false-positive. **AC #5**: qualified `docs/stories/make-the-measurements-trustworthy.md`'s `reserve-agentic-session` difficulty claim — `src/pricing.js` still carries a literal `BUG:` comment locatable by one `grep -rn BUG`, deliberate for `agentic-read-report` but meaning the case's remaining difficulty is search, not comprehension; edited outside lore-managed regions, `lore sync` then `lore check` exit 0 (24 files, 0 errors). 5 new tests, one per gap; `npm --prefix harness test` 190 -> 195, 195/195 pass. |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -1408,3 +1409,23 @@ Both remaining issues carry known risk against that policy:
   real-data regression test anchored to the reserve rules figure so a
   future change to the method cannot silently drift from what FINDINGS.md
   quotes. Suite 179 -> 189.
+- 2026-08-18 — session 24: resolved COS-22 on `feature/COS-22`. No drift at
+  restore: `dev`/`main` both at `d3022be`, clean apart from the same
+  untracked, unowned `system-prompt.md`, no leftover branches, no open PRs,
+  190/190 baseline. Hardened `harness/test/fixture.test.mjs` against all 4
+  gaps a review found plus the docs-accuracy point: `verdict()` now checks
+  `skipped`/`todo`/`pass` counts, not just `fail` and a source-derived
+  assertion count, so an all-skipped suite fails instead of reading green;
+  the pinned-value scan walks every file under `fixtures/repo`, not just the
+  test file, and switched from `.includes()` to a `\b850\b`/`\b849\b`
+  word-boundary regex so `src/pricing.js` is covered and `8500`/`1850` no
+  longer false-positive; the `npm test` guard routes through the same
+  `verdict()` parsing and surfaces `r.error` on a spawn failure instead of an
+  opaque empty diff, and now fails a `"test": "true"` no-op script that
+  exits 0 without running anything. Qualified the `reserve-agentic-session`
+  difficulty claim in `docs/stories/make-the-measurements-trustworthy.md`:
+  `src/pricing.js` still carries a literal `BUG:` comment a single
+  `grep -rn BUG` finds, deliberate for `agentic-read-report` but meaning the
+  case's remaining difficulty is search, not comprehension. 5 new
+  sabotage-verified regression tests, one per gap, each proving the specific
+  failure mode is caught. Suite 190 -> 195.

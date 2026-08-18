@@ -1,11 +1,11 @@
 ---
 id: COS-22
 title: Harden the fixture guard COS-13 added
-status: In Progress
+status: Done
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 13:41'
-updated_date: '2026-08-18 14:50'
+updated_date: '2026-08-18 14:53'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -38,11 +38,11 @@ A fifth, separate point the same review raised: `docs/stories/make-the-measureme
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A fixture whose tests are all skipped or todo fails the guard, demonstrated by making the change and observing the failure
-- [ ] #2 The pinned-value scan covers every file the model reads under fixtures/repo, not just the test file, and reintroducing the acadf1b BUG comment fails the guard
-- [ ] #3 The npm test guard surfaces spawn errors in its failure message and verifies that tests actually ran
-- [ ] #4 The pinned-value match cannot be tripped by an unrelated number that merely contains 850 or 849
-- [ ] #5 The reserve-agentic-session difficulty claim in docs/stories/make-the-measurements-trustworthy.md is qualified to account for the BUG marker, or the claim is withdrawn
+- [x] #1 A fixture whose tests are all skipped or todo fails the guard, demonstrated by making the change and observing the failure
+- [x] #2 The pinned-value scan covers every file the model reads under fixtures/repo, not just the test file, and reintroducing the acadf1b BUG comment fails the guard
+- [x] #3 The npm test guard surfaces spawn errors in its failure message and verifies that tests actually ran
+- [x] #4 The pinned-value match cannot be tripped by an unrelated number that merely contains 850 or 849
+- [x] #5 The reserve-agentic-session difficulty claim in docs/stories/make-the-measurements-trustworthy.md is qualified to account for the BUG marker, or the claim is withdrawn
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -56,3 +56,15 @@ A fifth, separate point the same review raised: `docs/stories/make-the-measureme
 6. Run npm --prefix harness test, confirm the full suite is green with the new cases counted.
 7. Verify each of the 5 ACs against objective evidence (test output, grep) and check them off; record the final summary.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Hardened harness/test/fixture.test.mjs's verdict() to require skipped===0, todo===0 and an actual pass count >=2 (not just source-derived assertion count), closing the all-skipped-suite hole (AC1). Replaced the single-file pinned-value scan with a recursive walk of every file under fixtures/repo plus a \b850\b/\b849\b word-boundary regex, closing the src/pricing.js coverage gap and the 8500/1850 false-positive risk (AC2, AC4). Routed the npm-test guard through the same verdict() parsing and asserted result.error is undefined, so a missing npm or a no-op test script both fail loudly instead of silently passing (AC3). Added 5 sabotage-verified regression tests, one per gap, each proving the specific failure mode is now caught. Suite 190 -> 195, all green.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Closed all 5 gaps a review found in COS-13's harness/test/fixture.test.mjs guard. (1) verdict() now requires skipped===0, todo===0 and passedCount>=2, so an all-skipped suite fails instead of reading green off source-derived assertion counts. (2)+(4) The pinned-value scan walks every file under fixtures/repo (not just the test file) using a \b850\b/\b849\b word-boundary regex, so src/pricing.js is covered and 8500/1850 no longer false-positive. (3) The npm-test guard now runs the same verdict() parsing and asserts result.error is undefined, so a missing npm or a no-op test script fail loudly instead of silently passing on exit 0. (5) docs/stories/make-the-measurements-trustworthy.md's reserve-agentic-session difficulty claim is qualified: src/pricing.js still carries a literal BUG: comment findable by one grep, so the remaining difficulty is search, not comprehension. Verified: 5 new sabotage tests (one per gap) each prove the specific failure mode is caught; npm --prefix harness test 190 -> 195, all green; lore check exit 0 (24 files, 0 errors).
+<!-- SECTION:FINAL_SUMMARY:END -->
