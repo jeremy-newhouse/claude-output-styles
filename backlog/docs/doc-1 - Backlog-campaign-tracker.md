@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 17:10'
+updated_date: '2026-08-18 17:29'
 ---
 # Backlog campaign tracker
 
@@ -15,14 +15,25 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**CAMPAIGN 3 IS EMPTY.** COS-26 (its last item) resolved in session 26. All
-five of Campaign 3's issues are now Resolved — see the table below. Campaign
-2's cursor (COS-16) is HELD, not resolved and not abandoned — see below. The
-next `restore` session has no queued issue to take on its own authority: per
-the skill's own R6 (queue-empty branch), it must ask the user whether to (a)
-resume Campaign 2 at COS-16 — only if cell budget looks available — or
-(b) run `init` to build a fresh queue from the current backlog. Do not guess;
-do not silently pick Campaign 2 back up.
+**CAMPAIGN 3 IS EMPTY. STAND DOWN UNTIL USAGE RESETS.** COS-26 (Campaign 3's
+last item) resolved in session 26 — all five of its issues are now Resolved,
+see the table below. Asked at the end of session 26 whether to resume
+Campaign 2 at COS-16 or `init` a fresh queue: **the user said Claude Code's
+session/usage limits do not reset until 2026-08-19, explicitly said not to
+start testing (i.e. not to attempt COS-16's Sonnet arm, which needs a real
+harness `run`) again before then, and asked that housekeeping be completed
+and the session stand down for now.** All session-26 housekeeping was already
+done by the time this was asked — `dev`/`main` synced and pushed, no branch
+litter, no open PRs, handover archived — so nothing further was done.
+
+**For the next `restore` session**: do not resume Campaign 2 at COS-16 and do
+not run `init` on your own authority. Check today's date first. If it is
+still 2026-08-18, or usage limits are otherwise unconfirmed as reset, ask the
+user again rather than guessing whether the window has passed. Once the user
+confirms the reset (or the date has clearly moved past 2026-08-19), the
+original R6 choice still stands: resume Campaign 2 at COS-16 (full resume
+state in the task itself and the "Campaign 2 (held at COS-16)" section below)
+or `init` a fresh queue.
 
 **Why the cursor moved off COS-16.** COS-16 needs one more clean measurement
 arm (the E1+E2+E3 candidate's Sonnet half) before it can ship, and that
