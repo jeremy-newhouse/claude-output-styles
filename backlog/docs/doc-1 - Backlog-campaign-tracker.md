@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 12:12'
+updated_date: '2026-08-18 13:16'
 ---
 # Backlog campaign tracker
 
@@ -14,6 +14,48 @@ Default branch is `dev`; every issue merges there and `dev` is then
 fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
+
+**ACTIVE CAMPAIGN: 3 (cell-free housekeeping). Next issue: COS-23.** Campaign 2's
+cursor (COS-16) is HELD, not resolved and not abandoned — see below. A
+`restore` session should take COS-23 next, in Campaign 3's confirmed order.
+
+**Why the cursor moved off COS-16.** COS-16 needs one more clean measurement
+arm (the E1+E2+E3 candidate's Sonnet half) before it can ship, and that
+ablation has hit Claude Code's 5-hour usage window twice, plus a weekly limit
+the user hit on 2026-08-18. None of Campaign 3's five issues need a harness
+`run` — they are code, tests, and docs work verified by `npm test`, sabotage,
+offline re-scoring of saved rows, or git reachability checks — so the campaign
+can keep moving without spending a cell. Confirmed by the user on 2026-08-18
+("add the cell-free issues to a new campaign") after being offered the option
+during a status check.
+
+**Resuming COS-16.** When cell budget is available again — ask the user, or
+try one clean arm and stop immediately if the usage-limit error reappears —
+re-point the Cursor section back to `**Next issue: COS-16**` and continue
+Campaign 2 from where it left off. Every fact needed to resume is in the task
+itself (`backlog task view COS-16 --plain`): the exact three-edit candidate to
+rebuild (sha256 `86451ddb`), which arm is missing (Sonnet, five shared cases,
+30 repeats), and which ACs are still open (#2, #4, #5, #6). Do not re-derive
+any of it from this tracker.
+
+## Campaign 3 (cell-free housekeeping)
+
+Confirmed by the user on 2026-08-18, from an AI-proposed order: COS-23 first
+because `docs/log.md`'s SHA problem affects the campaign's own record for
+every session including COS-16's eventual resumption; then COS-27
+(reproducibility); then COS-22, COS-24, COS-26 by increasing code complexity.
+Runs interleaved with Campaign 2 — this section's cursor is the tracker's
+active cursor until Campaign 3 empties or the user redirects.
+
+| # | Issue | Type | One-line note |
+|---|---|---|---|
+| 1 | COS-23 | protocol | `docs/log.md` cites SHAs `gh pr merge --rebase` destroys — systemic across the campaign. **The active cursor.** |
+| 2 | COS-27 | measurement/harness | FINDINGS.md's paired confidence intervals have no recorded, reproducible method. |
+| 3 | COS-22 | harness | Harden the fixture guard COS-13 added — 4 gaps, one already fired unnoticed. |
+| 4 | COS-24 | harness | CLI silently substitutes defaults for malformed flags — 10 ACs, all unit-testable. |
+| 5 | COS-26 | harness | Bound the judge/rewrite calls so a stalled grader cannot hang a run. |
+
+## Campaign 2 (held at COS-16)
 
 **Next issue: COS-16** — queue order for campaign 2 confirmed by the user on
 2026-08-17, who chose the "Fix tools first, then everything" option from a
@@ -109,12 +151,12 @@ before taking one.
 | 13 | COS-19 | measurement | The four-tier baseline at a sample size its claims need. Last of the measurement work, so it measures final text. |
 | 14 | COS-4 | styles | Beginner judge > 70% on Opus and Sonnet. Currently 73.9 / 58.1. Achievability unproven. |
 | 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
-| 16 | COS-22 | harness | Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
-| 17 | COS-23 | protocol | `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
+| 16 | COS-22 | harness | **Moved to Campaign 3, item 3, 2026-08-18.** Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
+| 17 | COS-23 | protocol | **Moved to Campaign 3, item 1 (the active cursor), 2026-08-18.** `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
 | — | COS-25 | harness | **Resolved out of band, sessions 15 and 16.** Not a queue item: taken at the user's direction ahead of the cursor. Removed cost and budget tracking from the harness, the published record and this tracker, and replaced `maxBudgetUsd` with a wall-clock runaway guard. Session 15 implemented and reviewed it; session 16 fixed the review's findings and merged. Runs no cells. |
-| 18 | COS-24 | harness | The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. Runs no cells. |
-| 19 | COS-26 | harness | The judge call in `judge.mjs` and the optimizer's `rewrite()` in `improve.mjs` take no `abortController` and no timeout, so either stalling hangs a run that has already bought hours of cells. `maxCellSeconds` bounds a cell, not a run, and `maxBudgetUsd` never covered these two either — the gap predates both guards. Opened by session 16 from COS-25's review; **appended after item 18 rather than slotted into the order the user confirmed.** Runs no cells. |
-| 20 | COS-27 | measurement | The paired confidence intervals in `FINDINGS.md` have no recorded computation and cannot be reproduced to the last digit, so a scoring change cannot update them. Opened by session 19; **appended**. Runs no cells. |
+| 18 | COS-24 | harness | **Moved to Campaign 3, item 4, 2026-08-18.** The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. Runs no cells. |
+| 19 | COS-26 | harness | **Moved to Campaign 3, item 5, 2026-08-18.** The judge call in `judge.mjs` and the optimizer's `rewrite()` in `improve.mjs` take no `abortController` and no timeout, so either stalling hangs a run that has already bought hours of cells. `maxCellSeconds` bounds a cell, not a run, and `maxBudgetUsd` never covered these two either — the gap predates both guards. Opened by session 16 from COS-25's review; **appended after item 18 rather than slotted into the order the user confirmed.** Runs no cells. |
+| 20 | COS-27 | measurement | **Moved to Campaign 3, item 2, 2026-08-18.** The paired confidence intervals in `FINDINGS.md` have no recorded computation and cannot be reproduced to the last digit, so a scoring change cannot update them. Opened by session 19; **appended**. Runs no cells. |
 | 21 | COS-28 | styles | Advanced states "under 120, headers and code included" while `total_length` counts `stripCode(text)`. A basis mismatch, not a conditional, so COS-15 could not reach it. Opened by session 19; **appended**. Costs a run or a re-score, depending on which side moves. |
 
 The order is a valid topological sort of the recorded dependencies, and every
@@ -1307,3 +1349,13 @@ Both remaining issues carry known risk against that policy:
   was not auto-deleted in that path and was removed manually. `dev` and `main`
   both pushed at `716d628`, no branch litter, no open PRs. The cursor did not
   move: COS-16 remains item 9, unresolved.
+
+- 2026-08-18 — session 21 (tracker admin, no issue lifecycle run): the user
+  asked what cell-free work was available while COS-16 waits out Claude Code's
+  usage limits. Proposed Campaign 3 — COS-23, COS-27, COS-22, COS-24, COS-26,
+  the five To Do issues whose acceptance criteria need no harness `run` — and
+  the user confirmed the order via `/backlog-handover init`. Tracker updated:
+  Cursor section re-pointed to Campaign 3 / COS-23, Campaign 2's cursor held
+  (not advanced, not abandoned) at COS-16 with a resume pointer into the
+  task's own notes. No branch, no PR — this is tracker administration only,
+  committed directly to `dev` per the init lifecycle's own convention (I3).
