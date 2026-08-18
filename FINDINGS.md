@@ -265,10 +265,12 @@ today's scorer throughout. Regrade with `node src/cli.mjs score --rows=…`, whi
 is free, before concluding that a number here is wrong.
 
 **The beginner row is history, not a current measurement.** COS-4 rewrote
-`plain-english-beginner.md` after these runs. On the shipped file, pooled over 35
-cells a model, beginner reads rules 98.5 / 97.4 and judge 73.9 / 58.1 on Opus and
-Sonnet; Haiku and Fable have not been re-measured. The advanced and intermediate
-rows are unchanged and current.
+`plain-english-beginner.md` after these runs. On the shipped file, pooled over
+150 cells a model (COS-16, run `19-42-55`), beginner reads rules 98.9 / 97.4 and
+judge 66.8 / 60.9 on Opus and Sonnet — COS-4's own 73.9 / 58.1 at 35 cells a
+model is superseded on the judge halves by the larger arm, and both readings sit
+inside COS-4's stated interval. Haiku and Fable have not been re-measured. The
+advanced and intermediate rows are unchanged and current.
 
 | style | rules haiku | rules sonnet | rules opus | rules fable | judge haiku | judge sonnet | judge opus | judge fable |
 |---|---|---|---|---|---|---|---|---|
@@ -773,6 +775,9 @@ shipped arm to seven cells per pair and the shared-set estimate fell to **+1.3,
 with an interval four times as wide as the effect.** Sonnet in particular read
 70.7 at n=10, 65.8 at n=10, 74.1 at n=15 and 55.0 at n=25 across arms of the same
 five cases; pooled over 35 cells of the shipped text it is 58.1 [50.5, 65.6].
+**COS-16 pooled it further, to 150 cells (run `19-42-55`): Sonnet reads 60.9,
+Opus 66.8 against the 35-cell reading of 73.9** — both inside the 35-cell
+interval, which is what the larger arm was for.
 
 **That is the transferable finding.** Per-cell judge SD on the shipped text is
 24.6 pooled (24.1 Opus, 22.8 Sonnet), so the ten-cell arms every judge figure in
@@ -787,8 +792,9 @@ by 55.7. Repeat-judging shrinks only the judge's 17% of the variance, so it is a
 small lever, and a slow one — a cell costs about one judge call in wall clock and
 repeat-judging only pays when a cell costs eleven.
 
-What sample size does *not* give you is a score. Sonnet measures 58.1 on the
-shipped text; no arm size moves a point estimate, and none places it above 70.
+What sample size does *not* give you is a score. Sonnet measures 60.9 on the
+shipped text at 150 cells (58.1 at 35); no arm size moves a point estimate, and
+none places it above 70.
 What it gives you is precision. On beginner, narrowing one arm's 95% half-width
 to ±10 points takes 24 cells per model, ±7 takes 49, ±5 takes 95 and ±4 takes 148
 — and no number of judge calls per cell takes ±4 below 123. Detecting a real

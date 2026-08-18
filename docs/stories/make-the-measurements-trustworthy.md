@@ -215,8 +215,13 @@ same judge, ±4 costs 169 cells on intermediate and 207 on advanced. Any arm thi
 story sizes has to be sized on the style it measures.
 
 Note what sample size does and does not give you. It narrows an interval; it does
-not move a point estimate. Beginner on Sonnet measures 58.1 against a 70% bar, and
-no arm size changes that — only a better style file will.
+not move a point estimate. Beginner on Sonnet measures 60.9 against a 70% bar
+(COS-16, run `19-42-55`, 150 cells; 58.1 at COS-4's 35), and no arm size changes
+that — only a better style file will. COS-16 is the worked example in both
+directions: re-measuring the same bytes at 150 cells left Sonnet 2.8 points higher
+and took Opus 7.1 points lower, from 73.9 to 66.8, which moved Opus from above the
+bar to below it. The estimates did not move because the text changed; the
+intervals were simply wide enough to contain both readings.
 
 **The choice of judge does move it, though, and by more than the gap.** COS-20
 measured Haiku grading the same beginner replies +18.01 [+12.34, +23.68] above

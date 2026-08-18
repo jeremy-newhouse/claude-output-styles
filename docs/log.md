@@ -66,7 +66,8 @@
 - 2026-08-17T13:13:47-05:00 2e0c65e3c1bd5e80d80e073c26248144f11e1eac Fix seven findings from the branch review
 - 2026-08-17T13:13:47-05:00 4e2b45e40240d67b5592d545699ff37c0dff137b Record what 720 judge calls established about the judge
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
-- 2026-08-17T14:00:24-05:00 a84bf9022441b8ef94e00fa8082075797d8c42ee Correct the five published figures the gloss fix moves
+- 2026-08-17T14:12:09-05:00 606ee237939ba434ce518d39c71840194640d083 Let codeOnRequest lift the whole cap, and see a gloss through bold
+- 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
 
 ## docs/adr
 
@@ -126,7 +127,7 @@
 - 2026-08-17T11:32:23-05:00 f442aa6579bbc0720f70f2d23caf5b72f4a72f50 Correct the re-score denominator, and record why the connectives went
 - 2026-08-17T13:13:47-05:00 4e2b45e40240d67b5592d545699ff37c0dff137b Record what 720 judge calls established about the judge
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
-- 2026-08-17T14:00:24-05:00 a84bf9022441b8ef94e00fa8082075797d8c42ee Correct the five published figures the gloss fix moves
+- 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
 
 ## docs/runbooks
 
@@ -158,7 +159,8 @@
 - 2026-08-16T21:50:29-05:00 ba925960020d5a98b42a4d21a74341a668d481f8 Put the superseded length claims in the past tense, and say what replaced them
 - 2026-08-17T01:42:11-05:00 3a6df76953415b5b2ad6c66e91a3d7f6c19117cc Correct the two live docs the re-segmentation also moved
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
-- 2026-08-17T14:00:24-05:00 a84bf9022441b8ef94e00fa8082075797d8c42ee Correct the five published figures the gloss fix moves
+- 2026-08-17T14:12:09-05:00 606ee237939ba434ce518d39c71840194640d083 Let codeOnRequest lift the whole cap, and see a gloss through bold
+- 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
 
 ## docs/stories
 
@@ -202,4 +204,5 @@
 - 2026-08-17T13:13:47-05:00 0252a4e41ebcc56023f3f2d1e9a8543538369b03 Record the COS-20 finalization in the generated docs
 - 2026-08-17T13:13:47-05:00 4e2b45e40240d67b5592d545699ff37c0dff137b Record what 720 judge calls established about the judge
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
-- 2026-08-17T14:00:24-05:00 a84bf9022441b8ef94e00fa8082075797d8c42ee Correct the five published figures the gloss fix moves
+- 2026-08-17T14:12:09-05:00 606ee237939ba434ce518d39c71840194640d083 Let codeOnRequest lift the whole cap, and see a gloss through bold
+- 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves

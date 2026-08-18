@@ -13,7 +13,7 @@ tasks:
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: todo
+lore_task_status: in-progress
 ---
 
 # Close the style quality gaps
@@ -87,6 +87,15 @@ did not move**: +1.3 [−15.0, +17.6]. Sonnet pooled over 35 cells reads 58.1
 [50.5, 65.6], below this story's 70% bar and established as below it, so that
 criterion is not met and COS-4 is parked rather than closed.
 
+**COS-16 re-measured the same bytes at 150 cells a model and the judge figures
+moved.** Runs `19-42-55` (the five shared cases) and `19-53-49` (the six reserve
+cases), 300 cells each and no errored cell in either, read rules **98.9 / 97.4**
+and judge **66.8 / 60.9** on the shared five. Opus falls 7.1 points from COS-4's
+73.9 and Sonnet rises 2.8 from 58.1; both land inside COS-4's stated intervals,
+so this is those intervals closing at the sample size the claims needed rather
+than a contradiction. It matters for the bar: 73.9 sits above this story's 70%
+and 66.8 sits below it, so **the bar is now missed on both models, not one**.
+
 **Two tiers were added after this story was written, and neither rescued it.**
 (This paragraph describes the pre-COS-4 file; the rewrite is measured on Opus and
 Sonnet only.) Beginner was last on the judge on every one of the four, and the
@@ -120,7 +129,7 @@ untested tiers are Haiku and Fable.
 | [COS-1](../../backlog/tasks/cos-1%20-%20Close-the-multi-tool-session-and-open-ended-decision-quality-gap.md) | Close the multi-tool session and open-ended decision quality gap | To Do |
 | [COS-4](../../backlog/tasks/cos-4%20-%20Raise-beginner-style-prose-quality.md) | Raise beginner style prose quality | To Do |
 | [COS-8](../../backlog/tasks/cos-8%20-%20Decide-whether-lower-levels-need-tighter-sentence-caps.md) | Decide whether lower levels need tighter sentence caps | Done |
-| [COS-16](../../backlog/tasks/cos-16%20-%20Fix-the-five-contradictions-COS-4-left-in-the-beginner-style-file.md) | Fix the five contradictions COS-4 left in the beginner style file | To Do |
+| [COS-16](../../backlog/tasks/cos-16%20-%20Fix-the-five-contradictions-COS-4-left-in-the-beginner-style-file.md) | Fix the five contradictions COS-4 left in the beginner style file | In Progress |
 | [COS-18](../../backlog/tasks/cos-18%20-%20Test-whether-intermediate-and-advanced-carry-beginners-defects.md) | Test whether intermediate and advanced carry beginner's defects | To Do |
 <!-- lore:tasks:end -->
 
