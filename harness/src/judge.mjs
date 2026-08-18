@@ -2,9 +2,8 @@
 // first, is the technical level right, did the tone drift. Runs with a custom
 // system prompt and no tools, so the judge is not itself under an output style.
 
-import { query } from '@anthropic-ai/claude-agent-sdk'
 import { VIEWS } from './checks.mjs'
-import { secondsToMs } from './run.mjs'
+import { timedTextQuery } from './run.mjs'
 
 const JUDGE_PROMPT = `You grade one assistant reply against the style guide it was written under.
 Return ONLY a JSON object, no prose, no code fence:
@@ -37,16 +36,15 @@ export const JUDGE_VIEW_DEFAULT = 'final'
 /**
  * @param {number} judgeTimeoutSeconds  matrix.run.judgeTimeoutSeconds. Bounds
  *   the query call the same way maxCellSeconds bounds a cell — see run.mjs's
- *   cellLimitMs, whose validator (secondsToMs) this reuses. A stalled judge
- *   used to hang the run indefinitely: runCell's own guard has already
- *   returned and cleared its timer by the time the judge runs, so nothing was
- *   left holding a ceiling on this call.
+ *   timedTextQuery, which owns the AbortController and the validation
+ *   (secondsToMs). A stalled judge used to hang the run indefinitely:
+ *   runCell's own guard has already returned and cleared its timer by the
+ *   time the judge runs, so nothing was left holding a ceiling on this call.
  * @param {object} [deps]  queryFn, injectable so the four substituted-score
  *   paths — and the timeout — can be tested without a real model call.
  *   `runTurn` in run.mjs takes the same seam for the same reason.
  */
 export async function judge ({ views, caseDef, contract, model, styleBody, judgeTimeoutSeconds, deps = {} }) {
-  const { queryFn = query } = deps
   const on = caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT
   // Throw rather than fall through. An unrecognised view would index `views` as
   // undefined, the empty-text guard below would return a free 1.0, and that is
@@ -81,52 +79,38 @@ export async function judge ({ views, caseDef, contract, model, styleBody, judge
     '"""'
   ].join('\n')
 
-  let out = ''
-  // Validated here, immediately before the only branch that spends it, not at
-  // the top of the function: the two returns above never reach a model call
-  // and must not require a timeout they will not use — see secondsToMs in
-  // run.mjs for why a bad or missing value throws rather than defaulting.
-  const timeoutMs = secondsToMs('run.judgeTimeoutSeconds', judgeTimeoutSeconds)
-  // A stalled judge call has no other ceiling: unlike a cell, it is not inside
-  // runCell's own AbortController, so nothing else in the run would ever stop
-  // it. `timedOut` (not the thrown error) is the authority on why the call
-  // ended — an abort can either throw or end the iterator quietly, and the
-  // quiet path must still be reported as a timeout rather than as unparseable
-  // output.
-  let timedOut = false
-  const controller = new AbortController()
-  const timer = setTimeout(() => { timedOut = true; controller.abort() }, timeoutMs)
-  try {
-    for await (const m of queryFn({
-      prompt: user,
-      options: {
-        systemPrompt: JUDGE_PROMPT,
-        model,
-        // 1 is too tight: a turn spent on thinking leaves no room for the answer
-        // and the SDK throws "Reached maximum number of turns", which used to
-        // take down the whole run.
-        maxTurns: 3,
-        allowedTools: [],
-        settingSources: [],
-        permissionMode: 'dontAsk',
-        abortController: controller
-      }
-    })) {
-      // Bare concatenation is correct here, unlike run.mjs: allowedTools is
-      // empty, so the judge's reply is one JSON object with no tool calls to
-      // split it around, and a separator would break the parse below.
-      if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
-    }
-  } catch (err) {
+  // Validated inside timedTextQuery, immediately before the only branch that
+  // spends it — the two returns above never reach a model call and must not
+  // require a timeout they will not use.
+  const { out, timedOut, error, timeoutMs } = await timedTextQuery({
+    name: 'run.judgeTimeoutSeconds',
+    timeoutSeconds: judgeTimeoutSeconds,
+    prompt: user,
+    options: {
+      systemPrompt: JUDGE_PROMPT,
+      model,
+      // 1 is too tight: a turn spent on thinking leaves no room for the answer
+      // and the SDK throws "Reached maximum number of turns", which used to
+      // take down the whole run.
+      maxTurns: 3,
+      allowedTools: [],
+      settingSources: [],
+      permissionMode: 'dontAsk'
+    },
+    // Bare concatenation is correct here, unlike run.mjs: allowedTools is
+    // empty, so the judge's reply is one JSON object with no tool calls to
+    // split it around, and a separator would break the parse below — see
+    // timedTextQuery, which does the concatenation.
+    queryFn: deps.queryFn
+  })
+  if (error) {
     // A judge failure must never kill a run that took an hour to produce. Score neutral
     // and say so, so the row is visibly untrusted rather than silently wrong.
     return {
       score: 0.5,
-      violations: [timedOut ? `judge call timed out after ${timeoutMs}ms` : `judge call failed: ${String(err.message ?? err).slice(0, 120)}`],
+      violations: [timedOut ? `judge call timed out after ${timeoutMs}ms` : `judge call failed: ${error.slice(0, 120)}`],
       ok: false
     }
-  } finally {
-    clearTimeout(timer)
   }
 
   const m = /\{[\s\S]*\}/.exec(out)

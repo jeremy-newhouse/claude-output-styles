@@ -11,13 +11,12 @@
 // reserve split the loop never selects. See the ADR
 // docs/adr/validate-candidates-on-cases-held-out-of-every-split.md.
 
-import { query } from '@anthropic-ai/claude-agent-sdk'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { evaluate } from './evaluate.mjs'
 import { producedReply } from './checks.mjs'
 import { parseStyle, renderStyle } from './style.mjs'
-import { secondsToMs } from './run.mjs'
+import { timedTextQuery } from './run.mjs'
 
 // Sourced from Anthropic's "Prompting Claude Opus 5" guide. These are the
 // levers that actually move Opus, as opposed to adding more prohibitions.
@@ -206,9 +205,10 @@ function failureBrief (summary, styleId, transcripts) {
 /**
  * @param {number} rewriteTimeoutSeconds  matrix.improve.rewriteTimeoutSeconds.
  *   Bounds the query call the same way judge.mjs's judgeTimeoutSeconds bounds
- *   the judge call — see run.mjs's secondsToMs. A stalled author call used to
- *   hang the loop indefinitely; runCell's cell-level guard covers `run`'s
- *   cells only and never wraps this call.
+ *   the judge call — see run.mjs's timedTextQuery, which owns the
+ *   AbortController and the validation. A stalled author call used to hang
+ *   the loop indefinitely; runCell's cell-level guard covers `run`'s cells
+ *   only and never wraps this call.
  * @param {(msg: string) => void} [log]  optional, so a timeout is named in the
  *   loop's own output rather than looking identical to "the author had nothing
  *   left to say" — the caller's existing empty-string handling still stops the
@@ -218,37 +218,22 @@ function failureBrief (summary, styleId, transcripts) {
  *   seam judge.mjs and runCell use.
  */
 export async function rewrite ({ style, brief, model, rewriteTimeoutSeconds, log = () => {}, deps = {} }) {
-  const { queryFn = query } = deps
-  const timeoutMs = secondsToMs('improve.rewriteTimeoutSeconds', rewriteTimeoutSeconds)
   const user = [
     `CURRENT STYLE BODY (${style.id}):`, '"""', style.body, '"""',
     '', brief
   ].join('\n')
 
-  let out = ''
-  // Same shape as judge.mjs's guard: `timedOut`, not the thrown error, decides
-  // whether this call gets reported as a timeout — an abort can throw or end
-  // the iterator quietly, and the quiet path must not read as an ordinary
-  // "nothing usable" rewrite.
-  let timedOut = false
-  const controller = new AbortController()
-  const timer = setTimeout(() => { timedOut = true; controller.abort() }, timeoutMs)
-  try {
-    for await (const m of queryFn({
-      prompt: user,
-      options: { systemPrompt: AUTHOR_SYSTEM, model, maxTurns: 3, allowedTools: [], settingSources: [], permissionMode: 'dontAsk', abortController: controller }
-    })) {
-      // Bare concatenation is correct here, unlike run.mjs: allowedTools is
-      // empty, so there is nothing to split the blocks around, and the output is
-      // one markdown document that a separator would corrupt.
-      if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
-    }
-  } catch {
-    if (timedOut) log(`rewrite call timed out after ${timeoutMs}ms`)
-    return '' // caller treats an empty rewrite as "no more ideas" and stops
-  } finally {
-    clearTimeout(timer)
-  }
+  const { out, timedOut, error, timeoutMs } = await timedTextQuery({
+    name: 'improve.rewriteTimeoutSeconds',
+    timeoutSeconds: rewriteTimeoutSeconds,
+    prompt: user,
+    options: { systemPrompt: AUTHOR_SYSTEM, model, maxTurns: 3, allowedTools: [], settingSources: [], permissionMode: 'dontAsk' },
+    // Bare concatenation is correct here, unlike run.mjs: allowedTools is
+    // empty, so there is nothing to split the blocks around, and the output is
+    // one markdown document that a separator would corrupt — see
+    // timedTextQuery, which does the concatenation.
+    queryFn: deps.queryFn
+  })
   // Named even when the call still produced something: `out` can hold a
   // complete body if the timer fired in the gap between the stream ending and
   // this loop resuming, and the caller's own length check (below, at the call
@@ -256,6 +241,7 @@ export async function rewrite ({ style, brief, model, rewriteTimeoutSeconds, log
   // sure a genuine timeout is never silently indistinguishable from "the
   // author had nothing left to say".
   if (timedOut) log(`rewrite call timed out after ${timeoutMs}ms`)
+  if (error) return '' // caller treats an empty rewrite as "no more ideas" and stops
   return out.replace(/^```(?:markdown|md)?\n?/, '').replace(/\n?```\s*$/, '').trim()
 }
 

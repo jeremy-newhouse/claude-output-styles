@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { improveStyle, comparableRows, meanTotal, resolveImproveModels, DEFAULT_IMPROVE_MODELS, rewrite } from '../src/improve.mjs'
+import { throwsOnAbort, quietOnAbort } from './abort-helpers.mjs'
 import { summarize } from '../src/evaluate.mjs'
 import { renderConsole, renderMarkdown, renderVerdict } from '../src/report.mjs'
 
@@ -156,24 +157,9 @@ test('a rewrite that returns nothing stops the loop after the baseline', async (
 // injected queryFn seam, the same way run.test.mjs proves runCell's own
 // guard actually fires.
 
-/** A query that hangs until aborted, then throws — the SDK's usual abort path. */
-const rewriteThrowsOnAbort = async function * ({ options }) {
-  await new Promise((_resolve, reject) => {
-    options.abortController.signal.addEventListener(
-      'abort', () => reject(new Error('This operation was aborted')), { once: true })
-  })
-}
-
-/** A query that hangs until aborted, then ends the iterator with no output at all. */
-const rewriteQuietOnAbort = async function * ({ options }) {
-  await new Promise(resolve => {
-    options.abortController.signal.addEventListener('abort', resolve, { once: true })
-  })
-}
-
 test('a rewrite call that wedges is aborted by its own timeout and reports why', async () => {
   const style = { id: 'demo', body: BODY }
-  for (const [name, queryFn] of [['throw', rewriteThrowsOnAbort], ['quiet', rewriteQuietOnAbort]]) {
+  for (const [name, queryFn] of [['throw', throwsOnAbort], ['quiet', quietOnAbort]]) {
     const logs = []
     const started = Date.now()
     const out = await rewrite({
