@@ -1,10 +1,11 @@
 ---
 id: COS-23
 title: Stop docs/log.md citing SHAs the rebase-merge destroys
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@jeremy.newhouse'
 created_date: '2026-08-17 13:41'
-updated_date: '2026-08-17 14:15'
+updated_date: '2026-08-18 13:19'
 labels: []
 dependencies: []
 references:
