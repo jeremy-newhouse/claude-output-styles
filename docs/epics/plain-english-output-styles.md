@@ -64,11 +64,13 @@ composite is not, because each style carries a different `judgeWeight`.
 Opus and Sonnet judge figures carry a known defect.** They were graded with the
 judge told a 15-word sentence cap the file never stated — the same drift
 `3370e4d` fixed in the rules column, which could be re-graded offline for free
-where the judge could not. COS-4 then rewrote the file. On the shipped text,
-pooled over 35 cells a model, beginner reads **rules 98.5 / 97.4 and judge 73.9 /
-58.1** on Opus and Sonnet. Its Haiku and Fable columns have not been re-measured
-since the rewrite. Read the row as history; `FINDINGS.md` carries the current
-numbers.
+where the judge could not. COS-4 then rewrote the file. On the shipped text, over
+**150 cells a model**, beginner reads **rules 98.9 / 97.4 and judge 66.8 / 60.9**
+on Opus and Sonnet (COS-16, run `19-42-55`). COS-4's own figures for the same
+bytes — 98.5 / 97.4 and 73.9 / 58.1 at 35 cells a model — are superseded on the
+judge halves by that larger arm. Its Haiku and Fable columns have not been
+re-measured since the rewrite. Read the row as history; `FINDINGS.md` carries the
+current numbers.
 
 The four tiers span the whole released range, from the smallest model to the
 largest — and rule compliance holds across all of it, 90.9 to 97.9. Prose quality
