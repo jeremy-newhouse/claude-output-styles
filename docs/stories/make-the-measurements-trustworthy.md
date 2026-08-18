@@ -198,7 +198,7 @@ run spent on nothing.
 | [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |
 | [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | Done |
 | [COS-21](../../backlog/tasks/cos-21%20-%20Re-test-the-variant-sweep-the-reinforcement-ADR-rests-on.md) | Re-test the variant sweep the reinforcement ADR rests on | To Do |
-| [COS-24](../../backlog/tasks/cos-24%20-%20Stop-the-CLI-silently-substituting-defaults-for-malformed-flags.md) | Stop the CLI silently substituting defaults for malformed flags | To Do |
+| [COS-24](../../backlog/tasks/cos-24%20-%20Stop-the-CLI-silently-substituting-defaults-for-malformed-flags.md) | Stop the CLI silently substituting defaults for malformed flags | Done |
 | [COS-22](../../backlog/tasks/cos-22%20-%20Harden-the-fixture-guard-COS-13-added.md) | Harden the fixture guard COS-13 added | Done |
 <!-- lore:tasks:end -->
 

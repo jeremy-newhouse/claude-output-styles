@@ -76,6 +76,7 @@
 - 2026-08-18T09:43:21-05:00 65c27e08e84362461bdd30d02f5d3b02b55ed9d3 Reconcile FINDINGS.md's COS-4 table against the implemented method
 - 2026-08-18T09:43:57-05:00 8af7b50b4e59e4e31a7b14c2572bc2a41efbc211 docs(COS-27): record the merged commit in the generated log
 - 2026-08-18T09:56:30-05:00 bb4a408d178e7c9f2006cc010badf8df8bca5e36 Qualify the reserve-agentic-session difficulty claim against the BUG marker
+- 2026-08-18T09:57:04-05:00 00bacbde0a325cd6a32d8c30fe3aab17458d2320 docs(COS-22): record the merged commit in the generated log
 
 ## docs/adr
 
@@ -219,3 +220,4 @@
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
 - 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
 - 2026-08-18T09:56:30-05:00 bb4a408d178e7c9f2006cc010badf8df8bca5e36 Qualify the reserve-agentic-session difficulty claim against the BUG marker
+- 2026-08-18T09:57:04-05:00 00bacbde0a325cd6a32d8c30fe3aab17458d2320 docs(COS-22): record the merged commit in the generated log
