@@ -59,13 +59,15 @@
     "to pace itself, which a wedged loop will not do. A cell that trips it",
     "comes back with error 'error_timeout' and is excluded from every mean,",
     "the same as any other errored cell.",
-    "It bounds a cell, not a run. The judge call in judge.mjs and the rewrite",
-    "call in improve.mjs take no abortController and no timeout, so a model",
-    "call that stalls on either path still hangs the run. That gap predates",
-    "this guard — maxBudgetUsd never covered them either — and closing it is",
-    "COS-26.",
+    "It bounds a cell, not a run. judgeTimeoutSeconds is the judge call's own",
+    "guard, the same AbortController shape applied in judge.mjs — COS-26 closed",
+    "the gap where that call had none and could hang the run indefinitely after",
+    "the cell it was grading had already finished.",
     "600 is a backstop, not a tuned figure. Every row now records elapsedMs,",
     "so lower it against those durations once a run has produced some.",
+    "judgeTimeoutSeconds at 120 is a backstop too, sized well above any single",
+    "no-tool, maxTurns-3 judge call observed here — lower it the same way, once",
+    "elapsedMs is available for judge calls specifically.",
     "judgeModel is sonnet, and COS-20 measured what that costs. Of the four",
     "tiers it re-judged the same 60 saved replies with, Sonnet is the LEAST",
     "repeatable: judge-call SD 10.17 points against Opus 5.49, Haiku 7.29 and",
@@ -81,7 +83,8 @@
     "maxTurns": 12,
     "maxCellSeconds": 600,
     "judge": true,
-    "judgeModel": "sonnet"
+    "judgeModel": "sonnet",
+    "judgeTimeoutSeconds": 120
   },
   "//improve": [
     "models is this loop's own list and is not the matrix's. Every arm runs",
@@ -96,7 +99,13 @@
     "the loop never selects it, and it is measured once at the end to validate the",
     "candidate the loop wants to adopt. minReserveDelta is deliberately as tight as",
     "minHoldoutDelta even though it sits inside the noise floor — rejecting a sound",
-    "rewrite means a re-run, adopting a bad one ships a regression."
+    "rewrite means a re-run, adopting a bad one ships a regression.",
+    "rewriteTimeoutSeconds bounds the author's rewrite() call in improve.mjs, the",
+    "same AbortController shape run.mjs's cellLimitMs and judge.mjs's",
+    "judgeTimeoutSeconds use — COS-26 closed the gap where this call had no",
+    "ceiling and a stalled author could hang the whole loop. A timeout is",
+    "treated the same as the author returning nothing usable: the iteration",
+    "stops rather than adopting a partial body."
   ],
   "improve": {
     "models": [
@@ -112,6 +121,7 @@
     "reserveSplit": "reserve",
     "minHoldoutDelta": -0.02,
     "minReserveDelta": -0.02,
-    "patience": 2
+    "patience": 2,
+    "rewriteTimeoutSeconds": 120
   }
 }

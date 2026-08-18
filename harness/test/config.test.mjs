@@ -5,7 +5,7 @@ import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CHECKS, VIEWS } from '../src/checks.mjs'
 import { resolveImproveModels } from '../src/improve.mjs'
-import { cellLimitMs } from '../src/run.mjs'
+import { cellLimitMs, secondsToMs } from '../src/run.mjs'
 
 // `src/cli.mjs` reads these three files at startup, before any subcommand runs,
 // so a malformed one breaks `run`, `improve`, `score` and `audit` alike. Nothing
@@ -27,18 +27,30 @@ test('matrix.json parses and carries the axes the CLI reads', () => {
   // The CLI does `matrix.variants.filter(v => variantIds.includes(v.id))`, so
   // duplicate ids would silently run the same variant twice.
   assert.equal(new Set(m.variants.map(v => v.id)).size, m.variants.length, 'variant ids must be unique')
-  for (const key of ['repeats', 'concurrency', 'maxTurns', 'maxCellSeconds']) {
+  for (const key of ['repeats', 'concurrency', 'maxTurns', 'maxCellSeconds', 'judgeTimeoutSeconds']) {
     assert.equal(typeof m.run[key], 'number', `matrix.run.${key} must be a number`)
   }
   // The runaway guard is the one config value whose absence is silent rather
   // than loud: `opts.maxCellSeconds * 1000` on undefined is NaN, setTimeout
   // treats NaN as 0, and every cell would abort instantly. A positive number is
-  // the whole contract.
+  // the whole contract. judgeTimeoutSeconds is the same contract for the judge
+  // call in judge.mjs, which runCell's own guard never covered — COS-26.
   assert.ok(m.run.maxCellSeconds > 0, 'matrix.run.maxCellSeconds must be positive')
+  assert.ok(m.run.judgeTimeoutSeconds > 0, 'matrix.run.judgeTimeoutSeconds must be positive')
   // Asserted against the shipped validator, not a second opinion about it: this
   // is the exact call `cli.mjs` makes at startup, so the config that ships and
   // the check that guards it cannot drift apart.
   assert.equal(cellLimitMs(m.run.maxCellSeconds), m.run.maxCellSeconds * 1000)
+  assert.equal(secondsToMs('run.judgeTimeoutSeconds', m.run.judgeTimeoutSeconds), m.run.judgeTimeoutSeconds * 1000)
+})
+
+test('matrix.improve.rewriteTimeoutSeconds is a positive number the shipped validator accepts', () => {
+  // improve.mjs's rewrite() call has the same silent-NaN failure mode as
+  // maxCellSeconds if this key goes missing — see run.mjs's secondsToMs.
+  const m = readConfig('matrix.json')
+  assert.equal(typeof m.improve.rewriteTimeoutSeconds, 'number', 'matrix.improve.rewriteTimeoutSeconds must be a number')
+  assert.ok(m.improve.rewriteTimeoutSeconds > 0, 'matrix.improve.rewriteTimeoutSeconds must be positive')
+  assert.equal(secondsToMs('improve.rewriteTimeoutSeconds', m.improve.rewriteTimeoutSeconds), m.improve.rewriteTimeoutSeconds * 1000)
 })
 
 test('contracts.json parses, and every contract points at a style file that exists', () => {

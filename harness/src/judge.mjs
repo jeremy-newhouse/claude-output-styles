@@ -4,6 +4,7 @@
 
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import { VIEWS } from './checks.mjs'
+import { secondsToMs } from './run.mjs'
 
 const JUDGE_PROMPT = `You grade one assistant reply against the style guide it was written under.
 Return ONLY a JSON object, no prose, no code fence:
@@ -34,11 +35,17 @@ would change nothing. Quote the offending text in each violation. Max 4.`
 export const JUDGE_VIEW_DEFAULT = 'final'
 
 /**
+ * @param {number} judgeTimeoutSeconds  matrix.run.judgeTimeoutSeconds. Bounds
+ *   the query call the same way maxCellSeconds bounds a cell — see run.mjs's
+ *   cellLimitMs, whose validator (secondsToMs) this reuses. A stalled judge
+ *   used to hang the run indefinitely: runCell's own guard has already
+ *   returned and cleared its timer by the time the judge runs, so nothing was
+ *   left holding a ceiling on this call.
  * @param {object} [deps]  queryFn, injectable so the four substituted-score
- *   paths can be tested without a model call. `runTurn` in run.mjs takes the
- *   same seam for the same reason.
+ *   paths — and the timeout — can be tested without a real model call.
+ *   `runTurn` in run.mjs takes the same seam for the same reason.
  */
-export async function judge ({ views, caseDef, contract, model, styleBody, deps = {} }) {
+export async function judge ({ views, caseDef, contract, model, styleBody, judgeTimeoutSeconds, deps = {} }) {
   const { queryFn = query } = deps
   const on = caseDef.judgeOn ?? JUDGE_VIEW_DEFAULT
   // Throw rather than fall through. An unrecognised view would index `views` as
@@ -75,6 +82,20 @@ export async function judge ({ views, caseDef, contract, model, styleBody, deps 
   ].join('\n')
 
   let out = ''
+  // Validated here, immediately before the only branch that spends it, not at
+  // the top of the function: the two returns above never reach a model call
+  // and must not require a timeout they will not use — see secondsToMs in
+  // run.mjs for why a bad or missing value throws rather than defaulting.
+  const timeoutMs = secondsToMs('run.judgeTimeoutSeconds', judgeTimeoutSeconds)
+  // A stalled judge call has no other ceiling: unlike a cell, it is not inside
+  // runCell's own AbortController, so nothing else in the run would ever stop
+  // it. `timedOut` (not the thrown error) is the authority on why the call
+  // ended — an abort can either throw or end the iterator quietly, and the
+  // quiet path must still be reported as a timeout rather than as unparseable
+  // output.
+  let timedOut = false
+  const controller = new AbortController()
+  const timer = setTimeout(() => { timedOut = true; controller.abort() }, timeoutMs)
   try {
     for await (const m of queryFn({
       prompt: user,
@@ -87,7 +108,8 @@ export async function judge ({ views, caseDef, contract, model, styleBody, deps 
         maxTurns: 3,
         allowedTools: [],
         settingSources: [],
-        permissionMode: 'dontAsk'
+        permissionMode: 'dontAsk',
+        abortController: controller
       }
     })) {
       // Bare concatenation is correct here, unlike run.mjs: allowedTools is
@@ -98,11 +120,21 @@ export async function judge ({ views, caseDef, contract, model, styleBody, deps 
   } catch (err) {
     // A judge failure must never kill a run that took an hour to produce. Score neutral
     // and say so, so the row is visibly untrusted rather than silently wrong.
-    return { score: 0.5, violations: [`judge call failed: ${String(err.message ?? err).slice(0, 120)}`], ok: false }
+    return {
+      score: 0.5,
+      violations: [timedOut ? `judge call timed out after ${timeoutMs}ms` : `judge call failed: ${String(err.message ?? err).slice(0, 120)}`],
+      ok: false
+    }
+  } finally {
+    clearTimeout(timer)
   }
 
   const m = /\{[\s\S]*\}/.exec(out)
-  if (!m) return { score: 0.5, violations: ['judge returned unparseable output'], ok: false }
+  // A timeout that lands after the call already produced a complete, parseable
+  // reply is not reported as one: the race between the timer firing and the
+  // loop finishing naturally is the same one runCell's own cutShort guards
+  // against, and a real score is worth keeping over a few milliseconds.
+  if (!m) return { score: 0.5, violations: [timedOut ? `judge call timed out after ${timeoutMs}ms` : 'judge returned unparseable output'], ok: false }
   try {
     const parsed = JSON.parse(m[0])
     return {
@@ -111,6 +143,6 @@ export async function judge ({ views, caseDef, contract, model, styleBody, deps 
       ok: true
     }
   } catch {
-    return { score: 0.5, violations: ['judge returned invalid JSON'], ok: false }
+    return { score: 0.5, violations: [timedOut ? `judge call timed out after ${timeoutMs}ms` : 'judge returned invalid JSON'], ok: false }
   }
 }

@@ -426,7 +426,7 @@ test('every substituted judge score is marked as one, on all four paths', async 
   const views = { final: 'Fixed it. Tests pass.', trace: 'Fixed it. Tests pass.' }
   const caseDef = { id: 'a', judge: 'is the conclusion first' }
   const said = text => async function * () { yield { type: 'assistant', message: { content: [{ type: 'text', text }] } } }
-  const call = queryFn => judge({ views, caseDef, contract: C, model: 'haiku', deps: { queryFn } })
+  const call = queryFn => judge({ views, caseDef, contract: C, model: 'haiku', judgeTimeoutSeconds: 30, deps: { queryFn } })
 
   const good = await call(said('{"score": 0.8, "violations": ["too long"]}'))
   assert.deepEqual(good, { score: 0.8, violations: ['too long'], ok: true })
@@ -444,6 +444,57 @@ test('every substituted judge score is marked as one, on all four paths', async 
 
   // And the fourth: nothing to grade, so no call was made at all.
   assert.equal((await judge({ views: { final: '', trace: '' }, caseDef, contract: C })).ok, false)
+})
+
+// ---------- judge-call timeout (COS-26) ----------
+//
+// runCell's own AbortController bounds a cell, not the judge call it triggers:
+// judge() used to take no abortController and no timeout at all, so a judge
+// that stalled mid-stream hung the run indefinitely, well after the cell it
+// was grading had already finished. These tests drive a real wedge to a real
+// abort through the injected queryFn seam, the same way run.test.mjs proves
+// runCell's cell-level guard actually fires rather than trusting the source.
+
+/** A query that hangs until aborted, then throws — the SDK's usual abort path. */
+const judgeThrowsOnAbort = async function * ({ options }) {
+  await new Promise((_resolve, reject) => {
+    options.abortController.signal.addEventListener(
+      'abort', () => reject(new Error('This operation was aborted')), { once: true })
+  })
+}
+
+/** A query that hangs until aborted, then ends the iterator with no output at all. */
+const judgeQuietOnAbort = async function * ({ options }) {
+  await new Promise(resolve => {
+    options.abortController.signal.addEventListener('abort', resolve, { once: true })
+  })
+}
+
+test('a judge call that wedges is aborted by its own timeout and reported as one', async () => {
+  const views = { final: 'Fixed it. Tests pass.', trace: 'Fixed it. Tests pass.' }
+  const caseDef = { id: 'a', judge: 'is the conclusion first' }
+
+  for (const [name, queryFn] of [['throw', judgeThrowsOnAbort], ['quiet', judgeQuietOnAbort]]) {
+    const started = Date.now()
+    const result = await judge({ views, caseDef, contract: C, model: 'haiku', judgeTimeoutSeconds: 0.05, deps: { queryFn } })
+    assert.equal(result.ok, false, `${name}: a timed-out call is never a real judgement`)
+    assert.equal(result.score, 0.5, `${name}: substituted neutral, same as any other judge failure`)
+    assert.match(result.violations[0], /judge call timed out/, `${name}: the violation names the timeout, not a generic failure`)
+    // The point of the guard: it returns rather than hanging. Generous bound —
+    // this asserts the timer fired, not how fast the machine is.
+    assert.ok(Date.now() - started < 5000, `${name}: judge returned instead of hanging`)
+  }
+})
+
+test('a missing or unusable judgeTimeoutSeconds throws instead of leaving the call unbounded', async () => {
+  const views = { final: 'Fixed it.', trace: 'Fixed it.' }
+  const caseDef = { id: 'a', judge: 'x' }
+  for (const bad of [undefined, null, 0, -1, 'soon', NaN]) {
+    await assert.rejects(
+      () => judge({ views, caseDef, contract: C, model: 'haiku', judgeTimeoutSeconds: bad }),
+      /run\.judgeTimeoutSeconds must be a positive number/,
+      `judgeTimeoutSeconds=${String(bad)} must be rejected, not left unbounded`)
+  }
 })
 
 test('producedReply separates a cell that said something from one that did not', () => {

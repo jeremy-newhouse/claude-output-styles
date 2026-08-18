@@ -498,19 +498,33 @@ it to pace itself — advisory, and no use against the wedged loop a guard exist
 for. A cell that trips it comes back with `error: "error_timeout"` and is
 excluded from every mean, like any other errored cell.
 
-**It does not bound a run.** The judge call in `judge.mjs` and the rewrite call
-in `improve.mjs` take no `abortController` and no timeout, so either one
-stalling mid-stream hangs the run with nothing to stop it — `runCell`'s guard
-has already returned and cleared its timer by then. That gap predates the guard:
-the `maxBudgetUsd` ceiling it replaced never covered those two calls either. It
-is COS-26, kept as its own issue rather than folded into the change that
-narrowed this wording.
+**It does not bound a run by itself.** The judge call in `judge.mjs` and the
+rewrite call in `improve.mjs` sit outside `runCell` entirely — `runCell`'s guard
+has already returned and cleared its timer by the time either one runs. Each
+carries its own `AbortController` timeout instead: `run.judgeTimeoutSeconds`
+bounds the judge call, `improve.rewriteTimeoutSeconds` bounds the rewrite call,
+both validated the same way `maxCellSeconds` is (`secondsToMs` in `run.mjs`) and
+checked once at CLI startup for the same reason — a config typo should not read
+as an optimizer crash mid-loop. That gap predates all three guards: the
+`maxBudgetUsd` ceiling `maxCellSeconds` replaced never covered the judge or
+rewrite calls either. Closing it was COS-26.
 
-600 is a backstop, not a tuned figure. Every row now carries `elapsedMs`, the
-wall-clock span the guard actually bounds, so the ceiling can be lowered against
-measured durations once a run has produced them. Nothing in the harness recorded
-a cell duration before that field existed, so no earlier figure supports a
-tighter value.
+A judge call that trips its timeout returns the neutral substituted score
+(`0.5`) with a violation naming the timeout, the same landing place any other
+judge failure uses — the cell it was grading survives with an untrusted score
+rather than the run hanging. A rewrite call that trips its timeout is treated
+the same as the author returning nothing usable: the iteration stops rather
+than adopting a partial body, and the log line says which of the two happened.
+
+600 is a backstop, not a tuned figure, for `maxCellSeconds`; 120 is a backstop
+for `judgeTimeoutSeconds` and `rewriteTimeoutSeconds`, sized well above any
+single no-tool, `maxTurns`-3 call observed here. Every row now carries
+`elapsedMs`, the wall-clock span the cell guard actually bounds, so that ceiling
+can be lowered against measured durations once a run has produced them —
+neither judge nor rewrite calls record their own duration yet, so the other two
+have no equivalent evidence to tune against. Nothing in the harness recorded a
+cell duration before `elapsedMs` existed, so no earlier figure supports a
+tighter value there either.
 
 Probe on Haiku to decide whether an experiment is worth running, but do not
 conclude from it — and **re-measure the probe's own baseline before you explain

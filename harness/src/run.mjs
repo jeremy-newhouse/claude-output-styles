@@ -109,12 +109,40 @@ async function runTurn ({ prompt, ws, env, model, opts, resume, controller, quer
 const MAX_TIMER_MS = 2147483647
 
 /**
- * The cell timeout in milliseconds, or a throw naming the bad value.
+ * A config seconds value converted to a setTimeout delay, or a throw naming
+ * the bad value and the key it came from.
  *
- * Validated rather than defaulted. A missing key would otherwise reach
- * setTimeout as NaN, which fires on the next tick — turning the guard into a
- * machine that aborts every cell in the matrix instantly and calls each one a
- * timeout. Failing loudly is the only reading of that state anyone can act on.
+ * Validated rather than defaulted, for every timeout this project runs on a
+ * model call. A missing key would otherwise reach setTimeout as NaN, which
+ * fires on the next tick — turning a guard into a machine that aborts its
+ * target instantly and calls it a timeout. Shared by cellLimitMs below,
+ * judge.mjs's judge-call timeout and improve.mjs's rewrite-call timeout, so a
+ * config mistake fails the same way wherever it is made.
+ *
+ * @param {string} name  the config key, named in the thrown message
+ * @param {*} seconds
+ */
+export function secondsToMs (name, seconds) {
+  const ms = Number(seconds) * 1000
+  if (!Number.isFinite(ms) || ms <= 0) {
+    throw new Error(`${name} must be a positive number — got ${seconds}`)
+  }
+  // The high end fails the same way the low end does, and less obviously.
+  // setTimeout takes a 32-bit signed delay: anything past 2147483647 ms logs a
+  // TimeoutOverflowWarning and is set to 1 ms. Measured — a limit of 999999999
+  // seconds fires after 2 ms. So the one edit an operator would make to "turn
+  // the guard off" produces exactly the runaway this function exists to
+  // prevent: the call aborted on the next tick, labelled a timeout, and a
+  // green run as far as any completeness check can tell. There is no value
+  // here worth accepting silently.
+  if (ms > MAX_TIMER_MS) {
+    throw new Error(`${name} must be at most ${MAX_TIMER_MS / 1000} — got ${seconds}. setTimeout truncates a longer delay to 1ms, which would fire the timeout instantly.`)
+  }
+  return ms
+}
+
+/**
+ * The cell timeout in milliseconds, or a throw naming the bad value.
  *
  * Exported so the CLI can run it once, next to where `opts` is built, instead
  * of leaving the first failure to surface per cell: under `improve` a per-cell
@@ -124,22 +152,7 @@ const MAX_TIMER_MS = 2147483647
  * `runCell` still checks, as the backstop for direct callers such as the tests.
  */
 export function cellLimitMs (maxCellSeconds) {
-  const ms = Number(maxCellSeconds) * 1000
-  if (!Number.isFinite(ms) || ms <= 0) {
-    throw new Error(`maxCellSeconds must be a positive number — got ${maxCellSeconds}`)
-  }
-  // The high end fails the same way the low end does, and less obviously.
-  // setTimeout takes a 32-bit signed delay: anything past 2147483647 ms logs a
-  // TimeoutOverflowWarning and is set to 1 ms. Measured — a limit of 999999999
-  // seconds fires after 2 ms. So the one edit an operator would make to "turn
-  // the guard off" produces exactly the runaway this function exists to
-  // prevent: every cell in the matrix aborted on the next tick, every row
-  // labelled error_timeout, and a green run as far as any completeness check
-  // can tell. There is no value here worth accepting silently.
-  if (ms > MAX_TIMER_MS) {
-    throw new Error(`maxCellSeconds must be at most ${MAX_TIMER_MS / 1000} — got ${maxCellSeconds}. setTimeout truncates a longer delay to 1ms, which would abort every cell instantly.`)
-  }
-  return ms
+  return secondsToMs('maxCellSeconds', maxCellSeconds)
 }
 
 /**

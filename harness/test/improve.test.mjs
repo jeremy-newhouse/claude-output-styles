@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { improveStyle, comparableRows, meanTotal, resolveImproveModels, DEFAULT_IMPROVE_MODELS } from '../src/improve.mjs'
+import { improveStyle, comparableRows, meanTotal, resolveImproveModels, DEFAULT_IMPROVE_MODELS, rewrite } from '../src/improve.mjs'
 import { summarize } from '../src/evaluate.mjs'
 import { renderConsole, renderMarkdown, renderVerdict } from '../src/report.mjs'
 
@@ -145,6 +145,58 @@ test('a rewrite that returns nothing stops the loop after the baseline', async (
     assert.equal(r.rows.length, 2)
     assert.equal(r.cells, 2)
   })
+})
+
+// ---------- author (rewrite) call timeout (COS-26) ----------
+//
+// The loop's own AbortController-per-cell guard (run.mjs's cellLimitMs) never
+// wrapped this call: rewrite() used to take no abortController and no
+// timeout, so an author call that stalled mid-stream hung the whole loop
+// indefinitely. These drive a real wedge to a real abort through the
+// injected queryFn seam, the same way run.test.mjs proves runCell's own
+// guard actually fires.
+
+/** A query that hangs until aborted, then throws — the SDK's usual abort path. */
+const rewriteThrowsOnAbort = async function * ({ options }) {
+  await new Promise((_resolve, reject) => {
+    options.abortController.signal.addEventListener(
+      'abort', () => reject(new Error('This operation was aborted')), { once: true })
+  })
+}
+
+/** A query that hangs until aborted, then ends the iterator with no output at all. */
+const rewriteQuietOnAbort = async function * ({ options }) {
+  await new Promise(resolve => {
+    options.abortController.signal.addEventListener('abort', resolve, { once: true })
+  })
+}
+
+test('a rewrite call that wedges is aborted by its own timeout and reports why', async () => {
+  const style = { id: 'demo', body: BODY }
+  for (const [name, queryFn] of [['throw', rewriteThrowsOnAbort], ['quiet', rewriteQuietOnAbort]]) {
+    const logs = []
+    const started = Date.now()
+    const out = await rewrite({
+      style, brief: 'fix the failures', model: 'haiku', rewriteTimeoutSeconds: 0.05,
+      log: m => logs.push(m), deps: { queryFn }
+    })
+    assert.equal(out, '', `${name}: caller treats an empty rewrite as nothing usable`)
+    assert.ok(logs.some(m => /rewrite call timed out/.test(m)),
+      `${name}: the timeout is named in the log, not left indistinguishable from "the author had nothing left to say"`)
+    // The point of the guard: it returns rather than hanging. Generous bound —
+    // this asserts the timer fired, not how fast the machine is.
+    assert.ok(Date.now() - started < 5000, `${name}: rewrite returned instead of hanging`)
+  }
+})
+
+test('a missing or unusable rewriteTimeoutSeconds throws instead of leaving the call unbounded', async () => {
+  const style = { id: 'demo', body: BODY }
+  for (const bad of [undefined, null, 0, -1, 'soon', NaN]) {
+    await assert.rejects(
+      () => rewrite({ style, brief: 'x', model: 'haiku', rewriteTimeoutSeconds: bad }),
+      /improve\.rewriteTimeoutSeconds must be a positive number/,
+      `rewriteTimeoutSeconds=${String(bad)} must be rejected, not left unbounded`)
+  }
 })
 
 test('a style that throws leaves its measured cells in the shared sink', async () => {
