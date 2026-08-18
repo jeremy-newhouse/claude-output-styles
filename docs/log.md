@@ -73,6 +73,7 @@
 - 2026-08-18T08:16:21-05:00 ea48ed7998d827ee3d75c73dda0c2fffad9625cc docs(campaign): record the campaign-3 log entry the tracker update made
 - 2026-08-18T08:41:26-05:00 126dd9c16b0779c78a19d50cbc7f6705d8c35b9f Close today's open gap in docs/log.md and record the SHA-provenance diagnosis
 - 2026-08-18T08:43:02-05:00 c22a0d49e7bfabdab9d5f99d31f6e2694e033da3 docs(COS-23): record the merged commit in the generated log
+- 2026-08-18T09:43:21-05:00 65c27e08e84362461bdd30d02f5d3b02b55ed9d3 Reconcile FINDINGS.md's COS-4 table against the implemented method
 
 ## docs/adr
 
@@ -135,6 +136,7 @@
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
 - 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
+- 2026-08-18T09:43:21-05:00 65c27e08e84362461bdd30d02f5d3b02b55ed9d3 Reconcile FINDINGS.md's COS-4 table against the implemented method
 
 ## docs/runbooks
 
