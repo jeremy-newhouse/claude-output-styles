@@ -9,6 +9,7 @@ import { loadStyle } from './style.mjs'
 import { renderConsole, renderVerdict } from './report.mjs'
 import { writeResults, writeAtomic, readManifest, describeManifest } from './results.mjs'
 import { USAGE, wantsHelp } from './usage.mjs'
+import { FLAGS, validateFlags, pick, num, matchList } from './args.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const readJson = p => JSON.parse(readFileSync(p, 'utf8'))
@@ -42,71 +43,21 @@ if (wantsHelp(args)) {
   process.exit(0)
 }
 
-// Every flag name that any subcommand reads, and the shape it takes. A flag
-// means the same thing everywhere it appears, so the type table is shared;
-// only which flags a subcommand accepts varies.
-const FLAG_TYPES = {
-  styles: 'list', models: 'list', variants: 'list', cases: 'list', judges: 'list', before: 'list', after: 'list',
-  repeats: 'number', concurrency: 'number', iterations: 'number', 'judge-repeats': 'number',
-  'no-judge': 'boolean',
-  rows: 'value', judgements: 'value', reference: 'value', metric: 'value'
-}
-const FLAGS = {
-  run: ['styles', 'models', 'variants', 'cases', 'repeats', 'concurrency', 'no-judge'],
-  improve: ['styles', 'models', 'variants', 'cases', 'repeats', 'concurrency', 'no-judge', 'iterations'],
-  score: ['rows'],
-  judge: ['rows', 'judgements', 'judges', 'judge-repeats', 'reference', 'styles', 'cases'],
-  audit: ['styles'],
-  interval: ['before', 'after', 'metric']
+// Checked before validateFlags, and by the same table it uses, so a typo'd
+// subcommand is reported as itself instead of surfacing as a confusing flag
+// complaint from code that assumed a subcommand it recognises.
+if (!(cmd in FLAGS)) {
+  console.error(`unknown command "${cmd}"`)
+  console.log(USAGE)
+  process.exitCode = 2
+  process.exit()
 }
 
-// Runs before any config is read or any cell is measured, on every subcommand
-// this table knows: a flag this subcommand does not read, a value-taking flag
-// with no value (`--models`, `--rows`), or a boolean flag given one
-// (`--no-judge=false`) all stop the CLI here, naming the flag, instead of
-// silently substituting `true`/a config default several lines further down.
-// An unrecognised cmd falls through untouched — the final `else` below still
-// reports it.
-function validateFlags (cmd, args) {
-  const allowed = FLAGS[cmd]
-  if (!allowed) return
-  for (const key of Object.keys(args)) {
-    if (key === '_' || key === 'help' || key === 'h') continue
-    if (!allowed.includes(key)) throw new Error(`"${cmd}" does not take --${key} — see --help`)
-    const type = FLAG_TYPES[key]
-    const val = args[key]
-    if (type === 'boolean') {
-      if (val !== true) throw new Error(`--${key} does not take a value (got --${key}=${val})`)
-    } else if (val === true) {
-      throw new Error(`--${key} needs a value`)
-    }
-  }
-}
 validateFlags(cmd, args)
 
 const matrix = readJson(join(ROOT, 'config/matrix.json'))
 const contracts = readJson(join(ROOT, 'config/contracts.json'))
 const allCases = readJson(join(ROOT, 'cases/cases.json'))
-
-const pick = (val, fallback) => val === undefined ? fallback : String(val).split(',').map(s => s.trim()).filter(Boolean)
-
-/** Number(raw), rejecting anything non-finite by name instead of letting it become NaN downstream. */
-function num (key, raw, fallback) {
-  if (raw === undefined) return fallback
-  const n = Number(raw)
-  if (!Number.isFinite(n)) throw new Error(`--${key}=${raw} is not a number`)
-  return n
-}
-
-/** Comma-separated flag values checked against a known id list, naming whatever does not match. */
-function matchList (key, raw, known) {
-  if (raw === undefined) return null
-  const requested = String(raw).split(',').map(s => s.trim()).filter(Boolean)
-  if (!requested.length) throw new Error(`--${key} was passed with no values in it`)
-  const unmatched = requested.filter(id => !known.includes(id))
-  if (unmatched.length) throw new Error(`--${key} matches nothing: ${unmatched.join(', ')}`)
-  return requested
-}
 
 const styleIds = pick(args.styles, matrix.styles)
 
@@ -450,9 +401,4 @@ if (cmd === 'run') {
   const r = pairedInterval(beforeRows, afterRows, { getValue })
   const sign = r.mean >= 0 ? '+' : ''
   console.log(`${metric}: ${sign}${r.mean.toFixed(1)} [${r.lo >= 0 ? '+' : ''}${r.lo.toFixed(1)}, ${r.hi >= 0 ? '+' : ''}${r.hi.toFixed(1)}], t=${r.t.toFixed(2)}, df=${r.df}, n=${r.n} pairs`)
-
-} else {
-  console.error(`unknown command "${cmd}"`)
-  console.log(USAGE)
-  process.exitCode = 2
 }
