@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { CHECKS, VIEWS, scoreDeterministic, sentences, codeBlocks, viewsOf, producedReply, hasTurnText } from '../src/checks.mjs'
 import { splitTurn } from '../src/run.mjs'
 import { judge } from '../src/judge.mjs'
+import { throwsOnAbort, quietOnAbort } from './abort-helpers.mjs'
 
 const C = { maxSentenceWords: 20, maxParagraphSentences: 4, maxUpdateWords: 120, maxCodeLines: 10, level: 'advanced', bannedTerms: [], defaultChecks: ['no_emoji'] }
 
@@ -455,26 +456,11 @@ test('every substituted judge score is marked as one, on all four paths', async 
 // abort through the injected queryFn seam, the same way run.test.mjs proves
 // runCell's cell-level guard actually fires rather than trusting the source.
 
-/** A query that hangs until aborted, then throws — the SDK's usual abort path. */
-const judgeThrowsOnAbort = async function * ({ options }) {
-  await new Promise((_resolve, reject) => {
-    options.abortController.signal.addEventListener(
-      'abort', () => reject(new Error('This operation was aborted')), { once: true })
-  })
-}
-
-/** A query that hangs until aborted, then ends the iterator with no output at all. */
-const judgeQuietOnAbort = async function * ({ options }) {
-  await new Promise(resolve => {
-    options.abortController.signal.addEventListener('abort', resolve, { once: true })
-  })
-}
-
 test('a judge call that wedges is aborted by its own timeout and reported as one', async () => {
   const views = { final: 'Fixed it. Tests pass.', trace: 'Fixed it. Tests pass.' }
   const caseDef = { id: 'a', judge: 'is the conclusion first' }
 
-  for (const [name, queryFn] of [['throw', judgeThrowsOnAbort], ['quiet', judgeQuietOnAbort]]) {
+  for (const [name, queryFn] of [['throw', throwsOnAbort], ['quiet', quietOnAbort]]) {
     const started = Date.now()
     const result = await judge({ views, caseDef, contract: C, model: 'haiku', judgeTimeoutSeconds: 0.05, deps: { queryFn } })
     assert.equal(result.ok, false, `${name}: a timed-out call is never a real judgement`)

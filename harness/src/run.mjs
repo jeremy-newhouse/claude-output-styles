@@ -156,6 +156,55 @@ export function cellLimitMs (maxCellSeconds) {
 }
 
 /**
+ * Run a single no-tool query() call — judge.mjs's judge and improve.mjs's
+ * author are both this shape, one prompt, a handful of turns, no tools — under
+ * its own wall-clock AbortController timeout, and collect the assistant's
+ * text. Neither call sits inside runCell's own guard: that bounds a cell, and
+ * both of these run after the cell it was grading (or the candidate it was
+ * rewriting) has already finished, so nothing else in the run would ever stop
+ * a stall on either path. Shared here rather than duplicated in judge.mjs and
+ * improve.mjs so the abort-race handling below only has to be right once.
+ *
+ * Never throws: a query failure is returned as `error`, not raised, because
+ * both callers substitute their own domain value on failure — a neutral judge
+ * score, an empty rewrite — rather than letting an exception reach their own
+ * caller. `timedOut` (not the presence of `error`) is the authority on
+ * whether THIS call should be reported as a timeout: an abort can either
+ * throw or end the iterator quietly, and the quiet path must still be named a
+ * timeout rather than read as an ordinary empty or unparseable reply. A
+ * timeout that lands after the call already produced a complete reply is not
+ * misreported either way: `out` and `timedOut` are independent, so a caller
+ * can still use a real result that happened to race the timer on its way out.
+ *
+ * @param {string} name  the config key `timeoutSeconds` came from, named in
+ *   the thrown message if it is missing or unusable — see secondsToMs.
+ * @param {number} timeoutSeconds
+ * @param {string} prompt
+ * @param {object} options  passed to queryFn as `{ prompt, options }`; an
+ *   `abortController` is added here, so callers must not set their own.
+ * @param {Function} [queryFn]  defaults to the real SDK `query`, injectable so
+ *   a test can drive a real abort without a model call.
+ * @returns {{out: string, timedOut: boolean, error: string|null, timeoutMs: number}}
+ */
+export async function timedTextQuery ({ name, timeoutSeconds, prompt, options, queryFn = query }) {
+  const timeoutMs = secondsToMs(name, timeoutSeconds)
+  let out = ''
+  let timedOut = false
+  const controller = new AbortController()
+  const timer = setTimeout(() => { timedOut = true; controller.abort() }, timeoutMs)
+  try {
+    for await (const m of queryFn({ prompt, options: { ...options, abortController: controller } })) {
+      if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
+    }
+    return { out, timedOut, error: null, timeoutMs }
+  } catch (err) {
+    return { out, timedOut, error: String(err.message ?? err), timeoutMs }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
  * Run one cell of the matrix: (style x variant x model x case x repeat).
  * Returns the transcript entry that the scorer consumes.
  *

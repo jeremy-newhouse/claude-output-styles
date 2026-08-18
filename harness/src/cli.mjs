@@ -108,8 +108,10 @@ if (cmd === 'run' || cmd === 'improve') cellLimitMs(opts.maxCellSeconds)
 // Same discipline for the judge and rewrite calls, neither of which the guard
 // above covers — COS-26. `judge` (this file's re-judge command) spends judge
 // calls with no cell around them at all, so it is checked here too, not just
-// `run`/`improve`.
-if (cmd === 'run' || cmd === 'improve' || cmd === 'judge') secondsToMs('run.judgeTimeoutSeconds', opts.judgeTimeoutSeconds)
+// `run`/`improve` — except its own `--judgements` form, which re-derives a
+// finished judge run's figures offline and spends no judge call either, the
+// same reason `score` is excluded above.
+if (cmd === 'run' || cmd === 'improve' || (cmd === 'judge' && !args.judgements)) secondsToMs('run.judgeTimeoutSeconds', opts.judgeTimeoutSeconds)
 if (cmd === 'improve') secondsToMs('improve.rewriteTimeoutSeconds', matrix.improve.rewriteTimeoutSeconds)
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-')
