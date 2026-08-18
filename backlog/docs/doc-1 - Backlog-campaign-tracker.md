@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 14:54'
+updated_date: '2026-08-18 15:14'
 ---
 # Backlog campaign tracker
 
@@ -15,9 +15,10 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**ACTIVE CAMPAIGN: 3 (cell-free housekeeping). Next issue: COS-24.** Campaign 2's
+**ACTIVE CAMPAIGN: 3 (cell-free housekeeping). Next issue: COS-26.** Campaign 2's
 cursor (COS-16) is HELD, not resolved and not abandoned — see below. A
-`restore` session should take COS-24 next, in Campaign 3's confirmed order.
+`restore` session should take COS-26 next, in Campaign 3's confirmed order —
+its last item; Campaign 3 empties after it resolves.
 
 **Why the cursor moved off COS-16.** COS-16 needs one more clean measurement
 arm (the E1+E2+E3 candidate's Sonnet half) before it can ship, and that
@@ -52,8 +53,8 @@ active cursor until Campaign 3 empties or the user redirects.
 | 1 | COS-23 | protocol | **Resolved, session 22.** `docs/log.md` cites SHAs `gh pr merge --rebase` destroys — systemic across the campaign. See Resolved. |
 | 2 | COS-27 | measurement/harness | **Resolved, session 23.** FINDINGS.md's paired confidence intervals have no recorded, reproducible method. See Resolved. |
 | 3 | COS-22 | harness | **Resolved, session 24.** Harden the fixture guard COS-13 added — 4 gaps, one already fired unnoticed. See Resolved. |
-| 4 | COS-24 | harness | CLI silently substitutes defaults for malformed flags — 10 ACs, all unit-testable. **The active cursor.** |
-| 5 | COS-26 | harness | Bound the judge/rewrite calls so a stalled grader cannot hang a run. |
+| 4 | COS-24 | harness | **Resolved, session 25.** CLI silently substitutes defaults for malformed flags — 10 ACs. See Resolved. |
+| 5 | COS-26 | harness | Bound the judge/rewrite calls so a stalled grader cannot hang a run. **The active cursor.** |
 
 ## Campaign 2 (held at COS-16)
 
@@ -253,6 +254,7 @@ that omitted `--variants` ran five cells instead of one.
 | 1 | COS-23 | Task Done — 2026-08-18, session 22 | All 5 ACs verified, **no cells run** — every criterion was a reachability/history question. **AC #1**: swept every SHA in `docs/log.md` against `origin/dev` (`git merge-base --is-ancestor`) — 0/77 dead at the branch point. Cross-checked the specific SHAs COS-13 (`acadf1b`, `e71e38c`, `3d2635a`) and COS-14 (`374378a`) had diagnosed as dead: all four are gone from the file's text and unreachable, but each has a live replacement entry under the *same subject line* with a different, currently-reachable SHA (e.g. `374378a`'s "Give improve its own model list instead of run's" now cites `e0bb46e5`). Root cause: `lore sync` regenerates `docs/log.md`'s per-directory sections from a `git log` walk of the *current* HEAD, not an append-only ledger — so a dead pre-rebase SHA a mid-branch sync records self-heals the next time any later session's branch (descended from the merged `dev`) syncs again. The defect is real but strictly bounded to a one-session-cycle window between a PR's rebase-merge and the next docs-touching session's sync, never a permanent injury — confirmed tight: COS-14's own doc-log-recording commit (`2833a95`, rebased to `cb638d4`) is present in today's log, i.e. it self-healed within one cycle. The one gap open today was `ea48ed7` (session 21's own "record the campaign-3 log entry" commit), absent from `docs/log.md` until this session ran `lore sync` — the concrete AC #5 instance: a session whose doc-log commit was absent from the log today, closed by this fix. (COS-14's review-fix commit `b0014af` is correctly absent forever: it touches `harness/` and `README.md`, not `docs/`, and the log is scoped to `docs/` subdirectories by design — not a defect.) **AC #2**: chose "regenerate post-merge" over dropping SHAs or changing the merge strategy — since sync already regenerates the log from live history, the fix is one more `lore sync` call on `dev` right after every PR merge, before the `main` fast-forward, closing the gap in the same session instead of leaving it to the next one. Keeps the SHA provenance the task calls out as reader value, and does not touch the rebase-merge strategy the campaign locked in for linear history. **AC #3**: re-swept all 78 SHAs in the fixed `docs/log.md` against `origin/dev` — 0 dead. **AC #4**: `.claude/skills/backlog-handover/SKILL.md` step 9 now runs `lore sync` on `dev` unconditionally after every merge, commits+pushes if it changes anything, before promoting to `main`. `lore check` exit 0 (24 files, 0 errors, 0 warnings); `npm --prefix harness test` 179/179 (no code touched, so the count is unchanged from session 21's baseline). |
 | 2 | COS-27 | Task Done — 2026-08-18, session 23 | All 3 ACs verified, **no cells run** — traced every published paired figure to its raw saved rows and reverse-engineered the exact computation by testing candidate formulas against them. **AC #1**: implemented `harness/src/interval.mjs` (`pairedInterval` + `tCritical95` + `METRICS`), exposed as `node src/cli.mjs interval --before=<rows> --after=<rows> --metric=rules|words|composite|judge`; 10 new tests including a real-data regression anchored to the reserve-arm rules figure. Suite 179 -> 189, 189/189 pass. **AC #2**: paired by (case, model), repeats averaged, sample-SD (n-1) Student-t interval. Found by testing candidates against the reserve arm (`02-12-24`->`02-16-47`, n=12, no repeat-averaging ambiguity) — the sample-SD formula reproduced the published rules figure (+7.7 [+5.3,+10.1] t=7.06) exactly on the first matching attempt. Extending to the shared-five arm (`02-10-45`->`02-15-14`, n=10) initially failed to reproduce any of its four metrics until the after-side was pooled with `02-25-39` — a later, larger re-run of the same byte-identical text the ledger already names as a noise fix for the judge reading — which then reproduced all four (rules, words, composite, judge) exactly. 7 of 8 published COS-4 table cells now reproduce to the last digit; reserve reply-words did not (-54.7 vs published -55.7, a ~1-word gap with no cause found after checking code blocks and tokenizer drift) and was restated per AC #2's second branch, with the original value and the investigation recorded in FINDINGS.md's footnote. **AC #3**: the CLI command re-derives any published figure from saved rows in one invocation. Updated FINDINGS.md's COS-4 table/footnote and the ledger's `02-16-47` row to match the tool's output; every conclusion (rules moved on reserve, shared-five rules interval still touches zero) is unchanged. `lore check` exit 0 (24 files, 0 errors, 0 warnings); `npm --prefix harness test` 189/189. |
 | 3 | COS-22 | Task Done — 2026-08-18, session 24 | All 5 ACs verified against a review that found 4 gaps in COS-13's `harness/test/fixture.test.mjs` guard plus one docs-accuracy point, each closed with a sabotage-verified regression test proving the specific failure mode is caught. **AC #1**: `verdict()` now requires `skipped===0`, `todo===0` and an actual `pass` count >=2 pulled from the same `ℹ` summary lines, not just the source-derived assertion count — a fixture whose two tests are rewritten to `{ skip: true }` now fails the guard (it read green before: `pass 0`, `fail 0`, `assertions 2`). **AC #2**: the pinned-value scan walks every file under `fixtures/repo` (`readdirSync` recursive) instead of `test/pricing.test.mjs` alone; reintroducing acadf1b's original comment ("keeps 850 where rounding to the nearest cent keeps 849") into `src/pricing.js` now fails the guard, closing the exact leak that shipped green in that commit. **AC #3**: the `npm test` guard now runs the same `verdict()` parsing (not bare `r.status===0`) and asserts `result.error` is undefined; a sabotaged empty `PATH` surfaces `spawnSync npm ENOENT` instead of an opaque empty diff, and a `"test": "true"` no-op script that exits 0 without running anything now fails on `passedCount`. **AC #4**: replaced `.includes()` substring matching with a `\\b850\\b`/`\\b849\\b` word-boundary regex; `8500`, `1850`, `18500` and `$8.50` no longer false-positive. **AC #5**: qualified `docs/stories/make-the-measurements-trustworthy.md`'s `reserve-agentic-session` difficulty claim — `src/pricing.js` still carries a literal `BUG:` comment locatable by one `grep -rn BUG`, deliberate for `agentic-read-report` but meaning the case's remaining difficulty is search, not comprehension; edited outside lore-managed regions, `lore sync` then `lore check` exit 0 (24 files, 0 errors). 5 new tests, one per gap; `npm --prefix harness test` 190 -> 195, 195/195 pass. |
+| 4 | COS-24 | Task Done — 2026-08-18, session 25 | All 10 ACs verified directly against the built CLI, then locked down with 9 new CLI-level tests (`harness/test/usage.test.mjs`, `execFileSync` — nothing imports `cli.mjs`). Widened the shared `pick()`/`parseArgs` path into three validated primitives in `cli.mjs`, all evaluated before any cell is measured: `validateFlags(cmd, args)` — a per-subcommand flag allowlist plus a shared flag-name-to-type table (list/number/boolean/value) — runs immediately after the existing `wantsHelp()` guard and rejects an unrecognised flag (AC #1), a value-taking flag given no value (AC #2, and AC #6 as a side effect since `resolve(args.rows)` is never reached with `args.rows===true`), and a boolean flag given one, e.g. `--no-judge=false` (AC #9); `num(key, raw, fallback)` replaces bare `Number(...)` for `repeats`/`concurrency`/`iterations`/`judge-repeats`, rejecting anything non-finite by name (AC #3, AC #8); `matchList(key, raw, known)` replaces `pick()` for `--variants` and `--cases` specifically (not `--styles`/`--models`, which stay open-ended by design, and not judge's own separate `--cases` filter, out of AC #4's stated scope — that filter now reuses the shared, already-validated result instead of re-parsing), rejecting an unmatched or entirely-empty list by name (AC #4), and retires the `variants[0] ?? matrix.variants[0]` fallback the same AC named. `improve`'s own check is `args.variants !== undefined && variants.length > 1`, not a bare length check: verified live (backgrounded, killed after its first log line) that a bare `improve --styles=plain-english-advanced` still reaches `resolveImproveModels` and starts the baseline measurement rather than throwing — the default (no `--variants` flag, which resolves to every configured variant) is `README.md`'s and `npm run improve`'s documented invocation, and AC #5's own wording ("passing two variants") is about an explicit flag naming more than one (AC #5). Manual live checks incurred one small, unintended real API cost during that last verification (disclosed to the user; the kill landed after, not before, the loop's first measurement log line). `npm --prefix harness test` 195 -> 204, 204/204 pass; no `docs/` change beyond the tracker/task, so no `lore sync` was needed on the branch itself. |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -1429,3 +1431,22 @@ Both remaining issues carry known risk against that policy:
   case's remaining difficulty is search, not comprehension. 5 new
   sabotage-verified regression tests, one per gap, each proving the specific
   failure mode is caught. Suite 190 -> 195.
+- 2026-08-18 — session 25: resolved COS-24 on `feature/COS-24`. No drift at
+  restore: `dev`/`main` both at `da2deb4`, clean apart from the same
+  untracked, unowned `system-prompt.md`, no leftover branches, no open PRs,
+  195/195 baseline. Widened `cli.mjs`'s shared `pick()`/`parseArgs` into
+  validated flag parsing: an unrecognised flag, a value-taking flag with no
+  value, a boolean flag given one, a non-numeric `repeats`/`concurrency`/
+  `iterations`/`judge-repeats`, and an unmatched `--variants`/`--cases` entry
+  now all throw a message naming the flag before any cell is measured, in
+  place of silently becoming `true`/`NaN`/an empty list/a wrong default.
+  `improve` given more than one explicit `--variants` now errors instead of
+  silently using the first; the no-flag default (every configured variant,
+  narrowed to the first) is unchanged on purpose — that is the invocation
+  `README.md` and `npm run improve` document, not the "passing two variants"
+  bug the AC describes, and a bare length check would have broken both. One
+  small, unintended real API cost during manual verification of that default
+  path (a backgrounded `improve` run killed just after its first measurement
+  log line, not before it) — flagged to the user. 9 new CLI-level tests in
+  `harness/test/usage.test.mjs`, one per failure family, `execFileSync`
+  against the built CLI since nothing imports `cli.mjs`. Suite 195 -> 204.

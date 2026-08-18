@@ -42,11 +42,71 @@ if (wantsHelp(args)) {
   process.exit(0)
 }
 
+// Every flag name that any subcommand reads, and the shape it takes. A flag
+// means the same thing everywhere it appears, so the type table is shared;
+// only which flags a subcommand accepts varies.
+const FLAG_TYPES = {
+  styles: 'list', models: 'list', variants: 'list', cases: 'list', judges: 'list', before: 'list', after: 'list',
+  repeats: 'number', concurrency: 'number', iterations: 'number', 'judge-repeats': 'number',
+  'no-judge': 'boolean',
+  rows: 'value', judgements: 'value', reference: 'value', metric: 'value'
+}
+const FLAGS = {
+  run: ['styles', 'models', 'variants', 'cases', 'repeats', 'concurrency', 'no-judge'],
+  improve: ['styles', 'models', 'variants', 'cases', 'repeats', 'concurrency', 'no-judge', 'iterations'],
+  score: ['rows'],
+  judge: ['rows', 'judgements', 'judges', 'judge-repeats', 'reference', 'styles', 'cases'],
+  audit: ['styles'],
+  interval: ['before', 'after', 'metric']
+}
+
+// Runs before any config is read or any cell is measured, on every subcommand
+// this table knows: a flag this subcommand does not read, a value-taking flag
+// with no value (`--models`, `--rows`), or a boolean flag given one
+// (`--no-judge=false`) all stop the CLI here, naming the flag, instead of
+// silently substituting `true`/a config default several lines further down.
+// An unrecognised cmd falls through untouched — the final `else` below still
+// reports it.
+function validateFlags (cmd, args) {
+  const allowed = FLAGS[cmd]
+  if (!allowed) return
+  for (const key of Object.keys(args)) {
+    if (key === '_' || key === 'help' || key === 'h') continue
+    if (!allowed.includes(key)) throw new Error(`"${cmd}" does not take --${key} — see --help`)
+    const type = FLAG_TYPES[key]
+    const val = args[key]
+    if (type === 'boolean') {
+      if (val !== true) throw new Error(`--${key} does not take a value (got --${key}=${val})`)
+    } else if (val === true) {
+      throw new Error(`--${key} needs a value`)
+    }
+  }
+}
+validateFlags(cmd, args)
+
 const matrix = readJson(join(ROOT, 'config/matrix.json'))
 const contracts = readJson(join(ROOT, 'config/contracts.json'))
 const allCases = readJson(join(ROOT, 'cases/cases.json'))
 
 const pick = (val, fallback) => val === undefined ? fallback : String(val).split(',').map(s => s.trim()).filter(Boolean)
+
+/** Number(raw), rejecting anything non-finite by name instead of letting it become NaN downstream. */
+function num (key, raw, fallback) {
+  if (raw === undefined) return fallback
+  const n = Number(raw)
+  if (!Number.isFinite(n)) throw new Error(`--${key}=${raw} is not a number`)
+  return n
+}
+
+/** Comma-separated flag values checked against a known id list, naming whatever does not match. */
+function matchList (key, raw, known) {
+  if (raw === undefined) return null
+  const requested = String(raw).split(',').map(s => s.trim()).filter(Boolean)
+  if (!requested.length) throw new Error(`--${key} was passed with no values in it`)
+  const unmatched = requested.filter(id => !known.includes(id))
+  if (unmatched.length) throw new Error(`--${key} matches nothing: ${unmatched.join(', ')}`)
+  return requested
+}
 
 const styleIds = pick(args.styles, matrix.styles)
 
@@ -67,9 +127,11 @@ if (cmd === 'audit') {
 }
 
 const models = pick(args.models, matrix.models)
-const variantIds = pick(args.variants, matrix.variants.map(v => v.id))
+const knownVariantIds = matrix.variants.map(v => v.id)
+const variantIds = matchList('variants', args.variants, knownVariantIds) ?? knownVariantIds
 const variants = matrix.variants.filter(v => variantIds.includes(v.id))
-const cases = args.cases ? allCases.filter(c => pick(args.cases).includes(c.id)) : allCases
+const requestedCaseIds = matchList('cases', args.cases, allCases.map(c => c.id))
+const cases = requestedCaseIds ? allCases.filter(c => requestedCaseIds.includes(c.id)) : allCases
 
 const styles = styleIds.map(id => {
   const c = contracts[id]
@@ -80,8 +142,8 @@ const styles = styleIds.map(id => {
 
 const opts = {
   ...matrix.run,
-  repeats: Number(args.repeats ?? matrix.run.repeats),
-  concurrency: Number(args.concurrency ?? matrix.run.concurrency),
+  repeats: num('repeats', args.repeats, matrix.run.repeats),
+  concurrency: num('concurrency', args.concurrency, matrix.run.concurrency),
   judge: args['no-judge'] ? false : matrix.run.judge
 }
 
@@ -118,18 +180,27 @@ if (cmd === 'run') {
   console.log(`\nwrote ${outDir}`)
 
 } else if (cmd === 'improve') {
-  const cfg = { ...matrix.improve, maxIterations: Number(args.iterations ?? matrix.improve.maxIterations) }
-  const variant = variants[0] ?? matrix.variants[0]
+  const cfg = { ...matrix.improve, maxIterations: num('iterations', args.iterations, matrix.improve.maxIterations) }
+  // Exactly one variant. `variants` defaults to every configured variant (the
+  // same default `run` iterates over) when --variants is omitted, and improve
+  // deliberately keeps that case's long-standing meaning — the first
+  // configured variant, undisturbed, the way README's bare `improve` and
+  // `npm run improve` already rely on. An explicit --variants naming more
+  // than one is different: that used to fall through to
+  // `variants[0] ?? matrix.variants[0]` and quietly run only the first the
+  // operator listed, which is the silent narrowing this task is about.
+  if (args.variants !== undefined && variants.length > 1) throw new Error(`improve takes exactly one variant; matched ${variants.length} (${variantIds.join(',')}) — pass --variants=<one-id>`)
+  const variant = variants[0]
   mkdirSync(outDir, { recursive: true })
   const log = m => console.error(m)
   // `models` above is run's list, and improve must not draw on it: every arm
   // the loop measures runs across its whole list, so one extra model in
   // matrix.models used to multiply through all sixteen. Resolved here rather
   // than at the shared `pick` above, because `run` must keep seeing matrix.models.
-  // A bare `--models` with no `=` parses to boolean true, which `pick` would turn
-  // into a model named "true"; it carries no models, so it is passed as none.
+  // validateFlags already rejects a bare `--models` (no `=`) before this line
+  // runs, so `models` is never the ["true"] pick() would have produced for it.
   const improveModels = resolveImproveModels({
-    cliModels: args.models === undefined ? undefined : (args.models === true ? [] : models),
+    cliModels: args.models === undefined ? undefined : models,
     cfg,
     log
   })
@@ -287,7 +358,7 @@ if (cmd === 'run') {
   if (!rowsPath) throw new Error('no saved runs found — pass --rows=results/<stamp>/rows.json')
   const rows = readJson(rowsPath)
   const judges = pick(args.judges, [opts.judgeModel])
-  const judgeRepeats = Number(args['judge-repeats'] ?? 3)
+  const judgeRepeats = num('judge-repeats', args['judge-repeats'], 3)
   const reference = args.reference ?? judges[0]
   // Up front, before a single call is paid for. Every agreement figure is
   // measured against the reference, and a reference nobody judges leaves an
@@ -301,7 +372,7 @@ if (cmd === 'run') {
     judges,
     repeats: judgeRepeats,
     styleIds: args.styles ? styleIds : null,
-    caseIds: args.cases ? pick(args.cases) : null
+    caseIds: requestedCaseIds
   })
   console.error(`re-judging ${rowsPath}`)
   console.error(`${eligible.length} of ${rows.length} rows eligible x ${judges.length} judges (${judges.join(', ')}) x ${judgeRepeats} repeats = ${tasks.length} judge calls`)
