@@ -74,6 +74,7 @@
 - 2026-08-18T08:41:26-05:00 126dd9c16b0779c78a19d50cbc7f6705d8c35b9f Close today's open gap in docs/log.md and record the SHA-provenance diagnosis
 - 2026-08-18T08:43:02-05:00 c22a0d49e7bfabdab9d5f99d31f6e2694e033da3 docs(COS-23): record the merged commit in the generated log
 - 2026-08-18T09:43:21-05:00 65c27e08e84362461bdd30d02f5d3b02b55ed9d3 Reconcile FINDINGS.md's COS-4 table against the implemented method
+- 2026-08-18T09:43:57-05:00 8af7b50b4e59e4e31a7b14c2572bc2a41efbc211 docs(COS-27): record the merged commit in the generated log
 
 ## docs/adr
 
