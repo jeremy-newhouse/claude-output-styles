@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@jeremy.newhouse'
 created_date: '2026-08-17 13:41'
-updated_date: '2026-08-18 13:30'
+updated_date: '2026-08-18 13:41'
 labels: []
 dependencies: []
 references:
@@ -104,6 +104,14 @@ local <default>, re-sync the docs log, then promote to main") to add an
 unconditional `lore sync` + commit + push on `dev` right after the PR merge
 and before the `main` fast-forward, with the reasoning inline so a future
 reader does not strip it as redundant.
+
+Review (/code-review high) on the full branch diff found one real, blocking
+issue: SKILL.md's new step 9 committed lore sync's docs/log.md regeneration
+straight to dev with no lore check gate before the commit, unlike step 3's
+explicit "lore check exit 0 if docs/ changed" and the Conventions table's
+own Docs row. Fixed: step 9 now requires lore check exit 0 before the
+commit, matching step 3's convention. Every other angle (reuse, efficiency,
+conventions, cleanup) reported clean.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
