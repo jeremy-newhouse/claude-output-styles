@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 14:13'
-updated_date: '2026-08-18 15:13'
+updated_date: '2026-08-18 15:29'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -151,6 +151,72 @@ Added 9 new CLI-level tests to harness/test/usage.test.mjs (execFileSync
 against the built CLI, per the task's own note that nothing imports cli.mjs),
 one per failure family above, plus the --help-still-wins regression. Full
 suite: 195 -> 204, all passing (`npm --prefix harness test`).
+
+Independent /code-review high pass over the branch diff found 10 issues, 6 real
+and fixed, 4 declined with reasoning:
+
+Fixed:
+1. num() converted an empty-string value (--repeats=, --concurrency=,
+   --iterations=, --judge-repeats=) to 0 via Number(''), passing
+   Number.isFinite. Fixed at the source: validateFlags now rejects
+   val==='' the same as val===true (bare) for every non-boolean flag,
+   uniformly across all commands — so num()/matchList() never see an empty
+   string for a recognised flag. This also fixes --rows=/--judgements=
+   (previously fell through a truthy check to a silent default) and
+   --styles=/--models= (previously silently collapsed to an empty list)
+   for free, since they're the same non-boolean flag class.
+2. FLAGS.judge omitted 'concurrency', a real regression: judge's rejudge()
+   call has always been sized by opts.concurrency (computed unconditionally
+   pre-diff), so a previously-working `judge --concurrency=N` now threw
+   "does not take --concurrency". Added it back to FLAGS.judge.
+3. matchList (variants/cases) ran unconditionally regardless of cmd, so an
+   unrecognised subcommand combined with a bad --variants/--cases value
+   threw a confusing "matches nothing" instead of ever naming the actual
+   typo'd subcommand. Fixed by checking `cmd in FLAGS` immediately after the
+   --help guard and exiting with the existing "unknown command" message
+   before validateFlags/matchList ever run — which also made the trailing
+   `else` unknown-command branch at the end of the if/else-if chain dead
+   code, removed.
+4/5. Collapsed FLAG_TYPES (a 4-way list/number/boolean/value classification
+   that only ever branched on boolean-or-not) into a single BOOLEAN_FLAGS
+   set — removes the parallel-table drift risk and the fake type dimension
+   in one simplification, more directly than a cross-check would have.
+6. matchList reimplemented pick()'s split/trim/filter inline instead of
+   calling it; now delegates to pick(raw, []).
+
+Declined (documented, not silent):
+- --styles=typo still throws later, inside styles.map(), with a different
+  message shape than --variants=typo's immediate matchList throw. This is
+  pre-existing behaviour (not introduced by this task's diff) and AC4
+  explicitly scopes "matches nothing" validation to --variants/--cases only
+  — extending it to --styles would make it throw instead of `audit`'s
+  existing, deliberately non-throwing missing-contract reporting.
+- --models staying open-ended (no matchList validation against a known
+  list) is unchanged — models are free-form SDK ids per matrix.json's own
+  Fable-id example, not a fixed enum.
+- judges (the judge command's --judges list) staying open-ended for the
+  same reason; its empty-string case is now caught by the generic
+  validateFlags fix regardless.
+
+Also extracted FLAGS/BOOLEAN_FLAGS/validateFlags/pick/num/matchList out of
+cli.mjs into a new harness/src/args.mjs, mirroring usage.mjs's own
+established charter ("kept out of cli.mjs so it can be imported and tested
+without executing the CLI") — per review finding that forcing ~16 new
+subprocess spawns to test pure, synchronous validation logic was needless
+overhead once that logic no longer has to live inline. New
+harness/test/args.test.mjs carries the exhaustive per-case unit coverage
+in-process; harness/test/usage.test.mjs keeps a small set of true
+end-to-end execFileSync checks (unrecognised flag, unmatched --variants/
+--cases against live config, improve's multi-variant check — which stays
+in cli.mjs, not extracted — score --rows bare/empty, judge --concurrency,
+the command-typo-ordering fix, and the --help-still-wins regression).
+
+All fixes re-verified live against the built CLI (--repeats=, --styles=,
+judge --concurrency=4, rnu --variants=typo) plus the full suite:
+195 -> 204 (first round) -> 214 (204 minus 2 execFileSync tests consolidated
+into args.test.mjs's unit tests, plus args.test.mjs's 15 and usage.test.mjs's
+net-new command-typo-ordering and judge-concurrency end-to-end tests).
+`npm --prefix harness test` 214/214 green.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
