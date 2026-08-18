@@ -72,6 +72,7 @@
 - 2026-08-18T07:12:42-05:00 0d5309dd69ccf31f2595c6a7e46b1f0045d99e49 docs(COS-16): record the merged COS-16 commit in the generated log
 - 2026-08-18T08:16:21-05:00 ea48ed7998d827ee3d75c73dda0c2fffad9625cc docs(campaign): record the campaign-3 log entry the tracker update made
 - 2026-08-18T08:41:26-05:00 126dd9c16b0779c78a19d50cbc7f6705d8c35b9f Close today's open gap in docs/log.md and record the SHA-provenance diagnosis
+- 2026-08-18T08:43:02-05:00 c22a0d49e7bfabdab9d5f99d31f6e2694e033da3 docs(COS-23): record the merged commit in the generated log
 
 ## docs/adr
 

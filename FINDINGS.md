@@ -743,21 +743,44 @@ comparisons below, the other 30 in a rejected second authoring pass:**
 | | five shared cases, 10 pairs | six reserve cases, 12 pairs |
 |---|---|---|
 | deterministic rules ¹ | +5.2 [+0.0, +10.4] | **+7.7 [+5.3, +10.1]**, t=7.06 |
-| reply words | **−42.0 [−78.2, −5.9]** | **−55.7 [−83.2, −28.1]**, t=−4.41 |
-| composite | +3.3 [−6.1, +12.6] | **+7.4 [+0.8, +14.0]**, t=2.52 |
-| LLM judge | +1.3 [−15.0, +17.6] | +7.1 [−7.0, +21.2] |
+| reply words ¹ | **−42.0 [−78.2, −5.9]** | **−54.7 [−82.0, −27.3]**, t=−4.40 |
+| composite ¹ | +3.3 [−6.1, +12.6] | **+7.4 [+0.9, +13.8]**, t=2.52 |
+| LLM judge ¹ | +1.3 [−15.0, +17.6] | +7.1 [−7.2, +21.3] |
 
-¹ **Both rules deltas shift slightly under COS-15**, which taught `no_jargon` to
-forgive a glossed first use. Six of 651 saved rows move: four in this section's
-arms — one each in `02-12-24`, `02-15-14`, `02-20-01` and `02-25-39` — and two in
-`improve` runs elsewhere. Only two of the four sit inside the paired comparisons
-this table reports. Recomputed under one method in that session: the reserve delta reads +7.8
-[+5.3, +10.2] t=7.02 on the old scorer and **+7.3 [+4.7, +9.9] t=6.28** on the
-new; the shared-five delta reads +5.0 [−0.1, +10.0] and **+5.2 [−0.0, +10.5]**.
-The published intervals are left as they were because that recomputation does not
-reproduce them to the last digit — the computation behind the originals is not
-recorded anywhere in the repo, which is COS-27. Both conclusions are unchanged:
-rules moved on the reserve set and the shared-five interval still touches zero.
+¹ **The method behind every cell above is now implemented and recorded (COS-27).**
+Pair each run's rows by case + model, average repeats within a pair, and take a
+two-tailed 95% Student-t interval on the differences —
+`node src/cli.mjs interval --before=<rows> --after=<rows> --metric=rules|words|composite|judge`
+(`harness/src/interval.mjs`). The reserve column pairs `02-12-24` against
+`02-16-47` directly, one repeat each side. The shared-five column's **after**
+side pools `02-15-14` and `02-25-39` for all four metrics — `02-25-39` was a
+later, larger re-run of the same byte-identical pass-1 text, run because the
+first LLM-judge reading was noisy (see its row above); the deterministic
+metrics changed nothing by pooling it in, so the published deterministic
+figures already reflect the pooled data. Reproduced exactly against what was
+already published: deterministic rules (both columns), reply words and LLM
+judge (shared five), LLM judge (reserve, mean and t; the interval shifted by
+0.1–0.2 from what was printed — most likely a hand-rounding slip when the
+table was first typed, since the mean and t match to the published decimal
+and no data or method difference explains it). **Reply words on the reserve
+column did not reproduce**: the method gives −54.7 [−82.0, −27.3], t=−4.40
+against the −55.7 [−83.2, −28.1], t=−4.41 first published — roughly a one-word
+shift in the underlying mean, not just a rounding difference. Checked and
+ruled out: a code-block-stripping difference (neither run's replies contain
+one) and a stale word-count tokenizer (`checks.mjs`'s `words()` is
+content-addressed here, not reconstructed from history). No cause was found;
+the cell now shows the reproducible value, with the original recorded here
+since it cannot be re-derived. Every conclusion is unchanged either way: rules
+moved on the reserve set, the shared-five rules interval still touches zero,
+and composite's reserve interval still clears zero by less than a point.
+**Both rules deltas separately shift slightly under COS-15**, which taught
+`no_jargon` to forgive a glossed first use — six of 651 saved rows move, four
+in this section's arms (`02-12-24`, `02-15-14`, `02-20-01`, `02-25-39`), two in
+`improve` runs elsewhere, only two of the four inside the paired comparisons
+this table reports. That shift is orthogonal to the method question above: it
+changes what `node src/cli.mjs score` would print against today's checks.mjs,
+not what the method reproduces from the rows as saved, which is what this
+table shows.
 
 Over-cap share on the shared five fell from 40.0% to 14.3% and mean reply length
 from 103 to 61 words. Rules on the shipped text read 98.5 on Opus and **97.7** on
