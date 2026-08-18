@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 13:30'
+updated_date: '2026-08-18 13:33'
 ---
 # Backlog campaign tracker
 
@@ -404,3 +404,987 @@ acceptance criteria a future session can act on without this conversation.
   The finding that produced the decision stands. Per-cell judge SD is 22 to 32,
   so the ten-cell arms every per-model judge figure in this project rests on
   carry 95% intervals about 30 points wide, and beginner on Sonnet read 70.7,
+  65.8, 74.1 and 55.0 across four arms of the same five cases. COS-1's "> 65%"
+  and COS-4's "> 70%" were both written without this being known. **COS-19** now
+  owns re-measuring the headline table at a sample size its claims need, and
+  **COS-20** owns finding out how much of that 24.6 is the judge rather than the
+  reply — if the judge dominates, re-judging saved replies is faster per point
+  of precision than buying cells, and the 146 figure comes down.
+
+- **COS-16** (session 8, new) — the beginner rewrite left five contradictions of
+  the same class it removed: the jargon rules disagree for a word the reader used
+  first, the proof-number rule demands a number that may not exist and is stated
+  three times, two router bullets both match a tool-using report, the router omits
+  two of the file's own six shapes, and the file's worked example of the gloss
+  rule uses a banned term. Recorded rather than fixed because the session had run out of room
+  and shipping unmeasured style text is against COS-1's precedent.
+- **COS-17** (session 8, new) — beginner was rewritten and re-measured on Opus and
+  Sonnet only. Haiku and Fable sit in the middle of COS-7's overrun sequence and
+  are a direct test of whether the fix is a property of the file or of two models.
+- **COS-18** (session 8, new) — nobody has looked for beginner's four structural
+  defects in the other two files. Intermediate is the live suspect: COS-7 measured
+  it at 144 words against a 100-word cap on Opus.
+- **COS-19** (session 8, new) — the four-tier baseline is the project's headline
+  result and twelve of its judge cells are ten-cell arms.
+- **COS-20** (session 8, new) — the judge has never been validated as an
+  instrument. One model, one call per cell, no separation of judge-call variance
+  from reply variance, and no inter-judge agreement measured. Cheap, because saved
+  replies can be re-judged without re-running a cell.
+- **COS-21** (session 8, new) — the *Reject harness-level reinforcement* ADR is
+  Accepted on **five cells per arm**, one style, one model, and style text that no
+  longer ships.
+
+## Risk policy (confirmed by the user on 2026-08-16)
+
+"Record and park." If COS-4 or COS-1 cannot reach its measured judge-score bar,
+the session records every attempt and the scores actually reached in the task
+notes, moves the issue to "Not queued" with that evidence as the reason, advances
+the cursor, and continues. Nothing merges that does not meet its acceptance
+criteria, and no session stalls waiting for a human.
+
+Both remaining issues carry known risk against that policy:
+
+- **COS-4 was taken in session 8 and the risk landed.** It asked beginner's judge
+  score to exceed 70% on Opus and Sonnet. The shipped rewrite reaches 73.9 and
+  58.1 at n=35 a model, so the bar is missed on Sonnet and the task is parked.
+  The prediction recorded here — that achievability was unproven — held, but not
+  for the reason given: the session established that the criterion was **not
+  objectively testable at that arm size**, because a ten-cell judge arm carries a
+  30-point interval. Both hard style tasks were sequenced last on the user's
+  "safety-first" ordering, and both hit a judge bar rather than a content wall.
+
+  **Campaign 2 removes the arm-size objection but not the risk.** The bars stand,
+  the arms get sized to support them, and both issues sit last in the order
+  behind the work that unblocks them. Sonnet at 58.1 is 12 points under the bar
+  and no sample size closes that — only a better style file will, which is what
+  COS-16 and COS-18 are for. If it still misses, record and park again.
+- **No ruling is needed on which models the bars apply to, despite the owning
+  story's looser phrasing.** COS-1's AC #4 and COS-4's AC #1 both name "opus and
+  sonnet" explicitly, so the two tiers added by COS-5 and COS-7 do not move
+  either bar — beginner climbs to 70% from 45.9 and 48.4, not from Haiku's 37.5.
+  The story said "on both models", written when two tiers were measured; COS-7
+  reconciled it to say what the tasks say rather than widening anything.
+- **COS-1** asks multi-tool sessions and open-ended decisions to reach 65%.
+  Session 6 supplies the sharpest evidence yet on the first half: on
+  `agentic-fix-verify` even the top tier scores judge 41.2, and
+  `leads_with_conclusion` 16.7 — worse than any other model on any case. The gap
+  is not a small-model gap.
+
+## Session log
+
+- 2026-08-16 — session 0 (init): inventoried COS-1 through COS-8, all eight
+  classified agent-resolvable. Queue order and risk policy confirmed with the
+  user. Tracker created as doc-1. `.claude/handovers/` gitignored and
+  `archive/handovers/` created during skill adoption (aed40a2). Cursor armed at
+  COS-6.
+- 2026-08-16 — session 1: resolved COS-6 on `feature/COS-6`. No drift found at
+  restore: `dev`, `main`, and both remotes were all level at 80bc691, no leftover
+  branches, no open PRs. Rewrote README.md's Install section and added "How the
+  style name resolves", "Confirm it loaded", and "Going deeper". Facts were
+  lifted from the existing mechanics reference and install runbook rather than
+  re-derived — no probing, no harness run, no cost. `lore sync` was needed after
+  all: moving COS-6's status put the story's managed task block into drift, and
+  `lore check` failed until it was reconciled (it also auto-commits the touched
+  `backlog/` file — expect that commit on the branch). Cursor advanced to COS-3.
+  `/code-review high` raised three issues, all real and all fixed before the PR:
+  a `<PR_SHA>` placeholder committed into this tracker's resolved row; `/config`
+  described as if it set the style globally when it writes a project-scoped
+  `.claude/settings.local.json`; and the README's own level headings using an em
+  dash where the literal style names use an ASCII hyphen — copying a heading
+  would have produced exactly the silent Default fallback the section warns
+  about. Worth carrying forward: reviewing docs against the failure they claim to
+  prevent caught two traps that every automated gate passed.
+  Merged via PR #1 (rebase) as `0631c04`; `dev` and `main` both pushed at that
+  SHA, no branch litter, no open PRs.
+- 2026-08-16 — session 2: resolved COS-3 on `feature/COS-3`. No drift at restore:
+  `dev`, `main`, and both remotes level at 325d2b0, no leftover branches, PR #1
+  merged and pruned. The design question the handover flagged — where improve
+  rows should live — resolved in favour of writing them at
+  `results/<stamp>/rows.json`, the exact path `score`'s `newestRows()` already
+  globs, so `score` needed no change at all to satisfy AC #3. Rows carry an
+  `iteration` tag; reverted iterations are persisted too. `spentUsd` deleted in
+  favour of summing the rows. `improveStyle` gained three optional parameters —
+  `rows` (a caller-supplied sink), `onRows` (flush callback) and `deps`
+  ({ evaluate, rewrite }) — so the persistence could be unit-tested without
+  runs and could survive a crash; 12 new cases in `harness/test/improve.test.mjs`.
+  `/code-review high` found five issues, all real and all fixed before the PR.
+  The serious one is worth carrying forward: writing an improve run's
+  `summary.json` and `report.md` at the same paths and shapes a plain `run` uses
+  made the loop's pooled mean — baseline plus every rejected candidate — look
+  like a style's score, and the first evidence run's report headlined 63.0% for a
+  style whose real measured figure was 65.4/71.6. That is the same class of trap
+  as session 1's: a number that every automated gate passes and only a reader
+  catches. Fixed by labelling rather than by hiding the file. Also found: a
+  by-iteration table that averaged two styles' traces together, no cell count recorded
+  for a style that crashed, and rows flushed only between styles. Two smaller
+  lessons: the `npm test` script named `checks.test.mjs` explicitly and would
+  have silently skipped the new file (now globs `test/*.test.mjs`), and three
+  docs asserted "improve persists no rows" as standing fact — found by grepping
+  the docs for what the change made false, not by any gate. Left for the user to
+  rule on: a pre-existing comment/code disagreement at `harness/src/improve.mjs`
+  about whether a reverted iteration briefs from the failed attempt or the
+  incumbent — the code does the latter, the comment claims the former. Total
+  Three proving runs this session. Merged via PR #2 (rebase) as
+  `1daff4d`; `dev` and `main` both pushed at that SHA, no branch litter, no open
+  PRs. Cursor advanced to COS-2.
+- 2026-08-16 — session 3: resolved COS-2 on `feature/COS-2`. No drift at restore: `dev`, `main` and both remotes level at cdfd153, no leftover branches, PR #1/#2/#3 all merged and pruned.
+
+  The design call the handover flagged — where the reserve cases come from — went against the handover's own suggestion. It proposed reusing the four cases from the historical never-seen run, but those four are now IN train and holdout, so moving them would have cut train 5 -> 3 and holdout 4 -> 2 and shrunk the signal the loop depends on. Wrote four NEW cases instead, chosen as shapes no split contains, because the ADR's finding is that candidates overfit to case SHAPE rather than wording. Pool is 13 (5/4/4).
+
+  Two decisions worth carrying forward. First, a reserve rejection is a ROLLBACK, not an annotation: `best.md` is documented as the winner and is the file a reader diffs and copies, so on rejection it holds the incumbent and the rejected rewrite stays at `v<N>.md`. Second, the verdict line was extracted from `cli.mjs` into `report.mjs` as `renderVerdict()` — AC #3 says a regressing candidate must be REPORTED as rejected, and leaving that in a `console.log` would have made the criterion unverifiable except by eye.
+
+  The evidence took six runs because adoption is stochastic: the reserve pass only fires when the loop actually keeps a rewrite, and three of the six runs reverted everything. That is worth knowing before scoping a session that needs an adopting run — expect roughly one in two, and prefer a low-scoring style with headroom.
+
+  `/code-review high` found six issues, all real. The one worth remembering is the config footgun: `cfg.minReserveDelta` had no fallback, so a `matrix.json` naming a reserve split but omitting the threshold would evaluate `delta >= undefined` — false for every candidate — and silently roll back every run while logging an ordinary-looking REJECT. Also found: a new case whose judge rewarded exactly what one of its own deterministic checks scored 0 for (`leads_with_conclusion` vs a compliance reply opening "I'll…"), and README advice to compare splits in `BY SPLIT`, which on an improve run pools every iteration and so compares different version mixes. The sixth is COS-9: `two_options_max` counts only literal option labels, so it cannot see prose option sprawl — fixing it moves scores already quoted in `docs/` and `FINDINGS.md`, so it is its own task rather than scope creep here.
+
+  Caught before the review returned, by re-reading my own runbook edit: the rejection example printed the rejected candidate's train and holdout on the REJECTED headline, when the code rolls `best` back before rendering and so prints v0's. Third session running that the only defect no automated gate caught was a plausible number in prose. Merged via PR #4 (rebase) as `2d4bcb4`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. Cursor advanced to COS-8.
+- 2026-08-16 — session 4: resolved COS-8 on `feature/COS-8`. No drift at restore: `dev`, `main` and both remotes level at c2c83b2, no leftover branches, PRs #1-#4 merged and pruned.
+
+  Took AC #4 first because it was free and unambiguous. `harness/src/contract-audit.mjs` parses each style file's stated caps out of its own prose and compares them against `contracts.json`; `node src/cli.mjs audit` exits 1 on disagreement and the same comparison runs under `npm test` (suite 34 -> 45). The design decision that matters: an unrecognised phrasing reports as UNSTATED rather than being skipped, and a second test asserts every style states every field, so the guard cannot quietly shrink from four fields to three when someone rewords a style file. Proved by re-creating the exact divergence that shipped.
+
+  The caps question went the opposite way from the small-sample evidence, and that is the lesson. An 8-cell Haiku probe said stating a 12-word cap works: mean sentence 16.6 -> 12.3 words, over-cap 30% -> 11%, reply length flat, judge up. The user ratified tightening on it. The 24-cell paired validation on opus and sonnet then measured **+0.26 words, 95% CI [-0.77, +1.29]**, 6 of 12 pairs shorter and 6 longer, judge 0.557 -> 0.532, reply length up 105 -> 114. Reverted. The mechanism is clean and now documented in three places: a cap only bites where it binds — Haiku writes 16.6-word sentences and felt a 12-word cap, opus and sonnet already write 11-12 and had nothing to pull against. **Probe the small model to learn whether an instruction CAN bind; measure the target models before believing it DOES.** The Haiku effect sits 9.8 standard errors outside the opus/sonnet interval.
+
+  Two process notes worth carrying. First, the question put to the user carried its own revert condition ("validate on both models and only keep it if it holds up"), so reverting after a failed validation executed their decision rather than overriding it — no second round trip. Second, the paired design mattered more than sample size: registering the pre-change file as a temporary contract entry and running old and new in the SAME run removed model, case and date as confounds, which is what made 24 cells enough to exclude the effect the probe had predicted.
+
+  Also settled for free: paragraph caps are inert at every level (1.4-1.8 sentences against a cap of 4; re-scoring the same replies at cap 3 moves the check by 0.000-0.017), so there was never a differentiation to be had there. And the finding that actually matters for COS-4, recorded in the story: the binding constraint at the lower levels is reply length, not sentence length — beginner averages 119 words against its stated 80 with half its replies over, and where the two can be told apart the judge tracks reply length at -0.647 against sentence length's -0.368.
+
+  Raised but not done, needs the user's call: `sentences()` in `checks.mjs` does not split on a single newline, so a list header ending in ':' merges with its first item — 9 of 74 over-cap sentences (12.2%), worth 1.2-1.6 points of over-20w rate. Too small to change any conclusion here, but fixing it moves numbers already published in `docs/` and `FINDINGS.md`, which is the COS-9 shape. Merged via PR #5 (rebase) as `ac1a161`; `dev` and `main` both pushed at that SHA, no branch litter, no open PRs. Cursor advanced to COS-5.
+- 2026-08-16 — session 5: resolved COS-5 on `feature/COS-5`. No drift at restore:
+  `dev`, `main` and both remotes level at 092f3b4, clean tree, no leftover
+  branches, no open PRs — the handover matched reality exactly.
+  The re-run question the handover flagged (re-run opus/sonnet on the full pool,
+  a full re-run, or state the case-count difference) was answered a third way: slice the
+  new haiku rows to the five case ids the old run used, after proving in git that
+  the case definitions, style files, `checks.mjs` and `contracts.json` are all
+  unchanged between the runs. That makes the table like-for-like on cases rather
+  than merely captioned, costs nothing, and leaves the run/date difference as the
+  only stated caveat. Re-scoring `12-44-03` offline first — free — reproduced all
+  twelve published figures exactly, which is what made reuse defensible.
+  **Two findings, one of them a correction to published work.** The measured
+  Haiku failure mode is turn-limit exhaustion on fix-then-test cases, which
+  forced a distinction the two-model data never needed: a cell that never
+  answered is not a badly-styled cell, and pooling the two hid a ~10-point effect.
+  The larger one is that this run refuted the hypothesis the handover handed it.
+  Session 4's 8-cell probe reported Haiku at 16.6-word sentences and the project
+  built its central "a cap only bites where it binds" explanation on that number.
+  Haiku's actual baseline, at 6x the sample on an identical configuration, is
+  12.1–12.2 words, and its *untightened* over-12 share (38.4–43.0%) contains the
+  40.5% the probe credited to the tightened file. COS-8's decision survives —
+  reverting was right, and for a simpler reason than it recorded: no model in the
+  matrix sat far enough above the cap for it to have obvious room to work. The
+  ledger, the audience-level spec and `harness/README.md` were corrected rather
+  than deleted, both samples shown.
+  Carry forward: **the free check was available at the time and nobody ran it.**
+  Re-measuring a probe's own baseline from saved rows costs nothing, and it is
+  the check that would have caught this before it reached four documents.
+  `/code-review high` raised 10 findings, all real. The critical one was mine and
+  is the sharpest lesson of the session: my analysis script measured sentence
+  length with a plain `split(/\s+/)` instead of `checks.mjs`'s `words()`, which
+  drops non-alphanumeric tokens. Every hand-computed sentence figure was inflated,
+  and on the strength of that bug I had written into the ledger that session 4's
+  "over-cap 30% → 11%" did not reproduce. It does, exactly. **A correction is a
+  claim too, and needs the same verification as the thing it corrects — computed
+  with the project's own instrument, not a convenient re-implementation of it.**
+  The refutation itself survived recomputation unchanged. Four other findings were
+  documents left contradicting the new result (the story's own Goal, the ADR, the
+  harness README, the epic snapshot) and one was an argument that dismissed a
+  4-cell arm as noise while trusting its 4-cell twin. The `run --help` footgun
+  this session hit was fixed, not merely recorded: `src/usage.mjs` now
+  short-circuits any help-shaped argv before config is read, an unknown command
+  exits 2, and 6 tests cover it — one of which shells out and asserts that
+  `run --help` creates no results directory. Suite 47 → 52. Writing that test
+  found a second hole: `parseArgs` only recognises `--` flags, so `-h` would have
+  fallen through to a full run.
+  Left for the user to schedule: `run` still writes `rows.json` only after the
+  entire matrix finishes, so a killed run loses every measured cell — `improve`
+  flushes per style. That is a change to run semantics, not a guard, so it was
+  not taken as scope here.
+  Merged via PR #6 (rebase) as `14d72ea`; `dev` and `main` both pushed at that
+  SHA, no branch litter, no open PRs.
+- 2026-08-16 — session 6: resolved COS-7 on `feature/COS-7`. No drift at restore:
+  `dev`, `main` and both remotes level at 82d32e5, clean tree, no leftover
+  branches, PRs #1–#6 all merged and pruned — the handover matched reality
+  exactly, for the second session running.
+
+  **The campaign's largest session, and the one where scoping
+  paid off.** The handover's core advice — run Fable on the five shared case
+  ids so the result drops into the existing table with no slicing — was followed
+  and was right. The alternative, the full 13-case pool, is a much heavier run —
+  12 of its 78 cells are write-then-verify, the largest kind — and would have
+  produced a second, non-comparable table. (This line originally read "runs an
+  order of magnitude more tokens on Fable than on Haiku". That was the per-cell
+  cost table read as a token span, which does not hold once per-tier prices are
+  accounted for; session 16 corrected it here, in `FINDINGS.md` and in the
+  measurement-coverage story.) Reuse of the other three columns was re-verified rather than assumed, as
+  the handover insisted: the five case definitions are byte-identical across five
+  SHAs, `checks.mjs` and all three style files are byte-identical 444b221→HEAD,
+  and `contracts.json` *did* change once after `12-44-03` — which the offline
+  re-score settled by reproducing all twelve published figures exactly. That
+  contracts change is worth noting: the precondition check was not a formality
+  this time, it actually found a difference and then disposed of it.
+
+  **Both open questions closed, one against expectation.** Word-cap overrun does
+  not track model tier. The two-model data made Opus look like the verbose end of
+  a gradient; the four-tier data turns twice (Sonnet 0.961, Haiku 1.088, Fable
+  1.229, Opus 1.300 words ÷ cap), and paired over 15 cells the *smallest* model
+  overruns significantly more than the second smallest while the *top two* are
+  indistinguishable. Sonnet is the outlier that keeps to the cap. And the
+  one-file decision holds at the top of the range, which completes it for four
+  tiers of four across a tenfold cost spread.
+
+  Two things worth carrying forward beyond the ACs. First, **the top tier's
+  agentic result is the strongest evidence in the project that the opening
+  narration failure is a Claude Code habit, not a model limitation** — Fable
+  finishes `agentic-fix-verify` 6 times out of 6 where Haiku fails 5 of 6, and
+  scores `leads_with_conclusion` 16.7 doing it, worse than any other model on any
+  case. Capability removed the aborts and made the style compliance worse.
+  Second, **reading the transcripts is still what finds the defects.** The
+  text-block seam (`text += b.text` with no separator, so pre-tool narration
+  fuses to the post-tool answer) was invisible to every gate and was found by
+  looking at why `paragraph_length` read 16.7. It was bounded before anything was
+  published — 0 of 131 conversational cells, most agentic ones — and no affected
+  figure was quoted anywhere. Raised, not patched, because fixing it moves
+  agentic numbers already in `docs/` and `FINDINGS.md`.
+
+  One self-inflicted cost, recorded because the project documents footguns: the
+  model-id probe named `--models`, `--styles`, `--cases` and `--repeats` but not
+  `--variants`, so it ran five variants instead of one — five cells instead of one.
+  Every axis left unnamed takes its full default. It did buy the variant pricing
+  on the top tier (long-prompt is 3.9× baseline), now in `harness/README.md`.
+  Also deliberate: Fable was **not** added to `matrix.json`'s `models`, because
+  that list is `improve`'s default too and the largest tier would then run
+  on every optimizer iteration — the same shape as the `run --help` footgun COS-5
+  fixed.
+
+  **The review earned its keep, and the lesson is new.** Five previous sessions
+  found prose numbers that were wrong. This one's worst finding was a number that
+  was *right* and an inference on top of it that was not: six paired comparisons
+  on the same 15 units, three bolded significant, no multiplicity adjustment —
+  and the units were 3 styles x the SAME 5 cases, so they were not independent
+  either. Under Bonferroni only one of the three survives. The fix was to stop
+  leaning on inference at all: a tier gradient predicts each step up the range
+  overruns more than the step below, and two of the three adjacent steps go the
+  wrong way. That is a fact about the means, and no sample size argument touches
+  it. **Re-deriving a number is not the same as checking the claim built on it.**
+
+  Also worth carrying: the review caught a gate claim that was false — the notes
+  said `matrix.json`'s parse was covered by the existing suite, and nothing loads
+  that file. Fixed rather than reworded (`harness/test/config.test.mjs`, suite
+  52 → 56, proved by breaking the JSON and watching `npm test` go red). And it
+  found that the four-tier table cannot be reproduced from `12-44-03`'s stored
+  `rulesScore`, which predates 3370e4d; only re-scoring gives the published
+  figures. That dependency is now stated beside the table, because the reviewer
+  nearly filed it as a discrepancy.
+
+  Merged via PR #7 (rebase) as `0747cc8`; `dev` and `main` both pushed at
+  that SHA, no branch litter, no open PRs. Cursor advanced to COS-1, the
+  first of the two hard style tasks.
+- 2026-08-17 — session 7: took COS-1 on `feature/COS-1`. No drift at restore:
+  `dev`, `main` and both remotes level at e48a48d, clean tree, no leftover
+  branches, no open PRs. **The bar was not met and the issue is parked, not
+  resolved** — the campaign's first negative result. ACs #1-#3 shipped: all three
+  style files gained "Reporting a long/multi-tool session" and "When neither
+  option is clearly better", and two cases were added on the `reserve` split
+  (`reserve-agentic-session`, `reserve-decision-tie`) following COS-2's precedent
+  of writing new cases rather than moving existing ones. Five real runs,
+  The session's durable output is two instrument
+  findings rather than a score: the text-block seam reaches the **judge**, and an
+  errored cell scores 0 on rules but 1.0 on the judge. Both are in the ledger,
+  `harness/README.md` and the raised list. Also closed a parse-guard gap of
+  exactly the kind session 6's review found in `matrix.json`, one file over:
+  `cases/cases.json` was read at CLI startup with nothing asserting it parsed.
+  Suite 56 → **64**, and all five new case guards were proved to fire by breaking
+  the file on purpose. The branch review returned 11 findings and every one was
+  real: four wrong numbers in my own prose (all from counting words without
+  `stripCode`, so the published over-cap range excluded the shipped arm), one
+  withdrawn claim, and — the serious one — **a regression I introduced**, putting
+  an abort-prone agentic case inside `improve`'s adoption gate while the diff
+  documented that same error bias in three places and left the code alone. Fixed
+  in the gate with six new tests, after `01-33-41` measured the case aborting
+  3 of 6 on Haiku. `audit` exit 0; `lore check` exit 0. Six real runs. Merged via PR #8 (rebase) as `1c35697`; `dev` and `main` both
+  pushed at that SHA, no branch litter, no open PRs. Cursor advanced to COS-4.
+- 2026-08-17 — session 8: took COS-4, the last item in the confirmed order, on
+  `feature/COS-4`. No drift at restore: `dev`, `main` and both remotes level at
+  f792b32, no leftover branches, PRs #1-#8 all merged and pruned. **ACs #2 and #3
+  met and merged; AC #1 missed and parked**, so the task returned to To Do
+  unassigned. Six real arms, 144 cells, 0 errored cells.
+
+  The session began by refusing the task's own baseline. 45.9 / 48.4 failed two
+  independent checks — it predates COS-1's additions to the file, and its judge
+  was told a 15-word sentence cap no style file states, cited by name in 13 of
+  that run's 64 beginner violations. `3370e4d` had re-graded the rules offline
+  and could not re-grade the judge. A clean before arm read 58.7 / 70.7.
+
+  The diagnosis was contradiction, not omission: an 80-word cap scoped to
+  status updates while the harness applied it to every reply, unbounded demands
+  for analogies and for explaining what a thing is, "skip all internal details"
+  quoted as a violation against the evidence beat 2 requires, and no statement
+  anywhere of which shape a reply should take — 8 of 24 judge violations on the
+  weakest cases demanded the three status beats on replies that are not status
+  updates. Fixing those moved rules +5.2 / +7.7 and reply words −42.0 / −55.7 on
+  two disjoint case sets, took over-cap share 40.0% → 14.3%, and left the judge
+  at +1.3 [−15.0, +17.6]. First change in the project to move reply length.
+
+  Two things this session got wrong and corrected itself. A second authoring pass
+  was measured and reverted in full — statistically identical to the first, and it
+  introduced a false premise on a tool-using case. And the session's own first
+  conclusion, a +7.1 judge gain agreeing across two case sets, did not survive a
+  50-cell confirmation arm on byte-identical text: at seven cells per pair the
+  same delta is +1.3. Sonnet read 70.7, 65.8, 74.1 and 55.0 across four arms of
+  the same five cases. That is now the ledger's judge noise floor, and it is the
+  most reusable thing the session produced.
+
+  Merged via PR #9 (rebase) as `31433b8`; `dev` and `main` both pushed at that
+  SHA, no branch litter, no open PRs.
+
+  Review: `/code-review high` raised 11 findings. Ten were real and fixed in
+  `ff4ec99` — eight wrong published figures, including a "128 cells" that appears
+  nowhere in the data, a per-cell figure taken from the smallest arm, and a
+  sample-size claim that confused precision with a score. The central one was a
+  miscount: "8 of 24 violations" was eyeballed rather than computed, and counting
+  it gives 10 of 40. The eleventh finding's counter-claim was drawn from the
+  superseded run this very task exists to stop quoting, so it was recorded rather
+  than applied. Five defects in the shipped style text are recorded in the task
+  rather than fixed: the session had run out of room and shipping unmeasured text is what
+  COS-1's precedent forbids.
+- 2026-08-17 — after session 8, on the user's instruction "we have to get
+  everything tested - no budget": opened twelve follow-up issues (COS-10 through
+  COS-21) covering every defect and untested claim the campaign recorded but did
+  not act on, and wired COS-1 and COS-4 to them as dependencies. The arm-size
+  question the tracker had been holding for the user is settled — bars stand,
+  arms get sized to support them, and every measurement issue requires n >= 146
+  non-errored cells per model. Three of the twelve are new findings rather than
+  carried-forward ones: the judge has never been validated as an instrument
+  (COS-20), the *Reject harness-level reinforcement* ADR is Accepted on five
+  cells per arm (COS-21), and nobody has checked the other two style files for
+  the defects the beginner rewrite found (COS-18).
+- 2026-08-17 — campaign 2 armed (`/backlog-handover init`). Inventoried all 15
+  open issues; every one classified agent-resolvable, because every acceptance
+  criterion is checkable by a test, a command, or a measured run, and none needs
+  a human present. Nothing went to "Not queued": COS-1 and COS-4 were parked in
+  campaign 1 on blockers that now have owners and on an arm-size objection the user
+  has removed, so they queue last rather than sitting out.
+
+  The user was offered two orders and chose the longer one — tools first, then
+  the whole sweep, over a seven-session path straight to the two missed bars —
+  and separately chose to keep COS-17 as its own session rather than folding it
+  into COS-19. Both choices are recorded verbatim in the Cursor section.
+
+  No cells run this session. Cursor armed at COS-12, which is first precisely because
+  it is insurance: `run` currently writes `rows.json` only after the whole matrix
+  completes, and campaign 2's arms are an order of magnitude larger than anything
+  run so far.
+
+- 2026-08-17 — session 9: resolved COS-12 on `feature/COS-12`, campaign 2's first
+  issue. Restore found no drift that mattered: `dev`, `main` and both remotes
+  level at `9f54140`, tree clean, no leftover branches, no open PRs. The
+  handover was grounded two commits earlier at `7c269a1`; the gap is init's own
+  arming commits, which is why the drift is benign.
+
+  `run` now re-writes its whole results directory after every completed cell.
+  The design question was where completeness should live, and the answer was
+  *not* inside `rows.json`: every run in the ledger is a bare array and every
+  offline re-derivation reads it as one, so wrapping it would have broken
+  `score --rows=` on the project's entire history. A sibling `run.json` carries
+  `{kind, stamp, complete, completed, expected, costUsd}` instead. New
+  `harness/src/results.mjs` writes all four files through a temp file and
+  `rename(2)`, manifest last so it can only ever undercount what is on disk.
+  `improve` was moved onto the same writer, which is where the one real bug of
+  the session surfaced: `improveStyle` calls `onRows(rows)` and the new flush's
+  first parameter is the completeness flag, so passing `flush` bare would have
+  stamped every mid-loop flush `complete: true`.
+
+  AC #4 is the one that carried the rest — a real 4-cell run SIGKILLed
+  after two cells, both survivors fully scored, `score` re-reading them at exit
+  0 behind `PARTIAL run — 2 cells of 4 expected (2 never ran)`. Across
+  three runs, the third an `improve` loop run only because nothing else
+  exercises that branch and this change moved it onto the shared writer. Re-scoring `12-44-03` still returned 81.0%, so nothing
+  published moved. `npm test` 64 → 77; `audit` exit 0; `lore check` exit 0.
+
+  Two pieces of stale prose were fixed rather than left: `usage.mjs`'s
+  `wantsHelp` comment stated the old once-at-the-end behaviour as a present
+  fact, and the ledger's COS-5 caveat still said the CLI treats `run --help` as
+  `run` when COS-5 itself added the guard. Also found while updating the
+  ledger's own total: its 26 rows did not sum to the stated figure — a rounding
+  artifact, now stated rather than silently reconciled.
+
+  `/code-review high` earned its place twice over. Two of its four findings are
+  hazards this change *created*: a partial `report.md` had never been possible
+  before, and a bare `score` had never been able to resolve to a partial run.
+  Both passed every automated gate. The other two are the change failing to
+  apply its own stated invariants to `improve` — `complete: true` over three
+  crashed styles, and `improve.json` written after the manifest the module
+  documents as going last. Worth carrying forward: when a change makes a new
+  state representable, ask which existing readers have never had to consider it.
+
+  Merged via PR #10 (rebase) as `b735501`; `dev` and `main` both pushed at
+  that SHA, remote and local `feature/COS-12` pruned, no open PRs. Cursor
+  advanced to COS-10.
+
+- 2026-08-17 — session 10: resolved COS-10 on `feature/COS-10`. No drift at
+  restore: `dev`, `main` and both remotes level at `f6c098f`, tree clean, no
+  leftover branches, PR #10 merged and pruned, cursor and handover agreed.
+
+  The seam is fixed and the fix is deliberately not retroactive. `runTurn` keeps
+  the assistant's blocks in order; `splitTurn` derives `trace` (all text blocks,
+  blank-line joined) and `final` (the blocks after the last tool call). The
+  fallback matters more than it looks: when a turn ends ON a tool call there is
+  no post-tool block, and returning `''` would score 1.0 on every "no X found"
+  check while returning the trace would re-glue exactly what the split exists to
+  separate — so it returns the last thing the model actually said.
+
+  **The design question was which string each rubric asks about, and the answer
+  came from the rubrics rather than from taste.** Three of the four agentic case
+  rubrics say "the final message ... in style"; `agentic-read-report` says "no
+  narration of the search process", which needs the narration present. So checks
+  that measure how the answer is written read `final`, rules the style states as
+  outright bans (narration, celebration, emoji) read `trace`, and the judge reads
+  whatever its case declares in `judgeOn`. Both choices are recorded on the saved
+  row (`checks[].reads`, `judgeReads`), so a figure lifted out of `rows.json`
+  carries the string that produced it. Two tests enforce the declarations.
+
+  **AC #1 was bought, not argued.** A 2-cell Opus/Sonnet run on
+  `agentic-fix-verify` caught the exact sentence this project has quoted
+  since session 6 — *"I'll look at the file first."* — in a row that now holds it
+  in `trace` and not in `text`. Segmented three ways: the glued string reads one
+  22-word opening sentence, over beginner's 20-word cap; `final` reads it at 17,
+  under it; `trace` reads the narration as its own 6-word sentence. A check
+  changes answer on a real cell, which is the defect in one line. A prior 1-cell
+  Haiku run had made a tool call with no pre-tool text and returned the
+  two views byte-identical — worth having, because that is the case the fix must
+  leave alone.
+
+  **AC #5 was most of the session, and the useful part is what it could not do.**
+  Gluing is lossy, so no saved agentic figure can be re-derived onto the fix; the
+  honest move is the AC's own escape hatch — re-score to confirm the applicable
+  half changes nothing, then label the figure as measured on the glued turn
+  everywhere it appears. What *is* re-derivable is the newline split, and that
+  was run across all 61 saved runs, old code against new, per run and per scope
+  and per check. Rule totals move at most +1.07 points anywhere and 0.00–0.34 on
+  every run behind a published four-tier figure. Segmentation figures move more
+  and were corrected in place.
+
+  Worth carrying forward: **every pre-fix figure was reproduced exactly before
+  its replacement was quoted.** All twelve FINDINGS sentence figures, the
+  ledger's three-row probe table and the paired validation's CI all came back
+  identical on HEAD's code, which is what makes the deltas trustworthy rather
+  than a second opinion. That check also caught the one place the conclusion
+  needed restating: the ledger argued the 12-word cap did nothing because the
+  tightened arm's over-12 share sat *inside* the untightened range; re-segmented
+  it sits *above* it, and the paired CI moved from just excluding zero to
+  including it. Same conclusion, firmer, but it had to be rewritten rather than
+  left to read as if the old numbers still supported it.
+
+  `/code-review high` earned its place again, and the sharpest finding was
+  against this session's own prose: the ledger sentence saying the
+  re-segmentation moved "at most 1.07 points, all of it in `sentence_length`"
+  was wrong on both counts, because `paragraph_length` counts sentences per
+  paragraph and `active_voice` iterates them. Two of the five fixed findings are
+  ways a cell could earn free credit — `paragraph_length`'s list exemption saw
+  only a paragraph's first character, so once bullets became sentences a
+  five-item list failed a cap of four; and `code_block_size`/`no_jargon` were
+  reading the final message despite being ban lists, so a 30-line diff dumped
+  before the last tool call scored clean on the two heaviest beginner checks.
+  Worth carrying forward: **when a change alters a shared primitive, list every
+  consumer of it before claiming what moved.** `sentences()` has three consumers
+  and the re-derivation was written as if it had one.
+
+  `npm test` 79 → 94; `audit` exit 0; `lore check` exit 0.
+
+- 2026-08-17 — session 11: **COS-11 resolved.** Errored cells no longer bias
+  any figure the project quotes. One predicate, `producedReply(row)`, decides
+  both whether a cell may be scored and whether it may be pooled; `summarize()`
+  averages only the cells that replied and every figure states its own `n`,
+  `noReply` and `cells`. An arm where nothing replied reports `null` and both
+  renderers print `n/a` — zero is a score, and publishing "we could not measure
+  this" as "it failed every rule" is the failure this task exists to stop.
+
+  The predicate reads the turn, not the SDK error flag, which also closes the
+  wider case COS-10's review found and handed here: a cell that goes silent
+  without the flag scored 0.931 on rules plus a free judge 1.0, landing near 0.95
+  for saying nothing. All 41 saved runs were swept; five hold a silent cell and
+  in every one the flag was set, so the no-flag half changes no published figure
+  today and is closed before the abort-prone arms are bought.
+
+  The bias, measured on the run the AC names (`22-59-53`, 6 aborts in 78 Haiku
+  cells): haiku rules 84.2 → 91.2, haiku judge 47.0 → 42.6. On
+  `agentic-fix-verify` alone, rules 10.3 → 62.1 and judge 85.8 → 15.0. Opposite
+  directions, one run, no cancellation.
+
+  **The COS-10 lesson was applied rather than re-learned.** All five consumers of
+  `summarize()` were enumerated before anything was claimed, and the fifth was
+  the one that mattered: `improve.mjs` reads `summary.overall` for KEEP/REVERT,
+  and `null - 0.65` is `-0.65` in JS, so an unmeasurable arm would have scored as
+  a regression or a win by accident. An incomparable side is now always a REVERT.
+  A second divergence surfaced from the same sweep: `cli.mjs score` branched on
+  `r.text` while the live path branched on `error && !text`, so offline
+  re-scoring and live scoring could grade different sets of cells — which would
+  have quietly undermined every "re-scoring reproduces the published figure"
+  claim in the ledger. Both now use the one predicate.
+
+  **One published conclusion moved and was corrected in place.** `14-48-09`'s
+  ledger row read "On holdout the rewrite showed the usual signature — rules
+  70.8 → 83.3, judge 72.5 → 21.2". One of its four v0 holdout cells was an
+  abort; excluded, v0 holdout is rules 94.3 and judge 63.3, so rules fell as
+  well — both halves fell on both splits, and the holdout delta is −0.265 rather
+  than the −0.193 the loop recorded. The REVERT verdict is unchanged and was
+  never in doubt. The pooled figures were kept beside the corrected ones because
+  they are what the loop actually decided on.
+
+  Worth carrying forward: **a published figure written by a session that
+  remembered the discipline needs no correction, and finding that out is
+  small.** `01-03-21`'s row already read "43.6 with the errored cell excluded
+  (45.9 if it is pooled)"; checking it took one command and it reproduced
+  exactly. Four of the five affected runs needed nothing. Checking each figure
+  against the run behind it, one at a time, is what separated the one that moved
+  from the four that did not.
+
+  `npm test` 94 → 104; `audit` exit 0; `lore check` exit 0.
+
+- 2026-08-17 — session 12: **COS-13 resolved.** Ran the fixture before
+  reading it, which is the only reason the session found anything: the suite was
+  **red on a clean checkout**, `priceOrder` asserting 966 against the code's 965.
+  The task described a different defect one line above it. Three of the four
+  agentic cases ask the model to run these tests, so every agentic figure in the
+  project was measured against a model meeting an unexplained failure it had not
+  caused — and the harder a model worked, the more of it it met. 966 turned out
+  to be the tax-before-discount value, so like the 850/849 pair it was a number
+  contradicting the intent stated next to it; the `BUG:` comment was a third of
+  the same shape, saying a value "yields 670 instead of 670" and citing a case
+  where floor and round agree.
+
+  The decision worth keeping: the fixture must be green *both* before and after a
+  correct fix. Red-on-arrival is noise; red-only-after-the-fix is worse, because
+  the model must then adjudicate between the test and the code. That invariant
+  ruled out pinning the buggy value. It did **not** by itself choose between
+  asserting the corrected value and dropping the assertion — AC #2 did, because a
+  red test naming the file and the expected value hands `reserve-agentic-session`
+  the answer it exists to withhold. The obvious fix was the wrong one, and only
+  the second criterion separated them.
+
+  Both defects in the new guard were found by breaking the fixture on purpose,
+  not by the suite passing. The first version could not fail at all
+  (`NODE_TEST_CONTEXT` inherited by the child suppresses its exit code); the
+  second accepted a fixture with every test deleted (`node --test` scores an
+  empty file as `pass 1`). A regression guard that has never been observed to
+  fail is not evidence of anything — the falsification sweep is what made these
+  four assertions worth having.
+
+  The branch review then found a **fourth** defect of the same family that all
+  of the above had walked past: `npm test` never worked in a workspace at all.
+  The fixture is copied to the workspace root, so nothing sits above it, and it
+  shipped no `package.json` — the most natural reading of "run the tests" died
+  with `ENOENT` before a single test ran. The session had built a guard for
+  exactly this class of problem and still missed it, because the guard only ever
+  invoked `node --test`. A check that reproduces the harness's own habits does
+  not reproduce the model's; the question worth asking of any fixture guard is
+  "what command will the model actually type?"
+
+  Two of the review's findings were in the new guard rather than the fixture,
+  and both are the same failure as the two the session had already caught: a
+  check that reports green when it should not, or red when it should not. It
+  parsed the spec reporter's output while scrubbing only `NODE_TEST_CONTEXT`, so
+  `NODE_OPTIONS=--test-reporter=tap` made it report two failures against a
+  perfectly healthy fixture — accusing it of the very defect COS-13 had fixed.
+  Four separate defects in one guard file, every one of them found by running it
+  against a deliberately altered fixture rather than by reading it.
+
+  `npm --prefix harness test` 112 → 117; `audit` exit 0; `lore check` exit 0.
+
+- 2026-08-17 — session 13: **no queue item; carried COS-13 to merge.** Recorded
+  here after the fact — the session logged its outcome in the Cursor section and
+  the queue rows but never wrote a session-log line, and session 14 filled the
+  gap rather than leave the log discontinuous. It restored onto a
+  `feature/COS-13` branch session 12 had finished, reviewed and never published,
+  and carried it from the review gate through PR #13's merge. Two things came
+  out of it. A parallel auto-mode task moved the branches underneath the
+  session: `HEAD` was left on `main`, the follow-ups commit was authored there,
+  and `main` briefly led `dev` — repaired by fast-forwarding `dev` after
+  verifying descent. And the branch review was started in the background and
+  **finished after the PR merged**, so its four findings had no gate left to
+  hold them; two became COS-22 and COS-23, appended as queue items 16 and 17
+  rather than inserted, because the order above them is the user's.
+
+- 2026-08-17 — session 14: **COS-14 resolved.** The change is small — one
+  resolver, one call site, one config key — and the only real decision was
+  where to put it. `cli.mjs:68` resolves the model list once, before the
+  subcommand branch, and both `run` and `improve` were handed the same array;
+  the fix re-resolves inside the `improve` branch instead of moving that line,
+  so `run` keeps reading `matrix.models` untouched. `resolveImproveModels` is
+  deliberately not passed `matrix.models` at all: the point of the task was to
+  remove an inheritance, and a resolver that *could* fall back to `run`'s list
+  would be one edit away from doing it again. The eleven-line `//models` comment
+  in `matrix.json` existed only to warn about that coupling, and is now the
+  warning it replaced.
+
+  The absent-key branch is `['haiku']` and only haiku, warned, following COS-8's
+  missing-`minReserveDelta` shape. An absent key has to fail small: this list is
+  run once per candidate per iteration, so the default is the one place a
+  mistake multiplies hardest. `[]` is treated as absent rather than as zero
+  models, which would otherwise be a loop that measures nothing and still pays
+  the author model for every rewrite.
+
+  Verification was free and end-to-end anyway, which is the transferable part:
+  `improve --cases=__none__` reaches the model-resolution line, prints it, finds
+  no baseline cell, and stops before buying a candidate. Running it with
+  `improve.models` temporarily set to `['haiku']` while `matrix.models` still
+  held three showed `models: haiku (matrix.improve.models)` and `3 models` from
+  `run` in the same session — the decoupling demonstrated on the real path at
+  on the real CLI, rather than asserted from a unit test alone. `npm --prefix harness test`
+  117 → 122; `audit` exit 0; `lore check` exit 0. Two docs stated the coupling
+  as fact and were corrected with it: `harness/README.md`'s models bullet and
+  `docs/stories/extend-measurement-coverage.md`'s notes.
+
+  Afterwards, on the user's instruction to open follow-ups for anything missed,
+  the session probed the CLI's whole argument surface without running a cell and opened
+  **COS-24** as queue item 18. The review had found one instance — `--models=`
+  swallowed — and fixing it for `improve` alone left the same defect in every
+  other flag, because `parseArgs` accepts any `--name` and `pick` accepts
+  whatever follows it. Nine more were verified by running them with
+  `--cases=__none__` or by calling the affected function directly. Two are worse
+  than the one that was found: `run --concurrency=abc` makes
+  `Array.from({ length: NaN })` empty, so `pool` starts zero workers, returns
+  `[null, null, null]` and the run dies in `summarize` with a null-property
+  error after measuring nothing; and `run --no-judge=false` turns the judge off,
+  because `'false'` is truthy, silently dropping the 30% judge component from
+  figures that then sit beside runs that kept it. The largest is the
+  plainest: an unknown flag such as `--modles=haiku` is ignored and the full
+  default matrix runs.
+
+  COS-23 also gained a fifth criterion from the same sweep. Its own merge is the
+  evidence: `docs/log.md` cites `374378a` twice, which the rebase rewrote to
+  `e0bb46e` and which is not an ancestor of `dev`, while `b0014af` and `2833a95`
+  — the review-fix and doc-log commits — appear zero times, because `lore sync`
+  has to run before a branch's last commits exist. The log is both unreachable
+  and incomplete, and a direction chosen for one should cover both.
+
+- 2026-08-17 — session 15: **COS-25 resolved. Taken out of band at the user's
+  direction; the cursor stayed at COS-9.** The user asked why the project tracked
+  cost at all, and three answers settled it. The dollar figures came from the
+  Agent SDK's `total_cost_usd`, which is a list-price valuation of tokens the SDK
+  emits whether the caller is on per-token billing or a subscription — so nobody
+  was ever charged the totals campaign 1 recorded. Cost never entered a style's score;
+  `checks.mjs` plus the judge do that, and the figures were telemetry about the
+  test rig. And `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` are both unset
+  here, so the SDK falls back to Claude Code's stored OAuth credentials — the
+  subscription. Stated at the time, and worth repeating: a live run's auth
+  handshake was not observed, so that last point is inference from the credential
+  chain rather than a measurement.
+
+  **The one thing that was not just telemetry was `maxBudgetUsd`.** It was passed
+  live to the SDK at `run.mjs:59` and hard-stopped a runaway cell, so deleting it
+  without a replacement would have removed the only runaway guard. Of the three
+  bounds the SDK exposes — verified in `sdk.d.ts` — only `abortController` is a
+  true circuit breaker: `maxTurns` bounds tool rounds but not the time spent
+  inside one, and `taskBudget` merely tells the model its remaining tokens and
+  asks it to pace itself, which is exactly what a wedged loop will not do. The
+  guard is now `run.maxCellSeconds: 600`, a wall-clock ceiling over the whole cell
+  rather than each turn, so a multi-turn case cannot run N times the limit.
+
+  **Two hazards surfaced while writing it, both fixed and both tested.**
+  `undefined * 1000` is `NaN` and `setTimeout` treats `NaN` as 0, so a config that
+  forgot the key would have aborted every cell in the matrix on the next tick and
+  labelled each one a timeout — a whole run of fabricated timeouts that no
+  completeness check would flag. `runCell` now validates and throws rather than
+  defaulting. And an abort can end the SDK iterator quietly instead of throwing,
+  on which path `result` stays null and the row would come back `error: null` with
+  empty text, indistinguishable from a model that said nothing; a `timedOut` flag
+  is the authority on the error rather than the thrown exception.
+
+  **The guard was watched failing before it was trusted.** New
+  `harness/test/run.test.mjs` drives `runCell` to a real abort through an injected
+  `query` seam — the `deps` pattern `evaluate` and `improveStyle` already use —
+  covering wedge-then-throw, wedge-then-quiet-end, a control that finishes in
+  time, and the config-validation case. Both mechanisms were then sabotaged on
+  purpose: dropping the `timedOut` authority reds exactly the quiet test, and
+  replacing the validation with a silent default reds exactly the config test.
+  That is the campaign's own do-not-repeat rule applied to its newest guard.
+
+  Scope: `harness/src` (six files), `harness/test` (five files), `matrix.json`,
+  the ledger's cost column and per-row prose, `FINDINGS.md`, the runbook, four
+  stories, the epic, two references, three ADRs, one spec, both READMEs, and this
+  tracker. Sample-size claims kept their statistical basis and lost only the price
+  annotations. Two judgement calls worth recording: verbatim user quotes were left
+  intact rather than rewritten, because altering an attributed quote falsifies the
+  record; and Done-task bodies were left alone as the immutable evidence record of
+  what each session measured, which is stated in COS-25's description rather than
+  left implicit.
+
+  Suite 124 → 126 (2 cost-only tests removed, 4 guard tests added); `audit`
+  exit 0; `lore check` exit 0. Re-scoring `12-44-03` offline still returns 81.0%,
+  so no published score moved. `improve --cases=__none__ --iterations=0` exercised
+  the whole loop path at 0 cells and the written `run.json`/`summary.json` carry
+  no cost field. Cursor still armed at COS-9.
+
+- 2026-08-17 — session 16: **COS-25 finished and merged. No queue item taken; the
+  cursor is still COS-9.** Session 15 marked COS-25 Done, then `/code-review high`
+  returned five findings and the status was walked back; the branch sat committed,
+  unpushed and unmerged. This session resolved all five and merged it.
+
+  **The one real defect was mine, introduced by the guard itself.** `turns` was
+  declared inside `runCell`'s `try`, so the `catch` could not see it and returned
+  `allTurns: []`. Before this change only an unexpected exception reached that
+  catch; the timeout made it a routine path. A multi-turn case whose turns 1 and 2
+  completed and whose turn 3 wedged lost both transcripts — while the *quiet*
+  abort path, which never enters the catch, kept them. Same event, two structurally
+  different rows, decided by which way the SDK happened to end the stream. `turns`
+  and a shared `base` row are hoisted above the try; `text`/`trace` stay `''` on
+  the catch path deliberately, matching what the quiet path already reports for a
+  turn that produced nothing.
+
+  **The disputed finding was settled by measuring, and it was real.** The review
+  claimed `wsp.cleanup()` orphans subprocesses into deleted workspaces at
+  concurrency 4. Session 15's handover argued against it from the SDK's own
+  stdin-EOF-plus-grace-window documentation and its 5.0s teardown on a 3s limit.
+  Neither was evidence. One real Haiku cell at a 3s limit, sampled once before and
+  five times after, gave the answer: 22 `claude` processes and 5 `osh-*`
+  workspaces at baseline; at T+0 **23 processes and one holding the just-unlinked
+  workspace as its cwd**; back to 22 and 0 by T+2s, with the workspace count never
+  above baseline. So the window exists — the review was right — and it is bounded
+  at under two seconds, leaks nothing, and cannot cross cells because each has its
+  own directory. No behaviour change: making `cleanup` wait would cost every
+  timed-out cell that delay for no measured gain. The numbers are now a comment on
+  the call so nobody re-derives them. **Both of the session-15 arguments against
+  this finding were plausible and both were wrong; the probe took two minutes.**
+
+  **One finding was closed by recording a measurement instead of softening a
+  claim.** `matrix.json` told readers to "lower it only against measured cell
+  durations" and `harness/README.md` called 600 "sized well above any cell observed
+  here" — and no `Date.now`, `hrtime` or duration field existed anywhere in the
+  harness, in the same change that had just deleted `costUsd`, the only per-cell
+  size proxy the project had. Every row now carries `elapsedMs`, started with the
+  timer so it measures exactly the span the guard bounds, and verified all the way
+  onto `rows.json` rather than at `runCell`'s return. The README now states
+  outright that nothing recorded a cell duration before that field, so no earlier
+  figure supports a tighter ceiling.
+
+  **One was a scope decision, and it went to the user rather than being taken
+  here.** The judge call and the optimizer's `rewrite()` take no `abortController`,
+  so either stalling hangs a run — pre-existing, since `maxBudgetUsd` never covered
+  them, but the docs called `maxCellSeconds` "the runaway guard" without
+  qualification. Offered as narrow-the-wording-and-file versus bound-them-now; the
+  user chose the former. `matrix.json`, `harness/README.md` and
+  `docs/reference/harness-architecture.md` now say the guard bounds a cell and not
+  a run, name both unbounded calls, and cite **COS-26**, created for the fix and
+  appended as queue item 19 rather than slotted into the confirmed order.
+
+  **The remaining finding moved a check to where it can be read.**
+  `maxCellSeconds` was validated per cell, so under `improve` the throw was caught
+  by the per-style handler and filed as a style failure — a config typo reading as
+  an optimizer crash — and under `run` it surfaced only after an empty
+  `results/<stamp>/` already existed. `cellLimitMs` is exported and called once at
+  CLI startup for `run` and `improve`; `score` is exempt because it re-grades saved
+  rows and never runs a cell; `runCell` keeps it as the backstop for direct
+  callers; and `config.test.mjs` now asserts the shipped `matrix.json` against the
+  shipped validator so the two cannot drift.
+
+  All three new tests were sabotage-verified, the campaign's standing rule: the
+  old empty-array catch reds only the both-paths test, deleting `elapsedMs` reds
+  only the duration test, and making `cellLimitMs` default instead of throw reds
+  only the two tests that assert it throws.
+
+  **The review was then run twice more, and each pass found real defects the one
+  before it had not.** Round two, six findings. The worst: `cellLimitMs` guarded
+  the low end and not the high end, and `setTimeout` truncates any delay past
+  2147483647 ms to **1 ms** — measured, a limit of 999999999 seconds fires after
+  2 ms. So the one edit an operator would make to disable the guard produced
+  exactly the runaway the low-end check exists to prevent. Round two also found
+  that `runTurn` had no `catch`, so a wedged turn's partial reply died with the
+  exception on the throwing path while the quiet path kept and graded it — the
+  same defect as finding 1, one level down — and that this branch's own README
+  sentence about a top tier running "an order of magnitude more tokens" was a
+  **cost** span converted into a **token** span, which does not hold because
+  per-tier prices differ by about that same factor.
+
+  Round three, five findings, and the sharpest was that the round-two fix for
+  that last one had been applied in `harness/README.md` and left standing in
+  `FINDINGS.md`, the measurement-coverage story and this tracker. All three are
+  corrected above and in place. Round three also caught `MAX_TIMER_MS` declared
+  below the function that reads it — inert today, a `ReferenceError` the moment
+  anything calls `cellLimitMs` at module scope — and a real measurement loss:
+  `timedOut` was unconditionally authoritative, so a cell finishing at 599.9s of
+  a 600s limit came back stamped `error_timeout` and was dropped from every mean.
+  A turn is now trusted only when the SDK closed it with a result message, which
+  is the signal that separates a finished turn from one an abort closed quietly;
+  `!error` alone would have reintroduced the very defect the `timedOut` flag was
+  added for, and sabotaging it that way reds three tests.
+
+  Suite 126 → **131**; `audit` exit 0; `lore check` exit 0 (24 files). Re-scoring
+  the published `12-44-03` arm offline still returns 81.0%, so no published score
+  moved. **Three review rounds, sixteen findings, all fixed** — and the lesson
+  worth carrying is that a fix applied in the file the reviewer names is not the
+  same as a fix applied everywhere the claim lives.
+
+- 2026-08-17 — session 17: took **COS-9**, campaign 2 item 6, in order, after two
+  consecutive out-of-band sessions had left the cursor untouched. Restored the
+  option cap that the label-blindness fix had removed for unlabelled replies,
+  keying it on the signals a sprawling reply carries anyway — a stated count, or
+  the pivots that introduce each alternative past the first — rather than on any
+  attempt to identify alternatives semantically, which would have re-broken the
+  reply the first fix was written for.
+
+  The session's discipline was to write the AC #2 regression fixtures **before**
+  the fix and confirm they passed on the unmodified check: a guard that only ever
+  ran against the finished code proves nothing about what the code protects. Both
+  new estimators were then sabotage-verified independently, each disabled in turn
+  to confirm its failure lands on the intended assertion.
+
+  AC #3 was the reason this task was queued as a tools-first item, and it came in
+  cheaper than feared. A baseline was captured before the check was touched, then
+  re-scored: **1 of 96 rows moved across all 62 saved runs**, and it was
+  `reserve-three-options` — the case COS-2 added specifically to provoke this
+  blind spot, on the exact reply that labels two options and names a third in
+  prose. 61 of 62 runs are byte-identical; no published figure moves. The ledger
+  now carries that re-score as the durable record, since `results/` is gitignored.
+
+  The review round earned its keep by probing the new code rather than reading
+  it: two false positives the fix had introduced — "three ways" on a benefit
+  list, and "or you can" inside a code block — were found that way, and neither
+  would have shown up in a diff read. Both fixed, both sabotage-verified, and
+  the re-score re-run afterwards returns the identical row and figures.
+
+  Round 2 was the one that paid. An adversarial subagent found that the pivot
+  estimator — the half of the fix built on "alternatively" and "or you could" —
+  scored a compliant two-option reply at 0.70, which is the original defect
+  rebuilt on the third attempt to fix this check. Checking that claim against the
+  corpus settled it: those connectives match zero of the 96 re-scorable rows,
+  while the stated count matches exactly the two real sprawl replies. The
+  estimator had no observed true positive and a live false-positive path, so it
+  came out. **The general lesson outlasts the fix**: a detector added to a scorer
+  should be audited against the saved corpus before it ships, because "never
+  fires" and "fires on the wrong thing" are both invisible in a diff and both
+  obvious in the rows.
+
+  Two sabotage runs came back green this session and both were wrong — once the
+  substitution had silently failed to apply, once the fixture was too weak to
+  trip the cap. A green sabotage run proves nothing until the sabotage is
+  confirmed to have landed.
+
+  Three rounds, eleven findings, all fixed. Both round-3 subagents died without
+  reporting, so round 3 was completed by hand — probing the four estimators
+  against adversarial inputs, auditing them against the corpus, and re-reading
+  the final diff. That is worth knowing for the next session: the round happened
+  and found two more defects, but it was not an independent pair of eyes.
+
+  Suite 131 → **135**; `audit` exit 0; `lore check` exit 0.
+
+- 2026-08-17 — session 18: resolved COS-20 on `feature/COS-20`. Clean start;
+  the only drift was that session 17's archive commit had already been pushed
+  and `main` promoted, so nothing needed reconciling. **The task's first half
+  was a missing tool, not a detour**: nothing in the harness could re-judge a
+  saved row, so `src/rejudge.mjs` and a `judge` subcommand were built before
+  any acceptance criterion could be touched. 720 judge calls over the 60 saved
+  replies of `12-44-03`, four judge tiers, three repeats each, no cells.
+  The headline: the judge is **17% of the per-cell variance and the reply 83%**,
+  so the arms this campaign is sized on stand — confirmed to within two cells,
+  with a floor of 123 that no amount of repeat-judging beats. The task's own
+  premise, that repeat-judging might be the cheaper fix, is refuted by measuring
+  both costs: a cell is about one judge call and the crossover is 10.9.
+  The instrument findings are the durable part. Sonnet, the configured judge, is
+  the **least repeatable** of the four tiers (judge SD 10.17 against Opus's
+  5.49); Haiku is neither fast nor reliable (59.5s per call, 6 unparseable
+  replies in 180); and a change of judge moves the beginner bar's verdict, the
+  Opus-vs-Sonnet ordering and the advanced-to-intermediate gap, while leaving
+  the style ranking intact. `judgeModel` was deliberately left at `sonnet`
+  and the reason recorded in `matrix.json`: every published judge figure was
+  scored by it.
+  Two design decisions worth carrying. `judge()` now returns `ok`, because
+  its four substituted scores all sit inside the range real scores occupy and a
+  substituted 0.5 in a variance study reads as the judge disagreeing with
+  itself. And the plan is ordered by sweep rather than by reply, so a killed
+  judge run leaves whole balanced passes rather than a few replies judged many
+  times — the same reasoning as COS-12, applied to a different loop.
+  Suite 135 → **153**; `audit` exit 0; `lore check` exit 0.
+
+- 2026-08-17 — session 19: resolved COS-15 on `feature/COS-15`. No drift at restore: `dev`, `main` and both remotes level at `b2291ac`, no leftover branches, no open PRs.
+
+  **The design call went against editing the product.** AC #1 required the choice to be argued, and the two conditionals turned out to be conditioned on different things, which decided them separately rather than together. The gloss rule ("explain it right after in one short phrase", with "I updated the API (the messenger that lets two programs talk)" as the file's own example) is conditioned on the REPLY, which is the string a check already reads — and `no_jargon` was named "avoids unglossed jargon" from the start, so only the implementation was unconditional. It now grades first use and forgives two gloss forms. "Never show code unless they ask" is conditioned on the REQUEST, which no check can see; a regex over the prompt would put a guess inside the one instrument whose value is being deterministic, so the condition lives in `codeOnRequest` on the contract and `requestsCode` on the case. Restating the two style files was rejected on the principle that the style files are the shipped product and the harness is the instrument: both prose rules are correct guidance for a real reader, and editing a shipped artifact to fit a scorer would also have cost a 148-cell beginner arm to re-measure something the harness never exercises.
+
+  **The audit now fails a conditional in both directions.** Prose that lifts a cap with no matching contract field is drift, and so is a contract that lifts a cap the prose never grants — a reader of the style would never learn the permission exists. Only a READER'S REQUEST counts as a condition: advanced's "when they carry the point faster than prose" is a judgement the writer makes, and treating it as a condition would have demanded a `codeOnRequest` graded on every reply. The condition is read from the sentence that states the cap, not the whole file, because beginner says "Do not elaborate unless asked" three sections above its code rule.
+
+  **Fixing the guard exposed a defect in the guard.** The condition scan tested `PATTERNS` — which carry `/g` for `matchAll` — with `.test()`, which advances `lastIndex`; `matchAll` copies it, so the SECOND parse of a body skipped its own opening lines and reported a stated cap as `unstated`. It surfaced as one test failing on the advanced file and nothing else. Caught by idempotence, which is now a test: parsing the same body twice must give the same answer.
+
+  **AC #4 cost nothing to satisfy and everything to discharge honestly.** No style file changed, so there was nothing to measure. But the checks change moves saved scores, so all 63 saved runs were re-scored OLD CODE against NEW CODE — not saved-score against current code, which folds in every scorer change since. 651 rows graded, 72 skipped (all optimizer candidates and ad-hoc experiment styles with no contract). Exactly 6 rows moved, all `no_jargon`, all beginner; `code_block_size` moved zero because no case sets `requestsCode`. Every one of the 6 was hand-read and is a real gloss. Five published figures moved and were corrected: `02-12-24` opus rules 87.2 → 88.1, `02-15-14` sonnet 97.7 → 98.2, `02-20-01` sonnet 97.1 → 97.4, `14-48-09` train delta −0.029 → −0.035, and FINDINGS' shipped-text sonnet 97.4 → 97.7. No conclusion changed.
+
+  **What could not be corrected, and why that is now its own task.** The paired figures in FINDINGS (+7.7 [+5.3, +10.1] t=7.06 on the reserve six, +5.2 [+0.0, +10.4] on the shared five) sit on arms that moved. Recomputing them from the saved rows reproduces every ARM MEAN in the ledger to the last digit but not the intervals: +7.8 [+5.3, +10.2] t=7.02 old against the published +7.7/t=7.06. Arm means matching exactly is what makes that a method difference rather than a data difference, so the published intervals were footnoted with the measured movement rather than silently replaced by a second method. That is **COS-27**. The by-hand read AC #2 demanded also found advanced's "under 120, headers and code included" against `total_length`'s `stripCode` — a basis mismatch, not a conditional, outside these ACs — which is **COS-28**. Intermediate's "under about 100 words when things are normal" was examined and judged NOT a defect: `total_length` gives full credit at the cap and decays to 0 at twice it, so a soft cap is graded as one.
+
+  Six mutations, each asserted to have landed before its red was believed, each red only on its intended test: two on `contracts.json` at the CLI (audit exit 1, restored to exit 0) and four on `checks.mjs`. Suite 159 → 175.
+
+
+- 2026-08-17/18 — session 20: took COS-16, the cursor, on `feature/COS-16`.
+  No drift at restore: `dev`/`main` both at `62eb6a9`, no leftover branches, no
+  open PRs.
+
+  **Priced the ablation before writing prose, per AC #3's own demand.** COS-4's
+  failure was measuring five edits as one bundle and being unable to tell them
+  apart. Five defects became four edits (removing/bounding three, adding one)
+  plus one retained-as-is: defect #5's gloss example ("API (the messenger that
+  lets two programs talk)") was COS-15's own fix made moot — `no_jargon` now
+  grades first use and forgives exactly that shape, so the example demonstrates
+  compliance rather than violating it.
+
+  **The baseline re-measurement corrected a real published figure.** COS-4
+  published beginner's judge score at n=35/model: 73.9 Opus, 58.1 Sonnet. At
+  n=150/model (0 errors, both the five shared cases and six reserve cases),
+  it reads 66.8 / 60.9 — inside COS-4's own stated interval, so the estimate
+  did not move, the interval did. It matters: 73.9 was above the project's 70%
+  bar, 66.8 is below it. Corrected in FINDINGS.md and four docs, merged as
+  `716d628`.
+
+  **The four-edit bundle is a null result with one real regression.** Judge
+  flat on both splits; rules move under a quarter point either way. But Opus's
+  mean reply length rose +1.71 [+0.27, +3.16] words on the shared five — a real
+  effect, breaching AC #4's not-above-63.0 reading. No single edit explains it:
+  all four, measured individually after the ablation was retried clean (0
+  errors, 150/model each), show no harm on any metric. Testing E1+E2+E3 with
+  E4 dropped found the likely source — Opus's word delta falls to +0.20
+  [-2.75, +3.15], null — but that arm's Sonnet half hit the usage window at 56
+  of 150 cells and needs a clean re-run before the three-edit candidate can
+  ship.
+
+  **Parked at the user's direction** rather than waiting out a third window.
+  Merged only what was legitimately independent of the shipping decision: the
+  corrected judge figures and six new ledger rows recording every cell spent
+  this session (4540 cells persisted project-wide, up from 640). `/code-review
+  medium` found one arithmetic slip in a since-superseded planning note,
+  corrected. `npm --prefix harness test` 179/179; `audit` exit 0; `lore check`
+  exit 0. Merged via PR #19 (rebase) as `9081f33`, with one commit
+  (`f674597`, the arithmetic correction) recovered by direct cherry-pick to
+  `dev` after `gh pr merge`'s local housekeeping failed on an uncommitted file
+  and the retry reported the PR already merged — the remote `feature/COS-16`
+  was not auto-deleted in that path and was removed manually. `dev` and `main`
+  both pushed at `716d628`, no branch litter, no open PRs. The cursor did not
+  move: COS-16 remains item 9, unresolved.
+
+- 2026-08-18 — session 21 (tracker admin, no issue lifecycle run): the user
+  asked what cell-free work was available while COS-16 waits out Claude Code's
+  usage limits. Proposed Campaign 3 — COS-23, COS-27, COS-22, COS-24, COS-26,
+  the five To Do issues whose acceptance criteria need no harness `run` — and
+  the user confirmed the order via `/backlog-handover init`. Tracker updated:
+  Cursor section re-pointed to Campaign 3 / COS-23, Campaign 2's cursor held
+  (not advanced, not abandoned) at COS-16 with a resume pointer into the
+  task's own notes. No branch, no PR — this is tracker administration only,
+  committed directly to `dev` per the init lifecycle's own convention (I3).
+- 2026-08-18 — session 22: resolved COS-23 on `feature/COS-23`. No drift at
+  restore: `dev`/`main` both at `d03a7db`, clean apart from an untracked,
+  unowned `system-prompt.md`, no leftover branches, no open PRs. Swept every
+  SHA in `docs/log.md` against `origin/dev` and found the campaign's own
+  `lore sync` already self-heals a dead pre-rebase SHA within one session
+  cycle — the file is a live regeneration from `git log`, not an append-only
+  ledger. Closed the one gap still open today (`ea48ed7`, absent from the log
+  until this session's `lore sync` ran) and added a permanent fix: SKILL.md
+  step 9 now re-syncs `docs/log.md` on `dev` right after every PR merge, so
+  the gap never survives past the session that created it. **Self-caught
+  defect, worth carrying forward**: the first attempt to update this tracker
+  truncated it from 1361 to 399 lines — `backlog doc view --plain`'s output
+  exceeded the tool's display cap, and piping the saved file through
+  `sed -n '1,400p'` silently dropped everything past line 400 (the "Risk
+  policy" and "Session log" sections included) before it was ever committed.
+  Caught by comparing the post-update file's line/byte count against the
+  pre-edit git blob rather than trusting the CLI's "Updated document" success
+  message. Recovered the full content with `git show <sha>:<path> > file`
+  (a direct shell redirect, which does not pass through the tool's output
+  cap) and re-applied the same edits against the complete file. **Do not
+  read or round-trip a large backlog doc through the Bash tool's captured
+  stdout — redirect straight to a file and diff/wc it before trusting an
+  edit is complete.**
