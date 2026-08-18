@@ -19,7 +19,7 @@ tasks:
 generated:
   by: lore/0.3.0
   at: 2026-08-17T03:50:43.715Z
-lore_task_status: todo
+lore_task_status: in-progress
 ---
 
 # Make the measurements trustworthy
@@ -94,14 +94,23 @@ in the repo said so.
 The fix keeps the suite green *both* before and after a correct fix, which is the
 invariant that removes the adjudication: no assertion pins the fractional-cent
 behaviour any more, so fixing the bug cannot break a test, and the bug stays
-discoverable only by reading the code — which preserves the difficulty of
-`reserve-agentic-session`, the case that withholds both the bug and the file on
-purpose. Asserting the *corrected* value instead would have been the obvious
-move and was rejected for that reason: it makes the suite red on arrival with a
-failure that names the file and the expected value, handing that case its answer
-from one command. `harness/test/fixture.test.mjs` now enforces all of it — the
-defect was found by reading a transcript, not by a check, and nothing else in the
-suite executes the fixture.
+discoverable only by reading the code. Asserting the *corrected* value instead
+would have been the obvious move and was rejected for that reason: it makes the
+suite red on arrival with a failure that names the file and the expected value,
+handing `reserve-agentic-session` its answer from one command.
+`harness/test/fixture.test.mjs` now enforces all of it — the defect was found by
+reading a transcript, not by a check, and nothing else in the suite executes the
+fixture.
+
+That difficulty claim is qualified, not absolute: `src/pricing.js` still carries
+a literal `BUG:` comment naming the function and the defect, so `grep -rn BUG`
+locates it in one command — the same leak that ruled out asserting 850/849, just
+in source instead of test output. The marker is deliberate for
+`agentic-read-report`, which explicitly asks whether the file has a bug. For
+`reserve-agentic-session`, which withholds both the bug and the file on purpose,
+it means the remaining difficulty is search, not comprehension: the case still
+forces find-and-read over being handed the answer in a prompt, but a maintainer
+searching for the word "bug" gets there without reasoning about the arithmetic.
 
 **And a killed run lost every cell it measured — fixed under COS-12.** `run` used
 to write `rows.json` only after the whole matrix completed. One session ran a
@@ -190,7 +199,7 @@ run spent on nothing.
 | [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | Done |
 | [COS-21](../../backlog/tasks/cos-21%20-%20Re-test-the-variant-sweep-the-reinforcement-ADR-rests-on.md) | Re-test the variant sweep the reinforcement ADR rests on | To Do |
 | [COS-24](../../backlog/tasks/cos-24%20-%20Stop-the-CLI-silently-substituting-defaults-for-malformed-flags.md) | Stop the CLI silently substituting defaults for malformed flags | To Do |
-| [COS-22](../../backlog/tasks/cos-22%20-%20Harden-the-fixture-guard-COS-13-added.md) | Harden the fixture guard COS-13 added | To Do |
+| [COS-22](../../backlog/tasks/cos-22%20-%20Harden-the-fixture-guard-COS-13-added.md) | Harden the fixture guard COS-13 added | In Progress |
 <!-- lore:tasks:end -->
 
 ## Notes
