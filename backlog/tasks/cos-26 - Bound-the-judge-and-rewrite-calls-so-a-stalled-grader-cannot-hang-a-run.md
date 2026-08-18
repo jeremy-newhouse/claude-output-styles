@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@jeremy.newhouse'
 created_date: '2026-08-17 15:27'
-updated_date: '2026-08-18 17:08'
+updated_date: '2026-08-18 17:20'
 labels: []
 dependencies: []
 ordinal: 26000
@@ -52,6 +52,12 @@ Config: matrix.json gained run.judgeTimeoutSeconds=120 and improve.rewriteTimeou
 Verified: npm --prefix harness test = 219/219 (was 214; +5: 2 wedge-then-abort tests for judge, 1 missing-config test for judge, 2 wedge-then-abort+missing-config tests for rewrite -- actually 4 new tests in checks.test.mjs+improve.test.mjs plus 1 in config.test.mjs). node src/cli.mjs audit exits 0. lore check: 24 files, 0 errors, 0 warnings.
 Manually confirmed fail-loud at startup for both new keys: temporarily deleted run.judgeTimeoutSeconds from matrix.json and ran `node src/cli.mjs run ...` -> threw "run.judgeTimeoutSeconds must be a positive number -- got undefined" before any cell ran; same for improve.rewriteTimeoutSeconds via `node src/cli.mjs improve ...`. Config restored both times (diff matched only the intended edits afterward).
 Docs: harness/README.md and docs/reference/harness-architecture.md no longer say the judge/rewrite calls are unbounded; grepped both plus matrix.json for "unbounded"/"no abortController"/"no timeout" post-edit -- no stale mentions remain.
+
+/code-review high on the full branch diff (8 finder angles + adversarial verification) found no correctness bugs -- the timeout config threading and the timedOut-flag abort race were confirmed provably safe. Three real, non-blocking findings, all fixed on the branch:
+1. cli.mjs's run.judgeTimeoutSeconds startup check fired even for `judge --judgements=...`, which spends no judge call (same asymmetry `score` is already excluded from for maxCellSeconds) -- scoped the check to exclude that branch.
+2. judge.mjs's judge() and improve.mjs's rewrite() each hand-rolled the same AbortController+timedOut+try/catch/finally block around a single no-tool query() call -- extracted into a shared timedTextQuery({name, timeoutSeconds, prompt, options, queryFn}) in run.mjs, used by both.
+3. The wedge-then-abort mock generators in checks.test.mjs and improve.test.mjs were byte-identical -- moved into shared test/abort-helpers.mjs (run.test.mjs's own copies left alone; different shape, pre-existing, out of scope).
+Re-verified after the fixes: npm test 219/219, audit exit 0, lore check exit 0, and manually confirmed `judge --judgements=` no longer trips on a missing run.judgeTimeoutSeconds (reaches its own downstream validation instead).
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
