@@ -13,6 +13,9 @@ output-style harness
                              [--judge-repeats=3] [--reference=sonnet] [--styles=a,b] [--cases=id,id]
   node src/cli.mjs judge     --judgements=results/<stamp>/judgements.json
   node src/cli.mjs audit     [--styles=a,b]
+  node src/cli.mjs interval  --before=results/<stamp>/rows.json[,results/<stamp2>/rows.json]
+                             --after=results/<stamp>/rows.json[,results/<stamp2>/rows.json]
+                             --metric=rules|judge|composite|words
 
   run      evaluate the matrix and write results/<stamp>/{rows,summary,run,report.md},
            re-written after every completed cell so a killed run keeps what it measured.
@@ -25,6 +28,10 @@ output-style harness
            split judge-call variance from reply variance. Runs no cell — judge calls only.
            --judgements re-derives a finished judge run's figures offline, spending nothing
   audit    check every style file's stated caps against contracts.json; exit 1 on disagreement
+  interval a paired 95% Student-t interval between two saved runs on the same cases —
+           pairs rows by case + model, averaging repeats within a pair. --before/--after
+           each take a comma-separated list of rows.json paths, pooled before pairing.
+           Runs no cell — reads saved rows only
 
   --help   print this and exit, on any subcommand
 `
