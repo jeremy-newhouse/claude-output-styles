@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { pairedInterval, tCritical95, METRICS } from '../src/interval.mjs'
-import { words } from '../src/checks.mjs'
+import { words, stripCode } from '../src/checks.mjs'
 
 // ---------- tCritical95 ----------
 
@@ -109,4 +109,10 @@ test('pairedInterval reproduces the published reserve-arm rules figure exactly',
 test('METRICS.words delegates to checks.mjs words()', () => {
   const row = { text: 'Two words here—plus an em dash *and* markdown.' }
   assert.equal(METRICS.words(row), words(row.text).length)
+})
+
+test('METRICS.words strips code blocks first, matching total_length\'s convention', () => {
+  const row = { text: 'One two three.\n\n```js\nconst four = 5; const six = 7;\n```' }
+  assert.equal(METRICS.words(row), words(stripCode(row.text)).length)
+  assert.equal(METRICS.words(row), 3)
 })
