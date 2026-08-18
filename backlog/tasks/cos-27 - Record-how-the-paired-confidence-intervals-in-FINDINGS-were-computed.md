@@ -1,9 +1,11 @@
 ---
 id: COS-27
 title: Record how the paired confidence intervals in FINDINGS were computed
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@jeremy.newhouse'
 created_date: '2026-08-17 18:57'
+updated_date: '2026-08-18 13:45'
 labels: []
 dependencies: []
 ordinal: 27000
