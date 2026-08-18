@@ -1,9 +1,11 @@
 ---
 id: COS-26
 title: Bound the judge and rewrite calls so a stalled grader cannot hang a run
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@jeremy.newhouse'
 created_date: '2026-08-17 15:27'
+updated_date: '2026-08-18 16:56'
 labels: []
 dependencies: []
 ordinal: 26000
