@@ -74,7 +74,7 @@ export async function evaluate ({ styles, variants, models, cases, contracts, op
     // worth grading, and its substituted score reaches no mean.
     const judged = opts.judge && producedReply(run)
     const j = judged
-      ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text })
+      ? await judge({ views, caseDef: cell.caseDef, contract, model: opts.judgeModel, styleBody: cell.style.body ?? cell.style.text, judgeTimeoutSeconds: opts.judgeTimeoutSeconds })
       : { score: 1, violations: [] }
 
     const wJudge = contract.judgeWeight ?? DEFAULT_JUDGE_WEIGHT

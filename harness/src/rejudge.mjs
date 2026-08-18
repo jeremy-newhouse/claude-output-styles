@@ -79,10 +79,14 @@ export function planJudgements ({ rows, cases, contracts, judges, repeats, style
  * @param {(rows: object[]) => void} [onRecords]  called after every completed
  *   call with the records finished so far, in plan order — the same incremental
  *   flush `run` uses, for the same reason.
+ * @param {number} judgeTimeoutSeconds  matrix.run.judgeTimeoutSeconds, passed
+ *   straight through to every judge call — this path spends judge calls only,
+ *   so it needs the same wall-clock ceiling `evaluate` gives judge() for a
+ *   live run.
  * @param {object} [deps]  judge, injectable so the plan, the persistence and the
  *   statistics can be tested without spending a model call.
  */
-export async function rejudge ({ rows, tasks, cases, contracts, styleBodies, concurrency = 4, onProgress, onRecords, deps = {} }) {
+export async function rejudge ({ rows, tasks, cases, contracts, styleBodies, judgeTimeoutSeconds, concurrency = 4, onProgress, onRecords, deps = {} }) {
   const { judge: judgeFn = judgeCall, now = Date.now } = deps
   const landed = new Array(tasks.length)
   let done = 0
@@ -92,7 +96,7 @@ export async function rejudge ({ rows, tasks, cases, contracts, styleBodies, con
     const contract = contracts[row.styleId]
     const views = viewsOf(row)
     const startedAt = now()
-    const j = await judgeFn({ views, caseDef, contract, model: t.judgeModel, styleBody: styleBodies[row.styleId] })
+    const j = await judgeFn({ views, caseDef, contract, model: t.judgeModel, styleBody: styleBodies[row.styleId], judgeTimeoutSeconds })
     landed[idx] = {
       rowIndex: t.rowIndex,
       judgeModel: t.judgeModel,

@@ -4,7 +4,7 @@ import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { evaluate, summarize } from './evaluate.mjs'
 import { improveStyle, resolveImproveModels } from './improve.mjs'
-import { cellLimitMs } from './run.mjs'
+import { cellLimitMs, secondsToMs } from './run.mjs'
 import { loadStyle } from './style.mjs'
 import { renderConsole, renderVerdict } from './report.mjs'
 import { writeResults, writeAtomic, readManifest, describeManifest } from './results.mjs'
@@ -105,6 +105,12 @@ const opts = {
 // already been created. Fail before either directory exists. `score` re-grades
 // saved rows and never runs a cell, so it is not held to this.
 if (cmd === 'run' || cmd === 'improve') cellLimitMs(opts.maxCellSeconds)
+// Same discipline for the judge and rewrite calls, neither of which the guard
+// above covers — COS-26. `judge` (this file's re-judge command) spends judge
+// calls with no cell around them at all, so it is checked here too, not just
+// `run`/`improve`.
+if (cmd === 'run' || cmd === 'improve' || cmd === 'judge') secondsToMs('run.judgeTimeoutSeconds', opts.judgeTimeoutSeconds)
+if (cmd === 'improve') secondsToMs('improve.rewriteTimeoutSeconds', matrix.improve.rewriteTimeoutSeconds)
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-')
 const outDir = join(ROOT, 'results', stamp)
@@ -378,6 +384,7 @@ if (cmd === 'run') {
     cases: allCases,
     contracts,
     styleBodies,
+    judgeTimeoutSeconds: opts.judgeTimeoutSeconds,
     concurrency: opts.concurrency,
     onProgress: judgeProgress,
     onRecords: rs => flush(rs)

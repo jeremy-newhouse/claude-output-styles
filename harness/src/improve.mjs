@@ -17,6 +17,7 @@ import { join } from 'node:path'
 import { evaluate } from './evaluate.mjs'
 import { producedReply } from './checks.mjs'
 import { parseStyle, renderStyle } from './style.mjs'
+import { secondsToMs } from './run.mjs'
 
 // Sourced from Anthropic's "Prompting Claude Opus 5" guide. These are the
 // levers that actually move Opus, as opposed to adding more prohibitions.
@@ -202,17 +203,40 @@ function failureBrief (summary, styleId, transcripts) {
   ].join('\n')
 }
 
-async function rewrite ({ style, brief, model }) {
+/**
+ * @param {number} rewriteTimeoutSeconds  matrix.improve.rewriteTimeoutSeconds.
+ *   Bounds the query call the same way judge.mjs's judgeTimeoutSeconds bounds
+ *   the judge call — see run.mjs's secondsToMs. A stalled author call used to
+ *   hang the loop indefinitely; runCell's cell-level guard covers `run`'s
+ *   cells only and never wraps this call.
+ * @param {(msg: string) => void} [log]  optional, so a timeout is named in the
+ *   loop's own output rather than looking identical to "the author had nothing
+ *   left to say" — the caller's existing empty-string handling still stops the
+ *   loop either way.
+ * @param {object} [deps]  queryFn, injectable so the timeout can be tested
+ *   against a real wedge-then-abort without spending a model call — the same
+ *   seam judge.mjs and runCell use.
+ */
+export async function rewrite ({ style, brief, model, rewriteTimeoutSeconds, log = () => {}, deps = {} }) {
+  const { queryFn = query } = deps
+  const timeoutMs = secondsToMs('improve.rewriteTimeoutSeconds', rewriteTimeoutSeconds)
   const user = [
     `CURRENT STYLE BODY (${style.id}):`, '"""', style.body, '"""',
     '', brief
   ].join('\n')
 
   let out = ''
+  // Same shape as judge.mjs's guard: `timedOut`, not the thrown error, decides
+  // whether this call gets reported as a timeout — an abort can throw or end
+  // the iterator quietly, and the quiet path must not read as an ordinary
+  // "nothing usable" rewrite.
+  let timedOut = false
+  const controller = new AbortController()
+  const timer = setTimeout(() => { timedOut = true; controller.abort() }, timeoutMs)
   try {
-    for await (const m of query({
+    for await (const m of queryFn({
       prompt: user,
-      options: { systemPrompt: AUTHOR_SYSTEM, model, maxTurns: 3, allowedTools: [], settingSources: [], permissionMode: 'dontAsk' }
+      options: { systemPrompt: AUTHOR_SYSTEM, model, maxTurns: 3, allowedTools: [], settingSources: [], permissionMode: 'dontAsk', abortController: controller }
     })) {
       // Bare concatenation is correct here, unlike run.mjs: allowedTools is
       // empty, so there is nothing to split the blocks around, and the output is
@@ -220,8 +244,18 @@ async function rewrite ({ style, brief, model }) {
       if (m.type === 'assistant') for (const b of m.message.content ?? []) if (b.type === 'text') out += b.text
     }
   } catch {
+    if (timedOut) log(`rewrite call timed out after ${timeoutMs}ms`)
     return '' // caller treats an empty rewrite as "no more ideas" and stops
+  } finally {
+    clearTimeout(timer)
   }
+  // Named even when the call still produced something: `out` can hold a
+  // complete body if the timer fired in the gap between the stream ending and
+  // this loop resuming, and the caller's own length check (below, at the call
+  // site) is what decides whether that content is usable — this only makes
+  // sure a genuine timeout is never silently indistinguishable from "the
+  // author had nothing left to say".
+  if (timedOut) log(`rewrite call timed out after ${timeoutMs}ms`)
   return out.replace(/^```(?:markdown|md)?\n?/, '').replace(/\n?```\s*$/, '').trim()
 }
 
@@ -308,7 +342,7 @@ export async function improveStyle ({ style, variant, models, cases, contracts, 
     }
 
     const brief = failureBrief(lastRun.summary, style.id, lastRun.rows)
-    const newBody = await rewriteFn({ style: { ...style, body: best.body }, brief, model: cfg.authorModel })
+    const newBody = await rewriteFn({ style: { ...style, body: best.body }, brief, model: cfg.authorModel, rewriteTimeoutSeconds: cfg.rewriteTimeoutSeconds, log })
     if (!newBody || newBody.length < 200) {
       log(`[${style.id}] iteration ${i}: author returned nothing usable — stopping`)
       break
