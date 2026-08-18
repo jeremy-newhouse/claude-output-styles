@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 15:14'
+updated_date: '2026-08-18 17:10'
 ---
 # Backlog campaign tracker
 
@@ -15,10 +15,14 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**ACTIVE CAMPAIGN: 3 (cell-free housekeeping). Next issue: COS-26.** Campaign 2's
-cursor (COS-16) is HELD, not resolved and not abandoned — see below. A
-`restore` session should take COS-26 next, in Campaign 3's confirmed order —
-its last item; Campaign 3 empties after it resolves.
+**CAMPAIGN 3 IS EMPTY.** COS-26 (its last item) resolved in session 26. All
+five of Campaign 3's issues are now Resolved — see the table below. Campaign
+2's cursor (COS-16) is HELD, not resolved and not abandoned — see below. The
+next `restore` session has no queued issue to take on its own authority: per
+the skill's own R6 (queue-empty branch), it must ask the user whether to (a)
+resume Campaign 2 at COS-16 — only if cell budget looks available — or
+(b) run `init` to build a fresh queue from the current backlog. Do not guess;
+do not silently pick Campaign 2 back up.
 
 **Why the cursor moved off COS-16.** COS-16 needs one more clean measurement
 arm (the E1+E2+E3 candidate's Sonnet half) before it can ship, and that
@@ -39,14 +43,15 @@ rebuild (sha256 `86451ddb`), which arm is missing (Sonnet, five shared cases,
 30 repeats), and which ACs are still open (#2, #4, #5, #6). Do not re-derive
 any of it from this tracker.
 
-## Campaign 3 (cell-free housekeeping)
+## Campaign 3 (cell-free housekeeping) — COMPLETE as of session 26
 
 Confirmed by the user on 2026-08-18, from an AI-proposed order: COS-23 first
 because `docs/log.md`'s SHA problem affects the campaign's own record for
 every session including COS-16's eventual resumption; then COS-27
 (reproducibility); then COS-22, COS-24, COS-26 by increasing code complexity.
-Runs interleaved with Campaign 2 — this section's cursor is the tracker's
-active cursor until Campaign 3 empties or the user redirects.
+Ran interleaved with Campaign 2. All five issues are Resolved (session log and
+the per-issue table below); this section's cursor was the tracker's active
+cursor from session 22 through session 26.
 
 | # | Issue | Type | One-line note |
 |---|---|---|---|
@@ -54,7 +59,7 @@ active cursor until Campaign 3 empties or the user redirects.
 | 2 | COS-27 | measurement/harness | **Resolved, session 23.** FINDINGS.md's paired confidence intervals have no recorded, reproducible method. See Resolved. |
 | 3 | COS-22 | harness | **Resolved, session 24.** Harden the fixture guard COS-13 added — 4 gaps, one already fired unnoticed. See Resolved. |
 | 4 | COS-24 | harness | **Resolved, session 25.** CLI silently substitutes defaults for malformed flags — 10 ACs. See Resolved. |
-| 5 | COS-26 | harness | Bound the judge/rewrite calls so a stalled grader cannot hang a run. **The active cursor.** |
+| 5 | COS-26 | harness | **Resolved, session 26.** Bound the judge/rewrite calls so a stalled grader cannot hang a run — 6 ACs. See Resolved. **Campaign 3 is now empty.** |
 
 ## Campaign 2 (held at COS-16)
 
@@ -255,6 +260,7 @@ that omitted `--variants` ran five cells instead of one.
 | 2 | COS-27 | Task Done — 2026-08-18, session 23 | All 3 ACs verified, **no cells run** — traced every published paired figure to its raw saved rows and reverse-engineered the exact computation by testing candidate formulas against them. **AC #1**: implemented `harness/src/interval.mjs` (`pairedInterval` + `tCritical95` + `METRICS`), exposed as `node src/cli.mjs interval --before=<rows> --after=<rows> --metric=rules|words|composite|judge`; 10 new tests including a real-data regression anchored to the reserve-arm rules figure. Suite 179 -> 189, 189/189 pass. **AC #2**: paired by (case, model), repeats averaged, sample-SD (n-1) Student-t interval. Found by testing candidates against the reserve arm (`02-12-24`->`02-16-47`, n=12, no repeat-averaging ambiguity) — the sample-SD formula reproduced the published rules figure (+7.7 [+5.3,+10.1] t=7.06) exactly on the first matching attempt. Extending to the shared-five arm (`02-10-45`->`02-15-14`, n=10) initially failed to reproduce any of its four metrics until the after-side was pooled with `02-25-39` — a later, larger re-run of the same byte-identical text the ledger already names as a noise fix for the judge reading — which then reproduced all four (rules, words, composite, judge) exactly. 7 of 8 published COS-4 table cells now reproduce to the last digit; reserve reply-words did not (-54.7 vs published -55.7, a ~1-word gap with no cause found after checking code blocks and tokenizer drift) and was restated per AC #2's second branch, with the original value and the investigation recorded in FINDINGS.md's footnote. **AC #3**: the CLI command re-derives any published figure from saved rows in one invocation. Updated FINDINGS.md's COS-4 table/footnote and the ledger's `02-16-47` row to match the tool's output; every conclusion (rules moved on reserve, shared-five rules interval still touches zero) is unchanged. `lore check` exit 0 (24 files, 0 errors, 0 warnings); `npm --prefix harness test` 189/189. |
 | 3 | COS-22 | Task Done — 2026-08-18, session 24 | All 5 ACs verified against a review that found 4 gaps in COS-13's `harness/test/fixture.test.mjs` guard plus one docs-accuracy point, each closed with a sabotage-verified regression test proving the specific failure mode is caught. **AC #1**: `verdict()` now requires `skipped===0`, `todo===0` and an actual `pass` count >=2 pulled from the same `ℹ` summary lines, not just the source-derived assertion count — a fixture whose two tests are rewritten to `{ skip: true }` now fails the guard (it read green before: `pass 0`, `fail 0`, `assertions 2`). **AC #2**: the pinned-value scan walks every file under `fixtures/repo` (`readdirSync` recursive) instead of `test/pricing.test.mjs` alone; reintroducing acadf1b's original comment ("keeps 850 where rounding to the nearest cent keeps 849") into `src/pricing.js` now fails the guard, closing the exact leak that shipped green in that commit. **AC #3**: the `npm test` guard now runs the same `verdict()` parsing (not bare `r.status===0`) and asserts `result.error` is undefined; a sabotaged empty `PATH` surfaces `spawnSync npm ENOENT` instead of an opaque empty diff, and a `"test": "true"` no-op script that exits 0 without running anything now fails on `passedCount`. **AC #4**: replaced `.includes()` substring matching with a `\\b850\\b`/`\\b849\\b` word-boundary regex; `8500`, `1850`, `18500` and `$8.50` no longer false-positive. **AC #5**: qualified `docs/stories/make-the-measurements-trustworthy.md`'s `reserve-agentic-session` difficulty claim — `src/pricing.js` still carries a literal `BUG:` comment locatable by one `grep -rn BUG`, deliberate for `agentic-read-report` but meaning the case's remaining difficulty is search, not comprehension; edited outside lore-managed regions, `lore sync` then `lore check` exit 0 (24 files, 0 errors). 5 new tests, one per gap; `npm --prefix harness test` 190 -> 195, 195/195 pass. |
 | 4 | COS-24 | Task Done — 2026-08-18, session 25 | All 10 ACs verified directly against the built CLI, then locked down with 9 new CLI-level tests (`harness/test/usage.test.mjs`, `execFileSync` — nothing imports `cli.mjs`). Widened the shared `pick()`/`parseArgs` path into three validated primitives in `cli.mjs`, all evaluated before any cell is measured: `validateFlags(cmd, args)` — a per-subcommand flag allowlist plus a shared flag-name-to-type table (list/number/boolean/value) — runs immediately after the existing `wantsHelp()` guard and rejects an unrecognised flag (AC #1), a value-taking flag given no value (AC #2, and AC #6 as a side effect since `resolve(args.rows)` is never reached with `args.rows===true`), and a boolean flag given one, e.g. `--no-judge=false` (AC #9); `num(key, raw, fallback)` replaces bare `Number(...)` for `repeats`/`concurrency`/`iterations`/`judge-repeats`, rejecting anything non-finite by name (AC #3, AC #8); `matchList(key, raw, known)` replaces `pick()` for `--variants` and `--cases` specifically (not `--styles`/`--models`, which stay open-ended by design, and not judge's own separate `--cases` filter, out of AC #4's stated scope — that filter now reuses the shared, already-validated result instead of re-parsing), rejecting an unmatched or entirely-empty list by name (AC #4), and retires the `variants[0] ?? matrix.variants[0]` fallback the same AC named. `improve`'s own check is `args.variants !== undefined && variants.length > 1`, not a bare length check: verified live (backgrounded, killed after its first log line) that a bare `improve --styles=plain-english-advanced` still reaches `resolveImproveModels` and starts the baseline measurement rather than throwing — the default (no `--variants` flag, which resolves to every configured variant) is `README.md`'s and `npm run improve`'s documented invocation, and AC #5's own wording ("passing two variants") is about an explicit flag naming more than one (AC #5). Manual live checks incurred one small, unintended real API cost during that last verification (disclosed to the user; the kill landed after, not before, the loop's first measurement log line). `npm --prefix harness test` 195 -> 204, 204/204 pass; no `docs/` change beyond the tracker/task, so no `lore sync` was needed on the branch itself. |
+| 5 | COS-26 | Task Done — 2026-08-18, session 26 | All 6 ACs verified. `run.mjs`'s `cellLimitMs` generalized into an exported `secondsToMs(name, seconds)`, reused by two new call-site guards: `judge()` in `judge.mjs` and `rewrite()` in `improve.mjs` (previously an unexported inner function, now exported for direct testing) each wrap their `query()` call in their own `AbortController` + `setTimeout`, the same `timedOut`-flag shape `runCell` already used to distinguish a genuine abort from an SDK stream that ends quietly rather than throwing. **AC #1/#2**: a timed-out judge call substitutes the existing neutral-0.5 landing place with a violation naming the timeout instead of a generic failure string; a timed-out rewrite call logs the timeout distinctly, then returns `''` so the loop's pre-existing "author returned nothing usable — stopping" path handles it — no new failure path invented, per the task's own guidance. Both guards keep a real result that happens to race the timer: `judge()` only reports timeout when the output still fails to parse, `rewrite()` still returns a real body if the call actually completed. **AC #3**: `matrix.json` gained `run.judgeTimeoutSeconds` and `improve.rewriteTimeoutSeconds` (120 each, backstops sized above any observed no-tool call, not tuned figures — no `elapsedMs` equivalent exists for these calls yet), both validated once at CLI startup (`cli.mjs`) via `secondsToMs`, alongside the existing `cellLimitMs(opts.maxCellSeconds)` check; manually confirmed fail-loud by deleting each key in turn and running `node src/cli.mjs run`/`improve` — both threw naming the missing key before any cell ran, config restored after. **AC #4, sabotage-verified**: four new wedge-then-real-abort tests (two call shapes — throws on abort, ends the iterator quietly on abort — for both `judge()` and `rewrite()`), each driving the injected `queryFn` seam to a genuine `AbortController` fire, the same pattern `run.test.mjs` established for `runCell`'s own guard. **AC #5**: `matrix.json`'s `//run`/`//improve` comment blocks, `harness/README.md` and `docs/reference/harness-architecture.md` no longer call either call unbounded; grepped all three plus the two docs for "unbounded"/"no abortController"/"no timeout" post-edit, none remain. **AC #6**: `npm --prefix harness test` 214 -> 219, 219/219 pass (5 new: 2 in `checks.test.mjs`, 2 in `improve.test.mjs`, 1 in `config.test.mjs`); `node src/cli.mjs audit` exit 0; `lore check` exit 0 (24 files, 0 errors, 0 warnings). **Campaign 3 is now empty — all five of its issues (COS-23, COS-27, COS-22, COS-24, COS-26) are Resolved.** |
 
 ## Parked in campaign 1 — now queued as items 14 and 15
 
@@ -1450,3 +1456,29 @@ Both remaining issues carry known risk against that policy:
   log line, not before it) — flagged to the user. 9 new CLI-level tests in
   `harness/test/usage.test.mjs`, one per failure family, `execFileSync`
   against the built CLI since nothing imports `cli.mjs`. Suite 195 -> 204.
+- 2026-08-18 — session 26: resolved COS-26 on `feature/COS-26`, Campaign 3's
+  last item. No drift at restore: `dev`/`main` both at `ece23e6`, clean apart
+  from the same untracked, unowned `system-prompt.md`, no leftover branches,
+  no open PRs, 214/214 baseline. Generalized `run.mjs`'s `cellLimitMs` into a
+  shared `secondsToMs(name, seconds)` validator and reused it to give
+  `judge.mjs`'s `judge()` and `improve.mjs`'s `rewrite()` (now exported) each
+  their own `AbortController` timeout — `run.judgeTimeoutSeconds` and
+  `improve.rewriteTimeoutSeconds` in `matrix.json`, 120s backstops, both
+  fail-loud at CLI startup on a missing/bad value the same way
+  `maxCellSeconds` already did. A stalled judge call substitutes the existing
+  neutral-0.5 path with a violation naming the timeout; a stalled rewrite call
+  is folded into the loop's existing "author returned nothing usable" stop
+  path, with a distinct log line so the two are not indistinguishable. Both
+  guards keep a real result if it happens to land in the same tick the timer
+  fires, rather than discarding a genuine measurement. Sabotage-verified with
+  4 new wedge-then-real-abort tests (throw-on-abort and quiet-end-of-iterator,
+  for both calls) driving the injected `queryFn` seam to a real
+  `AbortController` fire, plus 1 config test on the two new matrix.json keys.
+  Suite 214 -> 219. `harness/README.md` and
+  `docs/reference/harness-architecture.md` updated so neither call reads as
+  unbounded any more — `lore sync`/`lore check` both clean. **Campaign 3 is
+  now empty** — COS-23, COS-27, COS-22, COS-24 and COS-26 are all Resolved.
+  Cursor section rewritten to stop pointing at a specific next issue and
+  instead direct the next `restore` session to ask the user whether to resume
+  Campaign 2 at COS-16 (cell budget permitting) or `init` a fresh queue,
+  per the skill's own queue-empty branch.
