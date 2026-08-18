@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-17 19:10'
+updated_date: '2026-08-18 12:12'
 ---
 # Backlog campaign tracker
 
@@ -56,6 +56,23 @@ armed before session 13 started, and session 14 took it.
 Campaign 1 is closed. Its cursor ran COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5
 -> COS-7 -> COS-1 -> COS-4; six resolved, two parked. Those two are now items 14
 and 15 of campaign 2, because the blockers under them have owners.
+
+**Session 20 took COS-16 and did not finish it. The cursor stays COS-16.**
+COS-16's own acceptance criteria demand each surviving edit be measured on its
+own (AC #3) rather than as an unresolvable bundle, which is the defect it
+exists to fix in COS-4. That ablation ran into Claude Code's 5-hour usage
+window twice — once losing 1127 of 1200 single-edit cells, once losing 56 of
+150 cells on a follow-up three-edit candidate's Sonnet half — and the user
+chose to park rather than wait it out a third time. What is proven and merged:
+the style file ships no prose changes (reverted to shipped bytes, sha256
+`96fdbea4`); the two baselines and the four-edit bundle are fully measured (the
+bundle is a null result on the judge, but shows a real Opus word regression);
+all four single-edit arms are now fully measured with zero individual harm;
+and a three-edit candidate dropping the regression's likely source (E4, the
+one edit that adds rather than removes or bounds a rule) is clean on Opus and
+still needs Sonnet. The rebuild recipe, every sha256, and the exact next steps
+are recorded in the task's implementation notes — a resuming session does not
+need to re-derive any of it, only re-run the one blocked arm.
 
 ## Queue (confirmed order)
 
@@ -1244,3 +1261,49 @@ Both remaining issues carry known risk against that policy:
   **What could not be corrected, and why that is now its own task.** The paired figures in FINDINGS (+7.7 [+5.3, +10.1] t=7.06 on the reserve six, +5.2 [+0.0, +10.4] on the shared five) sit on arms that moved. Recomputing them from the saved rows reproduces every ARM MEAN in the ledger to the last digit but not the intervals: +7.8 [+5.3, +10.2] t=7.02 old against the published +7.7/t=7.06. Arm means matching exactly is what makes that a method difference rather than a data difference, so the published intervals were footnoted with the measured movement rather than silently replaced by a second method. That is **COS-27**. The by-hand read AC #2 demanded also found advanced's "under 120, headers and code included" against `total_length`'s `stripCode` — a basis mismatch, not a conditional, outside these ACs — which is **COS-28**. Intermediate's "under about 100 words when things are normal" was examined and judged NOT a defect: `total_length` gives full credit at the cap and decays to 0 at twice it, so a soft cap is graded as one.
 
   Six mutations, each asserted to have landed before its red was believed, each red only on its intended test: two on `contracts.json` at the CLI (audit exit 1, restored to exit 0) and four on `checks.mjs`. Suite 159 → 175.
+
+
+- 2026-08-17/18 — session 20: took COS-16, the cursor, on `feature/COS-16`.
+  No drift at restore: `dev`/`main` both at `62eb6a9`, no leftover branches, no
+  open PRs.
+
+  **Priced the ablation before writing prose, per AC #3's own demand.** COS-4's
+  failure was measuring five edits as one bundle and being unable to tell them
+  apart. Five defects became four edits (removing/bounding three, adding one)
+  plus one retained-as-is: defect #5's gloss example ("API (the messenger that
+  lets two programs talk)") was COS-15's own fix made moot — `no_jargon` now
+  grades first use and forgives exactly that shape, so the example demonstrates
+  compliance rather than violating it.
+
+  **The baseline re-measurement corrected a real published figure.** COS-4
+  published beginner's judge score at n=35/model: 73.9 Opus, 58.1 Sonnet. At
+  n=150/model (0 errors, both the five shared cases and six reserve cases),
+  it reads 66.8 / 60.9 — inside COS-4's own stated interval, so the estimate
+  did not move, the interval did. It matters: 73.9 was above the project's 70%
+  bar, 66.8 is below it. Corrected in FINDINGS.md and four docs, merged as
+  `716d628`.
+
+  **The four-edit bundle is a null result with one real regression.** Judge
+  flat on both splits; rules move under a quarter point either way. But Opus's
+  mean reply length rose +1.71 [+0.27, +3.16] words on the shared five — a real
+  effect, breaching AC #4's not-above-63.0 reading. No single edit explains it:
+  all four, measured individually after the ablation was retried clean (0
+  errors, 150/model each), show no harm on any metric. Testing E1+E2+E3 with
+  E4 dropped found the likely source — Opus's word delta falls to +0.20
+  [-2.75, +3.15], null — but that arm's Sonnet half hit the usage window at 56
+  of 150 cells and needs a clean re-run before the three-edit candidate can
+  ship.
+
+  **Parked at the user's direction** rather than waiting out a third window.
+  Merged only what was legitimately independent of the shipping decision: the
+  corrected judge figures and six new ledger rows recording every cell spent
+  this session (4540 cells persisted project-wide, up from 640). `/code-review
+  medium` found one arithmetic slip in a since-superseded planning note,
+  corrected. `npm --prefix harness test` 179/179; `audit` exit 0; `lore check`
+  exit 0. Merged via PR #19 (rebase) as `9081f33`, with one commit
+  (`f674597`, the arithmetic correction) recovered by direct cherry-pick to
+  `dev` after `gh pr merge`'s local housekeeping failed on an uncommitted file
+  and the retry reported the PR already merged — the remote `feature/COS-16`
+  was not auto-deleted in that path and was removed manually. `dev` and `main`
+  both pushed at `716d628`, no branch litter, no open PRs. The cursor did not
+  move: COS-16 remains item 9, unresolved.
