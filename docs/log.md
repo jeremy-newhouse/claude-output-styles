@@ -68,6 +68,7 @@
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
 - 2026-08-17T14:12:09-05:00 606ee237939ba434ce518d39c71840194640d083 Let codeOnRequest lift the whole cap, and see a gloss through bold
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
+- 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
 
 ## docs/adr
 
@@ -90,6 +91,7 @@
 - 2026-08-16T21:50:29-05:00 31433b8df7c108b0b6ca363d2f2de8d6d6466f86 Fix eight published figures the branch review caught, and recount the one that mattered
 - 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
+- 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
 
 ## docs/reference
 
@@ -128,6 +130,7 @@
 - 2026-08-17T13:13:47-05:00 4e2b45e40240d67b5592d545699ff37c0dff137b Record what 720 judge calls established about the judge
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
+- 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
 
 ## docs/runbooks
 
@@ -206,3 +209,4 @@
 - 2026-08-17T13:13:47-05:00 774a8972b58f4a461a13a2c9b7d1a9adea537b32 Say which style the sample sizes are for, in all four places that quote them
 - 2026-08-17T14:12:09-05:00 606ee237939ba434ce518d39c71840194640d083 Let codeOnRequest lift the whole cap, and see a gloss through bold
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
+- 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
