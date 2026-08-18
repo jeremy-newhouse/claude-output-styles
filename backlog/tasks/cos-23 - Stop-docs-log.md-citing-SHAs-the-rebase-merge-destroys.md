@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@jeremy.newhouse'
 created_date: '2026-08-17 13:41'
-updated_date: '2026-08-18 13:19'
+updated_date: '2026-08-18 13:27'
 labels: []
 dependencies: []
 references:
@@ -35,3 +35,73 @@ Three directions, all plausible, none yet chosen: regenerate the affected sectio
 - [ ] #4 The campaign protocol is updated so future sessions do not reintroduce the problem
 - [ ] #5 docs/log.md contains every commit a branch merged, not only those that existed when lore sync last ran — verified on a session whose review-fix and doc-log commits are absent today
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Establish the extent (AC1): sweep every SHA in docs/log.md against
+   origin/dev with `git merge-base --is-ancestor`; cross-check the specific
+   dead/missing SHAs COS-13 and COS-14 diagnosed against gh's original PR
+   commit lists to confirm whether they self-healed.
+2. Choose a direction (AC2) based on what the sweep shows.
+3. Implement the direction: run `lore sync` on dev, verify it closes any
+   open gap, commit.
+4. Update .claude/skills/backlog-handover/SKILL.md's per-issue lifecycle so
+   future sessions re-sync docs/log.md on dev right after the PR merge,
+   before promoting to main (AC4).
+5. Re-verify every SHA resolves against origin/dev after the fix (AC3), and
+   that the specific absent-today entry is now present (AC5).
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Forensic sweep (AC1): swept every SHA cited in docs/log.md at dev@d03a7db
+against origin/dev via `git merge-base --is-ancestor` -- 0/77 dead. Cross-
+checked the specific SHAs COS-13 (acadf1b99ac, e71e38c35d7, 3d2635a7eb8) and
+COS-14 (374378a) diagnosed as dead: all four are absent from log.md's text
+today and NOT reachable from origin/dev (confirmed via gh pr view's original
+commit lists), but each has a live replacement entry under the *same subject
+line* and a *different, currently-reachable* SHA (e.g. 374378a's "Give
+improve its own model list instead of run's" now cites e0bb46e5, which is
+reachable). Root cause: `lore sync` regenerates docs/log.md's per-directory
+sections by walking git log from the CURRENT HEAD -- it is not an append-
+only ledger. So a dead SHA a mid-branch sync recorded pre-rebase does not
+stay broken forever: the next session whose branch descends from the merged
+`dev` re-walks history from its own HEAD and naturally emits a fresh, live
+entry for the same commit under its now-correct SHA. The defect is real but
+strictly bounded to a one-session-cycle window between a PR's rebase-merge
+and the next docs-touching session's sync -- never a permanent injury.
+Verified this bound is tight: COS-14's own doc-log-recording commit (2833a95,
+rebased to cb638d4) IS present in today's log.md, i.e. it self-healed within
+one cycle. The one gap open today (2026-08-18, before this session) was
+`ea48ed7` -- session 21's own "record the campaign-3 log entry" commit,
+absent from log.md until this session's `lore sync` ran (grep for it
+returned nothing pre-fix; present post-fix). This is the concrete AC5
+instance: a session (21) whose doc-log commit was absent from log.md today,
+closed by this fix. (COS-14's review-fix commit b0014af is correctly absent
+from log.md and always will be -- it touches harness/ and README.md, not
+docs/, and log.md is scoped to docs/ subdirectories by design; that's not a
+defect.)
+
+Direction chosen (AC2): regenerate post-merge, not drop-SHAs or change-
+merge-strategy. Reasoning: since `lore sync` already regenerates log.md from
+a live reachable-history walk, the fix is a single extra call -- run
+`lore sync` on `dev` immediately after every PR merge (before the `main`
+fast-forward), commit+push if it changes anything. This guarantees the gap
+closes within the SAME session that created it rather than lagging into the
+next one, without discarding SHA provenance (which the task calls out as
+real reader value) and without touching the rebase-merge strategy the
+campaign locked in deliberately for linear history.
+
+Implemented (AC3/AC4/AC5): ran `lore sync` on this branch (feature/COS-23,
+cut from dev@d03a7db) -- it appended the missing ea48ed7 entry to
+docs/log.md (`lore sync --json` reported filesChanged:1). Re-swept all 78
+SHAs now in docs/log.md against origin/dev: 0 dead. `lore check --json`:
+errorCount 0, warningCount 0, fileCount 24. `npm --prefix harness test`:
+179/179. Edited .claude/skills/backlog-handover/SKILL.md step 9 ("Sync
+local <default>, re-sync the docs log, then promote to main") to add an
+unconditional `lore sync` + commit + push on `dev` right after the PR merge
+and before the `main` fast-forward, with the reasoning inline so a future
+reader does not strip it as redundant.
+<!-- SECTION:NOTES:END -->

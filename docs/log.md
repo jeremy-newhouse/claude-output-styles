@@ -70,6 +70,7 @@
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
 - 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
 - 2026-08-18T07:12:42-05:00 0d5309dd69ccf31f2595c6a7e46b1f0045d99e49 docs(COS-16): record the merged COS-16 commit in the generated log
+- 2026-08-18T08:16:21-05:00 ea48ed7998d827ee3d75c73dda0c2fffad9625cc docs(campaign): record the campaign-3 log entry the tracker update made
 
 ## docs/adr
 
