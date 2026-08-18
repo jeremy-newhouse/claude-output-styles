@@ -1,11 +1,11 @@
 ---
 id: COS-23
 title: Stop docs/log.md citing SHAs the rebase-merge destroys
-status: In Progress
+status: Done
 assignee:
   - '@jeremy.newhouse'
 created_date: '2026-08-17 13:41'
-updated_date: '2026-08-18 13:27'
+updated_date: '2026-08-18 13:30'
 labels: []
 dependencies: []
 references:
@@ -29,11 +29,11 @@ Three directions, all plausible, none yet chosen: regenerate the affected sectio
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The extent is established: which sessions have unreachable SHAs in docs/log.md, and where the boundary is
-- [ ] #2 A direction is chosen between regenerating post-merge, dropping SHAs, and changing merge strategy, with the reasoning recorded
-- [ ] #3 Every SHA that docs/log.md cites resolves against origin, verified by a command run on a fresh clone or an equivalent reachability check
-- [ ] #4 The campaign protocol is updated so future sessions do not reintroduce the problem
-- [ ] #5 docs/log.md contains every commit a branch merged, not only those that existed when lore sync last ran — verified on a session whose review-fix and doc-log commits are absent today
+- [x] #1 The extent is established: which sessions have unreachable SHAs in docs/log.md, and where the boundary is
+- [x] #2 A direction is chosen between regenerating post-merge, dropping SHAs, and changing merge strategy, with the reasoning recorded
+- [x] #3 Every SHA that docs/log.md cites resolves against origin, verified by a command run on a fresh clone or an equivalent reachability check
+- [x] #4 The campaign protocol is updated so future sessions do not reintroduce the problem
+- [x] #5 docs/log.md contains every commit a branch merged, not only those that existed when lore sync last ran — verified on a session whose review-fix and doc-log commits are absent today
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -105,3 +105,25 @@ unconditional `lore sync` + commit + push on `dev` right after the PR merge
 and before the `main` fast-forward, with the reasoning inline so a future
 reader does not strip it as redundant.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Swept every SHA in docs/log.md against origin/dev (git merge-base
+--is-ancestor): 0/77 dead at the branch point. lore sync regenerates the
+file from a live git-log walk of the current HEAD, not an append-only
+ledger, so a dead pre-rebase SHA a mid-branch sync records self-heals the
+next time any later session's branch syncs again -- confirmed against the
+specific SHAs COS-13 and COS-14 diagnosed as dead, all four now gone from
+the file and replaced under the same subject line by live SHAs. The defect
+is real but bounded to a one-session-cycle window. Chose "regenerate
+post-merge" over dropping SHAs or changing the merge strategy: ran
+lore sync on this branch, which closed the one gap open today (ea48ed7,
+session 21's own doc-log commit, absent before, present after -- the AC5
+instance). Edited .claude/skills/backlog-handover/SKILL.md step 9 so every
+future session runs lore sync on dev right after the PR merge, before
+promoting to main, closing the gap within the same session instead of
+lagging into the next. Verified: 78/78 SHAs in the fixed docs/log.md
+resolve against origin/dev; lore check exit 0 (24 files, 0 errors, 0
+warnings); npm --prefix harness test 179/179.
+<!-- SECTION:FINAL_SUMMARY:END -->
