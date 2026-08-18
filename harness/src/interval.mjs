@@ -3,7 +3,7 @@
 // take a two-tailed 95% interval from the Student-t distribution on the
 // resulting differences.
 
-import { words } from './checks.mjs'
+import { words, stripCode } from './checks.mjs'
 
 // Standard two-tailed 95% critical values, t(0.025, df). Anchors match any
 // printed Student-t table; a df between two anchors is linearly interpolated,
@@ -78,5 +78,5 @@ export const METRICS = {
   rules: r => r.rulesScore * 100,
   judge: r => r.judgeScore * 100,
   composite: r => r.total * 100,
-  words: r => words(r.text).length
+  words: r => words(stripCode(r.text)).length
 }
