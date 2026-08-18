@@ -365,6 +365,21 @@ if (cmd === 'run') {
   console.log(renderJudgeReport(analysis))
   console.log(`wrote ${outDir}`)
 
+} else if (cmd === 'interval') {
+  // A paired 95% Student-t interval between two saved runs, reproducing
+  // FINDINGS.md's published method (COS-27). Runs no cell.
+  const { pairedInterval, METRICS } = await import('./interval.mjs')
+  if (!args.before || !args.after) throw new Error('interval needs --before=results/<stamp>/rows.json and --after=...')
+  const metric = args.metric ?? 'rules'
+  const getValue = METRICS[metric]
+  if (!getValue) throw new Error(`--metric=${metric} is not one of: ${Object.keys(METRICS).join(', ')}`)
+  const loadRows = paths => pick(paths, []).flatMap(p => readJson(resolve(p)))
+  const beforeRows = loadRows(args.before)
+  const afterRows = loadRows(args.after)
+  const r = pairedInterval(beforeRows, afterRows, { getValue })
+  const sign = r.mean >= 0 ? '+' : ''
+  console.log(`${metric}: ${sign}${r.mean.toFixed(1)} [${r.lo >= 0 ? '+' : ''}${r.lo.toFixed(1)}, ${r.hi >= 0 ? '+' : ''}${r.hi.toFixed(1)}], t=${r.t.toFixed(2)}, df=${r.df}, n=${r.n} pairs`)
+
 } else {
   console.error(`unknown command "${cmd}"`)
   console.log(USAGE)
