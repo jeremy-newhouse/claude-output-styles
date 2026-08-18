@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-18 01:56'
+updated_date: '2026-08-18 12:05'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -128,4 +128,37 @@ Runs: `2026-08-17T20-25-32-391Z` (E1, 73/300 usable), `20-29-03-409Z` (E2, 0), `
 **So AC #3 is not met, and AC #3 is the criterion that gates shipping the prose** — 'no bullet ships on the strength of the bundle alone' is the sentence this task exists for. COS-4 failed by adopting a five-edit bundle it could not decompose; adopting a four-edit bundle I cannot decompose would repeat it, and the bundle's own numbers give no independent reason to adopt it. The style file is therefore **reverted to the shipped text at 96fdbea4** and no prose ships from this session. The candidate is recorded above and is one rebuild away.
 
 What the next session has to buy: four arms of 300 cells at 30 repeats on the five shared cases, opus+sonnet, baseline variant, concurrency 12. About 45 minutes at the 26.5 cells/min this machine sustained, against the same `19-42-55` baseline, which does not need re-running.
+
+ABLATION RETRIED AND COMPLETE. The account's spend limit was raised and the four single-edit arms re-ran clean: 300 cells each, 150 per model, **0 errored cells in all four**. Runs `2026-08-18T02-02-28` (E1), `02-12-32` (E2), `02-22-33` (E3), `02-32-33` (E4), all against the same `19-42-55` shared-five baseline (rules 98.9/97.4, judge 66.8/60.9, words 63.0/59.7).
+
+Paired deltas, arm minus baseline, both models pooled (10 groups):
+
+| edit | rules | judge | words | notes |
+|---|---|---|---|---|
+| E1 (jargon conflict) | +0.10 [-0.25,+0.45] | -0.07 [-5.22,+5.07] | -0.65 [-1.83,+0.53] | Sonnet words **-1.41 [-1.86,-0.96]** clears zero; Sonnet rules +0.33 [+0.01,+0.66] barely clears zero |
+| E2 (proof number bound) | -0.16 [-0.45,+0.14] | +0.53 [-1.92,+2.97] | -0.58 [-1.56,+0.39] | flat on every metric |
+| E3 (router precedence) | -0.01 [-0.43,+0.41] | +0.69 [-4.66,+6.05] | **-1.42 [-2.49,-0.36]** | Sonnet words -1.97 [-3.80,-0.15] |
+| E4 (two router shapes) | +0.09 [-0.21,+0.39] | -0.69 [-4.57,+3.18] | -0.94 [-2.43,+0.54] | flat on every metric |
+
+**No single edit shows harm.** Where an interval clears zero it is a word-count drop (E1, E3 on Sonnet), never a rules or judge fall. AC #3 is met for all four: each has its own individual measurement now.
+
+**But the four-edit bundle measured earlier (`20-05-05`) does not decompose into these.** Its Opus word delta was **+1.71 [+0.27, +3.16]** — a real, statistically significant rise, against a bar of not rising above 63.0 (AC #4). None of the four individual edits shows this; it is an interaction effect of combining them, and it is exactly the failure mode AC #3 exists to catch — a bundle effect no single bullet earns. E4 is the edit with the weakest individual case (every one of its deltas is a null, in either direction) and is the only one of the four that ADDS text rather than removing or bounding it, which is the shape the task's own note flags as having failed twice (COS-1, COS-4). Testing a three-edit bundle (E1+E2+E3, sha256 86451ddb) on the shared five before deciding whether to drop E4.
+
+THREE-EDIT BUNDLE (E1+E2+E3, dropping E4) MEASURED, AND HIT THE SAME SPEND LIMIT AGAIN. Run `2026-08-18T02-43-48`, 300/300 cells written but **56 of 150 Sonnet cells errored** with the same monthly-spend-limit message; Opus is clean at n=150. Sonnet's arm mean (rules 96.3, judge 56.7, words 70.9) is built from the 94 cells that survived and is not comparable to any other arm's 150 — do not read it as a result.
+
+**Opus alone is informative and clean:** rules -0.10 [-0.24, +0.05], judge -3.43 [-13.60, +6.73], words **+0.20 [-2.75, +3.15]**. This is the number the whole side-experiment was run for: dropping E4 takes Opus's word delta from the four-edit bundle's +1.71 [+0.27, +3.16] (a real rise, breaching AC #4) to +0.20 [-2.75, +3.15] (null, well inside noise). **Dropping E4 removes the AC #4 violation.**
+
+Sonnet needs a clean re-run of this same arm before AC #2 or AC #4 can be checked on the three-edit bundle — the spend limit is blocking, not a design problem. Style file left at the E1E2E3 candidate (sha256 86451ddb) pending that.
+
+SESSION PARKED, PER USER DIRECTION. The blocker across both spend-limit hits (20-25 through 20-31 the first time, then the Sonnet half of 02-43-48 the second) is Claude Code's 5-hour usage window, not the monthly account limit misread earlier — it resets on its own, not by anyone raising anything. The user chose to park rather than wait it out.
+
+**What ships this session: nothing from the style file.** `plain-english-beginner.md` is reverted to the shipped bytes (sha256 96fdbea4). Only the doc corrections from the baseline re-measurement ship — see the next note.
+
+**What remains, precisely, for whichever session resumes this:**
+1. Re-run the E1+E2+E3 candidate (sha256 86451ddb, rebuildable from EDITS E1/E2/E3 in the recipe above, omitting E4) on the five shared cases, opus+sonnet, baseline, 30 repeats. Sonnet needs a full clean 150; the run at `02-43-48` gave Opus n=150 (clean) and Sonnet n=94 (56 errored) — Opus's arm is usable as-is if the retry only needs Sonnet, but re-running both together is simpler and cheaper than reconciling two partial files.
+2. If AC #2 and #4 read clean on that (they were on Opus alone: rules -0.10, words +0.20, both null — the four-edit bundle's Opus word regression came from E4 and dropping it fixed it), measure the same three-edit candidate on the six reserve cases (AC #5). No reserve arm has run on any three-edit candidate yet.
+3. Check AC #6 (audit exit 0, checksum match) once the final candidate is set, then the review -> PR -> merge lifecycle.
+4. AC #1's decision record already covers all five defects, including retaining defect #5 and now dropping E4 (retained-not-shipped: no individual measured benefit, and it is the one edit that adds rather than removes/bounds, which the task's own note already flagged as the failure-prone shape).
+
+None of the six acceptance criteria are checked. The task stays open.
 <!-- SECTION:NOTES:END -->
