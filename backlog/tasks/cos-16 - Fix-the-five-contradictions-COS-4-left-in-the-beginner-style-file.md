@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-18 12:05'
+updated_date: '2026-08-18 12:09'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -161,4 +161,6 @@ SESSION PARKED, PER USER DIRECTION. The blocker across both spend-limit hits (20
 4. AC #1's decision record already covers all five defects, including retaining defect #5 and now dropping E4 (retained-not-shipped: no individual measured benefit, and it is the one edit that adds rather than removes/bounds, which the task's own note already flagged as the failure-prone shape).
 
 None of the six acceptance criteria are checked. The task stays open.
+
+CORRECTION to plan item 6's arithmetic: it claimed the 15-repeat trim 'saves 750 cells,' but 1200 cells (4 arms x 300) trimmed to 600 (4 arms x 150) saves 600, not 750. Item 6's trim was already reverted by item 7 before anything was measured, so no shipped figure used the wrong number — flagging it only because a stray number in this file is exactly the class of defect this task exists to remove.
 <!-- SECTION:NOTES:END -->
