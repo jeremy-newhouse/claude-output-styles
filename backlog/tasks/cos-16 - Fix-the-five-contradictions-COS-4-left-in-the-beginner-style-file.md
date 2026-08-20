@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-20 03:27'
+updated_date: '2026-08-20 03:40'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -213,10 +213,27 @@ Correction to a claim made mid-session: an earlier audit invocation was piped to
 Gates: `npm --prefix harness test` 219/219 pass. `lore check` exits 0 on 24 files, 0 errors, 0 warnings.
 
 DOCS UPDATED, because shipping these bytes moves what four published passages describe. `19-42-55` and `19-53-49` measured COS-4's pass-1 text; after this merge they no longer measure the file that ships, and five documents quoted them as 'the shipped text'. Corrected in `FINDINGS.md` (the four-tier table footnote, the pass-1 rules sentence, the judge-did-not-move section, and the sample-size paragraph), `docs/index.md`, `docs/epics/plain-english-output-styles.md`, and the stories `close-the-style-quality-gaps`, `extend-measurement-coverage` and `make-the-measurements-trustworthy`. Two rows added to `docs/reference/experiment-ledger.md` for the new runs, and its persisted-cell total moved 4540 -> 5140.
+
+REVIEW FINDINGS (`/code-review high`, session 27) — twelve raised, eleven fixed on the branch, one deliberately not.
+
+The review verified the measurement layer independently and found it sound: it re-scored both runs, recomputed every mean and all 24 possible paired intervals, re-checked the sha256, and re-ran audit/tests/lore check. Every defect it found was in the prose and record layer.
+
+**Fixed:**
+1. `FINDINGS.md` — an edit truncated a line and dropped the word 'Sonnet', leaving a rules figure with no model attached.
+2. Three documents said the shipped file removes **four** of the five contradictions. It removes **three**; the fourth (the router's two missing shapes) is retained unfixed and the fifth was closed by COS-15 on the contract side. Corrected in `FINDINGS.md` twice and `make-the-measurements-trustworthy.md` once, and the passage now names what is retained rather than leaving the count to be inferred.
+3. `FINDINGS.md` called E4 'a fifth change' in a sentence that twice says 'of the four'. Reworded.
+4. **Opus judge on `03-03-26` was published as 66.2; the mean is 0.6614667, so it is 66.1.** A double-round through my own 2-dp intermediate (66.1467 -> 66.15 -> 66.2). `node src/cli.mjs score` prints 66.1. Corrected in all eight places it had propagated to. This is the exact defect class COS-16 exists to remove, introduced by COS-16's own record.
+5. The tracker's new Resolved row sat one blank line below the Campaign 2 table, so GFM would have rendered the campaign's largest evidence entry as literal pipe-delimited text. Rejoined.
+6. **The tracker claimed COS-16 'cost 3000 cells, 1244 lost'. Both were invented.** Counted from the saved runs: 4500 cells across sessions 20 and 27 (two baselines 600, bundle arms 600, interrupted ablation 1200, retried ablation 1200, first E1+E2+E3 attempt 300, the two clean arms 600) and 1183 lost (1127 + 56). Replaced with the counted figures and their breakdown.
+7. **The tracker told the next session to size COS-18 against '26 cells a minute'** — session 20's estimate, not anything session 27 measured. Measured from the run stamps: two 300-cell arms at 9m39s each, 600 cells in 19m18s, **31 cells a minute**. Corrected in both the cursor section and the session log.
+8. 'All twenty paired intervals — pooled and per-model, both splits, on rules, judge, composite and reply words' enumerates 24, not 20: per-model composite was never computed. The count of 20 is right and the enumeration was wrong, so the enumeration is now explicit about which 20. (The review computed the four missing per-model composite intervals and all four contain zero, so nothing turns on it.)
+9. Four passages still asserted in the present tense that `19-42-55`/`19-53-49` measure 'the shipped text', with the correcting paragraph appended below rather than the sentence fixed — the document stating and denying the same fact two paragraphs apart. Rewritten to 'COS-4's pass-1 text — what shipped until COS-16' in `FINDINGS.md`, `docs/index.md`, the epic, `extend-measurement-coverage.md` and the ledger's `19-42-55` row.
+
+**Raised and deliberately not fixed:** the review is right that E3's precedence sentence reads ambiguously — 'When two of **these** match' sits after the section's closing line, so its nearest plural antecedent is that line rather than the four router bullets, in the one edit whose job was to remove an ambiguity. **Changing it is not available to this task.** The shipped bytes are the measured bytes; any rewording changes the sha256 and breaks AC #6, and shipping unmeasured style text is the precedent COS-1 set and COS-4 violated. Filed as COS-29 rather than smuggled in.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Shipped a three-edit rewrite of `plain-english-beginner.md` (sha256 `86451ddb`) that removes three of the five contradictions COS-4 left, and explicitly retains the other two with measured reasons. Verified by two clean arms — 300 cells each, 150 per model, 0 errored: `2026-08-20T03-03-26` on the five shared cases and `03-13-05` on the six reserve cases, paired against the same-size baselines `19-42-55` and `19-53-49`. All twenty paired 95% intervals, pooled and per-model across rules, judge, composite and reply words, contain zero. AC #4's bars hold at full precision: rules 99.16 / 97.38 against 98.95 / 97.37, mean reply 62.87 / 58.69 words against 62.99 / 59.74. The result the task existed for: the four-edit bundle's Opus word regression of +1.71 [+0.27, +3.16] disappears to -0.12 [-2.28, +2.04] when E4 is dropped — an interaction effect visible only because each edit was also measured alone, which is what COS-4 could not do. Gates: audit exit 0 on 12 checks, 219/219 harness tests, lore check exit 0. Five documents and the experiment ledger updated, because after this merge `19-42-55` no longer measures the file that ships.
+Shipped a three-edit rewrite of `plain-english-beginner.md` (sha256 `86451ddb`) that removes three of the five contradictions COS-4 left, and explicitly retains the other two with recorded reasons. Verified by two clean arms — 300 cells each, 150 per model, 0 errored: `2026-08-20T03-03-26` on the five shared cases and `03-13-05` on the six reserve cases, paired against the same-size baselines `19-42-55` and `19-53-49`. All twenty paired 95% intervals — the four pooled metrics on each split, plus rules, judge and reply words per model on each split — contain zero. AC #4's bars hold at full precision: rules 99.16 / 97.38 against 98.95 / 97.37, mean reply 62.87 / 58.69 words against 62.99 / 59.74. The result the task existed for: the four-edit bundle's Opus word regression of +1.71 [+0.27, +3.16] disappears to -0.12 [-2.28, +2.04] when E4 is dropped — an interaction effect visible only because each edit was also measured alone, which is what COS-4 could not do. Gates: audit exit 0 on 12 checks, 219/219 harness tests, lore check exit 0. Five documents and the experiment ledger updated, because after this merge `19-42-55` no longer measures the file that ships. Branch review raised twelve defects in the record layer: eleven fixed here, including a double-rounded judge figure (66.2 for 66.1) that had propagated to eight places and two invented cell counts in the tracker; the twelfth is filed as COS-29, because fixing it means changing measured bytes.
 <!-- SECTION:FINAL_SUMMARY:END -->
