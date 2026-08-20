@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-20 03:40'
+updated_date: '2026-08-20 03:41'
 ---
 # Backlog campaign tracker
 
@@ -1533,3 +1533,8 @@ Both remaining issues carry known risk against that policy:
   of the eleven — the double-rounded judge figure and the invented cell counts —
   are precisely the stray-number defect class COS-16 exists to remove, found in
   COS-16's own record.
+  Noted while placing COS-16's row and **not fixed**: the Campaign 2 Resolved
+  table has no row 8. COS-15 was resolved in session 19 and its row was never
+  added. Left alone rather than reconstructed, because writing an evidence
+  summary from outside that session is how invented figures get into this file —
+  the task record for COS-15 is intact and is the place to read it from.
