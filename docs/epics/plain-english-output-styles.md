@@ -72,6 +72,8 @@ judge halves by that larger arm. Its Haiku and Fable columns have not been
 re-measured since the rewrite. Read the row as history; `FINDINGS.md` carries the
 current numbers.
 
+**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.2 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+
 The four tiers span the whole released range, from the smallest model to the
 largest — and rule compliance holds across all of it, 90.9 to 97.9. Prose quality
 does not: the judge ranges 37.5 to 78.3 over the same twelve cells. That is the
