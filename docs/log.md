@@ -80,7 +80,8 @@
 - 2026-08-18T10:30:38-05:00 3f2513e4bad33e0dfd833b07dfbe7a13d5d86b37 Re-sync docs after COS-24's rebase-merge
 - 2026-08-18T12:21:11-05:00 8e1229704561167e18806f467af3852fed9bbdb9 Re-sync docs/log.md after COS-26's commits
 - 2026-08-18T12:22:28-05:00 eea6b4192733ae1f2fbb5c54c45cc4aca9433b74 Re-sync docs/log.md after COS-26's rebase-merge
-- 2026-08-19T22:29:46-05:00 13ef8501691bf20155fa79e68f5aa559a9d3d8de Ship beginner's three-edit rewrite, each edit measured on its own
+- 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
+- 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
 
 ## docs/adr
 
@@ -104,7 +105,8 @@
 - 2026-08-16T22:52:54-05:00 7c269a138a0c74c401c571ec918e50c80eb4e3ad Open twelve follow-up issues for everything the campaign recorded but never tested
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 - 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
-- 2026-08-19T22:29:46-05:00 13ef8501691bf20155fa79e68f5aa559a9d3d8de Ship beginner's three-edit rewrite, each edit measured on its own
+- 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
+- 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
 
 ## docs/reference
 
@@ -146,7 +148,8 @@
 - 2026-08-18T07:09:33-05:00 9081f33f51157e7b083ca6b12bbe8cd653d92866 Correct beginner's judge figures at the sample size COS-4's claims needed
 - 2026-08-18T09:43:21-05:00 65c27e08e84362461bdd30d02f5d3b02b55ed9d3 Reconcile FINDINGS.md's COS-4 table against the implemented method
 - 2026-08-18T12:21:11-05:00 db5a9f490848179fc9c0fcf06cd465d7422cc3b8 Bound the judge and rewrite calls so a stalled grader cannot hang a run
-- 2026-08-19T22:29:46-05:00 13ef8501691bf20155fa79e68f5aa559a9d3d8de Ship beginner's three-edit rewrite, each edit measured on its own
+- 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
+- 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
 
 ## docs/runbooks
 
@@ -229,4 +232,5 @@
 - 2026-08-18T09:56:30-05:00 bb4a408d178e7c9f2006cc010badf8df8bca5e36 Qualify the reserve-agentic-session difficulty claim against the BUG marker
 - 2026-08-18T09:57:04-05:00 00bacbde0a325cd6a32d8c30fe3aab17458d2320 docs(COS-22): record the merged commit in the generated log
 - 2026-08-18T10:30:38-05:00 3f2513e4bad33e0dfd833b07dfbe7a13d5d86b37 Re-sync docs after COS-24's rebase-merge
-- 2026-08-19T22:29:46-05:00 13ef8501691bf20155fa79e68f5aa559a9d3d8de Ship beginner's three-edit rewrite, each edit measured on its own
+- 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
+- 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
