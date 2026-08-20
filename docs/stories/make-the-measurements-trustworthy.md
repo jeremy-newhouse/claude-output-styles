@@ -232,6 +232,8 @@ and took Opus 7.1 points lower, from 73.9 to 66.8, which moved Opus from above t
 bar to below it. The estimates did not move because the text changed; the
 intervals were simply wide enough to contain both readings.
 
+**COS-16 then changed the bytes, and that did not move the estimates either.** The shipped file is now the three-edit candidate (sha256 `86451ddb`), measured at 150 cells a model on both splits (runs `2026-08-20T03-03-26` and `03-13-05`, 0 errored cells). Sonnet still reads 60.9 against the 70% bar and Opus 66.2. All twenty paired intervals — pooled and per-model, both splits, rules, judge, composite and words — contain zero. A style edit that removes four self-contradictions moved no score this instrument can detect, which is the same lesson from the other side: at this SD, only a large effect is visible at all.
+
 **The choice of judge does move it, though, and by more than the gap.** COS-20
 measured Haiku grading the same beginner replies +18.01 [+12.34, +23.68] above
 Sonnet, against a Sonnet-to-bar gap of 11.9 points. The bar is stated against a
