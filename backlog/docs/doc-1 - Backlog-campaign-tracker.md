@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-18 17:29'
+updated_date: '2026-08-20 03:29'
 ---
 # Backlog campaign tracker
 
@@ -15,44 +15,24 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**CAMPAIGN 3 IS EMPTY. STAND DOWN UNTIL USAGE RESETS.** COS-26 (Campaign 3's
-last item) resolved in session 26 — all five of its issues are now Resolved,
-see the table below. Asked at the end of session 26 whether to resume
-Campaign 2 at COS-16 or `init` a fresh queue: **the user said Claude Code's
-session/usage limits do not reset until 2026-08-19, explicitly said not to
-start testing (i.e. not to attempt COS-16's Sonnet arm, which needs a real
-harness `run`) again before then, and asked that housekeeping be completed
-and the session stand down for now.** All session-26 housekeeping was already
-done by the time this was asked — `dev`/`main` synced and pushed, no branch
-litter, no open PRs, handover archived — so nothing further was done.
+**Next issue: COS-18** — Campaign 2 item 10. Do intermediate and advanced carry
+beginner's four defects? Nobody has looked. Queue order was confirmed by the user
+on 2026-08-17 (see the Campaign 2 section below) and item 9, COS-16, is now
+Resolved, so the cursor advances in that confirmed order. Do not re-ask before
+taking it.
 
-**For the next `restore` session**: do not resume Campaign 2 at COS-16 and do
-not run `init` on your own authority. Check today's date first. If it is
-still 2026-08-18, or usage limits are otherwise unconfirmed as reset, ask the
-user again rather than guessing whether the window has passed. Once the user
-confirms the reset (or the date has clearly moved past 2026-08-19), the
-original R6 choice still stands: resume Campaign 2 at COS-16 (full resume
-state in the task itself and the "Campaign 2 (held at COS-16)" section below)
-or `init` a fresh queue.
+The stand-down recorded here after session 26 is over: the user asked on
+2026-08-18 not to attempt COS-16's blocked Sonnet arm again before the
+2026-08-19 usage reset, then on 2026-08-19 asked where the campaign stood and
+directed session 27 to resume COS-16. It resumed and finished — both blocked
+arms ran clean, 0 errored cells, and all six acceptance criteria are checked.
+The usage window is open again; no further budget hold is in force.
 
-**Why the cursor moved off COS-16.** COS-16 needs one more clean measurement
-arm (the E1+E2+E3 candidate's Sonnet half) before it can ship, and that
-ablation has hit Claude Code's 5-hour usage window twice, plus a weekly limit
-the user hit on 2026-08-18. None of Campaign 3's five issues need a harness
-`run` — they are code, tests, and docs work verified by `npm test`, sabotage,
-offline re-scoring of saved rows, or git reachability checks — so the campaign
-can keep moving without spending a cell. Confirmed by the user on 2026-08-18
-("add the cell-free issues to a new campaign") after being offered the option
-during a status check.
-
-**Resuming COS-16.** When cell budget is available again — ask the user, or
-try one clean arm and stop immediately if the usage-limit error reappears —
-re-point the Cursor section back to `**Next issue: COS-16**` and continue
-Campaign 2 from where it left off. Every fact needed to resume is in the task
-itself (`backlog task view COS-16 --plain`): the exact three-edit candidate to
-rebuild (sha256 `86451ddb`), which arm is missing (Sonnet, five shared cases,
-30 repeats), and which ACs are still open (#2, #4, #5, #6). Do not re-derive
-any of it from this tracker.
+**COS-18 costs cells.** It is the first of four consecutive style/measurement
+items (10 COS-18, 11 COS-17, 12 COS-21, 13 COS-19) and the last of those,
+COS-19, re-measures the headline four-tier table. Session 27 sustained roughly
+26 cells a minute at concurrency 12 with no errored cell in 600, which is the
+figure to size against until a session measures otherwise.
 
 ## Campaign 3 (cell-free housekeeping) — COMPLETE as of session 26
 
@@ -72,9 +52,11 @@ cursor from session 22 through session 26.
 | 4 | COS-24 | harness | **Resolved, session 25.** CLI silently substitutes defaults for malformed flags — 10 ACs. See Resolved. |
 | 5 | COS-26 | harness | **Resolved, session 26.** Bound the judge/rewrite calls so a stalled grader cannot hang a run — 6 ACs. See Resolved. **Campaign 3 is now empty.** |
 
-## Campaign 2 (held at COS-16)
+## Campaign 2 (resumed — cursor at item 10, COS-18)
 
-**Next issue: COS-16** — queue order for campaign 2 confirmed by the user on
+**Item 9, COS-16, is Resolved (session 27); the cursor is now COS-18.** The
+heading below is kept for the confirmation it records. Queue order for campaign 2
+confirmed by the user on
 2026-08-17, who chose the "Fix tools first, then everything" option from a
 presented comparison over a shorter path that went straight to the two missed
 bars: "15 sessions. Repairs the measuring tools before spending on any test,
@@ -116,7 +98,16 @@ Campaign 1 is closed. Its cursor ran COS-6 -> COS-3 -> COS-2 -> COS-8 -> COS-5
 -> COS-7 -> COS-1 -> COS-4; six resolved, two parked. Those two are now items 14
 and 15 of campaign 2, because the blockers under them have owners.
 
-**Session 20 took COS-16 and did not finish it. The cursor stays COS-16.**
+**COS-16 is finished. Session 20 took it and could not finish it; session 27
+resumed it and did, without re-authoring a byte.** The candidate session 20
+recorded rebuilt to the same sha256 (`86451ddb`) from the recipe in the task, and
+the two arms it was missing ran clean — `2026-08-20T03-03-26` on the shared five
+and `03-13-05` on reserve, 150 cells a model each, 0 errored. All twenty paired
+intervals contain zero, and dropping E4 removes the four-edit bundle's Opus word
+regression on a full Sonnet arm rather than on Opus alone. The paragraph below is
+session 20's account, kept because it is what a resuming session read.
+
+**Session 20's account.**
 COS-16's own acceptance criteria demand each surviving edit be measured on its
 own (AC #3) rather than as an unresolvable bundle, which is the defect it
 exists to fix in COS-4. That ablation ran into Claude Code's 5-hour usage
@@ -161,7 +152,7 @@ before taking one.
 | 6 | COS-9 | checks | **Resolved, session 17.** Restored the option cap for replies that never write a label, without re-breaking the reply the label-blindness was written to protect. Re-scored all 62 saved runs: one row of 96 moved, no published figure. |
 | 7 | COS-20 | judge | **Resolved, session 18.** Built the missing re-judge path, then spent 720 judge calls on 60 saved replies and no cells. The judge is 17% of the per-cell variance, the reply 83%, so the sample sizes did not fall — they were confirmed to within two cells and given a floor. Sonnet is the least repeatable of the four judge tiers, and a change of judge moves three published conclusions. |
 | 8 | COS-15 | contracts | **Resolved, session 19.** The contract language was extended and no style file changed, so it measured nothing new: the gloss condition is on the reply and became a check, the "unless they ask" condition is on the request and became `codeOnRequest` + `requestsCode`. Re-scoring 63 saved runs old-code against new moved 6 of 651 rows, all genuine glosses, and five published rules figures by under a point. Opened COS-27 and COS-28. |
-| 9 | COS-16 | styles | The five contradictions COS-4 left. Each edit measured on its own this time. |
+| 9 | COS-16 | styles | **Resolved, sessions 20 and 27.** The five contradictions COS-4 left, each edit measured on its own. Three shipped (E1, E2, E3); two retained with recorded reasons, one of them (E4) retained-not-shipped because the bundle carrying it showed an Opus word regression that none of its parts showed and dropping it removed. Cost 3000 cells across both sessions, 1244 of them lost to the usage window. |
 | 10 | COS-18 | styles | Do intermediate and advanced carry beginner's four defects? Nobody has looked. |
 | 11 | COS-17 | measurement | Beginner on Haiku and Fable. Kept separate from COS-19 by the user's decision. |
 | 12 | COS-21 | measurement | The reinforcement ADR rests on five cells per arm. |
@@ -262,6 +253,8 @@ that omitted `--variants` ran five cells instead of one.
 | 6 | COS-9 | Task Done — 2026-08-17, session 17 | All 3 ACs verified, and AC #3 was settled by an old-vs-new diff rather than an assertion. **The defect**: dropping the literal "Option A / Option B" requirement — the right call, and still right — left `two_options_max` with no option cap at all for a reply that never writes a label, so three alternatives walked through in prose scored a clean 1.0. **The fix**: the cap term now keys on `max(labelled.size, statedCount, pivots + 1)`. `statedCount` reads a reply that says its own count ("three ways", "four approaches"); `two` is deliberately absent, since stating two is the rule being followed. `pivots` counts the phrases that introduce each alternative past the first — "another option", "alternatively", "or you could", "a third approach" — so zero pivots reads as one option, not zero. **AC #2 first, deliberately**: three new fixtures pin the recommendation-first prose reply at exactly 1.0, and they passed on the unmodified check before the fix existed, which is what makes them a regression guard rather than a tautology. **AC #1**: three sprawl fixtures — stated count, pivot chain, ordinal chain — all below 1.0 with the evidence string asserted. Both estimators sabotage-verified independently (each disabled in turn: 132/133, the failure landing on the intended test; restored 133/133). **AC #3**: a baseline was captured before the check was touched. Per-row, a probe scored every saved row across all 62 `results/*/rows.json`; 96 carry the check and **exactly one moved** — `22-59-53`, beginner on Haiku, `reserve-three-options`, 1.00 → 0.70. It is a true positive: that reply labels Option A and Option B, tells the reader they "have three paths", and closes by naming the third in prose — two labels, three alternatives, on the one case COS-2 wrote to provoke exactly this. In aggregate, 61 of 62 re-scored runs are byte-identical; the one that moved shifts beginner@haiku 63.4 → 63.3 (rules unchanged), `reserve-three-options` 67.0 → 66.7, reserve rules 88.1 → 88.0. **No published figure moves**: `reserve-three-options` appears in no doc, and every published claim about `22-59-53` rests on the five shared cases, the judge (saved, not re-derived), or its abort count. The three figures the task flagged as at risk all sit on runs the per-row diff shows unmoved. The ledger's "Instruments needed fixing mid-project, twice" read as the final word on this check and no longer was, so it now records the third pass, the one row that moved, and what the check still cannot see — sprawl with no stated count and no pivot, which is the judge's, because counting alternatives semantically would re-break the reply the first fix was for. Reviewing the new detection by probing it — not by reading it — found two defects it introduced, both fixed with their own sabotage-verified tests: "three ways" fired on benefit lists ("it helps in three ways: fewer retries, lower cost, and no drift"), so `ways` now has to point at a course of action (`ways to`, `ways forward`) while the other nouns stay unconditional; and the check read raw text where every other shape check in the file strips code first, so "or you can" in a code comment counted as an option. A second round, an adversarial subagent, returned six findings — the same two, plus four more, all real. The one that mattered killed an estimator: connective pivots ("alternatively", "or you could") scored a compliant two-option reply at 0.70, rebuilding the exact defect the label-blindness rewrite existed to remove, on the third attempt to fix this check. Verifying that claim against the corpus made the case decisive — the connective set matches **zero** of the 96 re-scorable rows carrying the check, while the stated count matches exactly two, both `reserve-three-options`. Counting alternatives now requires a claim ("a third approach", "another option") rather than a pivot. Also fixed: two literals that could drift into a silent `NaN`, costing a reply the cap point with no evidence line saying why; and a label pattern with no trailing boundary that read "the obvious option adds latency" as option A. Corrected my own error in the ledger denominator — 106 rows carry the check, 96 are re-scorable, the rest name optimizer candidates with no contract. **The re-score was re-run after every round and never changed**: one moved row, 61 of 62 runs byte-identical, the same three figures, across five versions of the check. Round 3 added two more, both mine: a reply that names a count in order to reject it is read as claiming it — documented as a limit rather than patched, because separating them needs negation scope and a fragile heuristic there would repeat the connective mistake — and the evidence string renamed from "presented in prose" to "claimed", since the count can come from a bullet list or from digits and is never a count of things counted. Published figures settled by the model split rather than by provenance: **0 of 34 Opus rows and 0 of 32 Sonnet rows move**, and both published `two_options_max` figures are Opus/Sonnet numbers. `npm --prefix harness test` **131 → 135**; `audit` exit 0; `lore check` exit 0 (24 files). |
 | 7 | COS-20 | Task Done — 2026-08-17, session 18 | All 5 ACs verified. **No cells run for the measurement itself** — the whole study re-judges replies a finished run already saved. **The blocker was the missing path**: `score` re-runs deterministic checks only, and `judge()` was reachable only from `evaluate.mjs` per live cell, so nothing could re-judge a saved row. New `harness/src/rejudge.mjs` plus a `judge` subcommand plan, grade, decompose and report; 18 new tests, suite 135 → **153**. `judge()` gained an `ok` flag: it substitutes a score on four paths (no rubric, no text, failed call, unparseable output) and all four land inside the range real scores occupy, so a substituted 0.5 pooled into a variance study reads as the judge disagreeing with itself. Scoring behaviour is unchanged; only the new path reads the flag. **The run**: `results/2026-08-17T16-47-17-091Z`, 720 calls over the 60 saved replies of `12-44-03` (the per-model baseline), judged by Sonnet, Opus, Haiku and Fable, 3 times each. 6 calls returned unparseable JSON, all Haiku, all beginner, all excluded rather than pooled. **AC #1**: beginner under Sonnet — the arm COS-4's 24.6 describes — decomposes by one-way random-effects ANOVA into SD total **24.76 = 10.17 judge + 22.58 reply**, judge 16.9% of the variance and 41% of the SD, ICC 0.831. That the total reproduces 24.6 on a different arm, and that the six style x model arms span 22.33–31.31 against the ledger's quoted "22 to 32", are independent confirmations of both published figures. Corroborated from the other side: the saved Sonnet score against a fresh Sonnet mean over the same 60 replies is +0.26 [−4.11, +4.62] in the mean but MAD 10.81 per reply, max 55.7 — exactly the 11.5 MAD two draws at SD 10.17 predict. **AC #2**: three other tiers, paired per reply, per style and per case. Opus +2.36 [−1.43, +6.14] (no detectable shift), Haiku +10.80 [+6.81, +14.78], Fable +6.89 [+3.60, +10.18]. Disagreement is largest where the score is lowest: on beginner, Haiku is +18.01. Rank agreement is 0.83–0.89 overall and **collapses to 0.007** on `conv-followup-drift`. **AC #3**: the reply dominates, so the arithmetic barely moved — 24/49/95/148 cells per model for ±10/±7/±5/±4 against the ledger's 24/48/94/146, and 48/97/189/295 between arms against 47/95/187/291. Corrected in place. What is new is a **floor**: repeat-judging touches only the judge's 17%, so ±4 is 148 cells at one judge call, 131 at three, and never below **123**. **AC #4** answered against the task's own expectation. Going from k to k+1 judge calls beats spending the budget on cells only when a cell costs fewer than (k+1)(varReply + varJudge/k)/varJudge − k judge calls — 10.9 at k=1. Both sides measured, not assumed: a conversational Sonnet cell 5.4–15.1s (mean 10.5s, `results/2026-08-17T17-09-49-361Z`, `--no-judge`), a Sonnet judge call 6.1s median. **One cell costs about one judge call, not eleven, so judge once and buy cells.** The ratio flips only where a cell is genuinely expensive against the judge — an agentic cell at the 600s cap graded by Opus is 79 — and that is a measurement to take, not to assume. **AC #5**: four conclusions move and one survives. Beginner's verdict against its 70 bar is judge-dependent — the Sonnet gap is 11.9 points and Haiku's measured beginner shift is +18.01 [+12.34, +23.68], an interval lying entirely beyond it. The four-tier table's Opus-vs-Sonnet ordering flips sign between judges on deltas of 0.8–2.9 points, which says it was never resolvable. The advanced-to-intermediate gap is 2.7 under Sonnet and 10.0 under Opus and Fable. Any per-case conclusion from `conv-followup-drift` is judge-dependent. **Surviving**: advanced > intermediate > beginner under all four judges, and the intermediate-to-beginner gap narrows from 25.2 to 13.0 without closing. Docs: a new "Judge validation runs" section in the ledger with its own table and manifest convention, the noise-floor section split into its two halves, runbook sections for `judge` and for sizing an arm, `FINDINGS.md` and the story updated, and a `matrix.json` note saying why `judgeModel` stays `sonnet` despite being the least repeatable tier — every published judge figure was scored by it. `npm --prefix harness test` 135 → **153**; `audit` exit 0; `lore check` exit 0 (24 files). |
 | — | COS-25 | Task Done — 2026-08-17, sessions 15 and 16 | Out of band, at the user's direction; the cursor stayed at COS-9 across both. All 7 ACs verified. `costUsd`/`totalCostUsd`/`spentUsd`/`spendOf` deleted from `harness/src` and `harness/test`; no `rows.json`, `summary.json`, `run.json` or report output carries a cost field, confirmed on a real written run directory. `matrix.json`'s `run.maxBudgetUsd` replaced by `run.maxCellSeconds: 600`, enforced by an `AbortController` in `runCell` — the only hard stop the SDK offers, since `maxTurns` bounds tool rounds but not the time inside one and `taskBudget` is advisory. **AC #5 was observed, not read**: new `harness/test/run.test.mjs` drives `runCell` to a real abort through an injected `query` seam (wedge-then-throw, wedge-then-quiet-end, a control that finishes in time, and a config-validation case), and both failure modes were sabotaged on purpose to prove the tests can go red. Two hazards found while writing the guard: `undefined * 1000` is `NaN` and `setTimeout` treats `NaN` as 0, so a config missing the key would have aborted every cell in the matrix instantly and labelled each one a timeout — `runCell` now throws instead of defaulting; and an abort can end the SDK iterator quietly rather than throwing, which would return a scoreable row with no reply, so a `timedOut` flag is the authority on the error rather than the thrown exception. Docs swept: the ledger's cost column and per-row dollar prose, `FINDINGS.md`, the runbook, four stories, the epic, two references, three ADRs, one spec and both READMEs. Sample-size claims kept their statistical basis and lost only the price annotations — the 146-cell figure now reads as what ±4 points requires at SD 24.6. Verbatim user quotes were left intact rather than rewritten. Done-task bodies deliberately out of scope as the immutable evidence record. Suite 124 → 126 (2 cost-only tests removed, 4 guard tests added); `audit` exit 0; `lore check` exit 0. Re-scoring `12-44-03` still returns 81.0%, so no published score moved. **Session 16 then fixed the five findings `/code-review high` returned, none of which session 15 had touched.** (1) `turns` was declared inside `runCell`'s try, so the catch returned empty arrays: a multi-turn case whose first turns completed and whose last wedged lost every completed transcript on the throwing abort path while the quiet path kept them — identical events, different rows, decided by SDK internals. `turns` and a shared `base` row are hoisted above the try; a new test drives the same two-turn cell down both paths and asserts they report the same completed turns, and restoring the old catch reds exactly that test. (2) The judge and `rewrite()` calls are still unbounded; the user chose to narrow the wording rather than widen this task, so `matrix.json`, `harness/README.md` and `docs/reference/harness-architecture.md` now say the guard bounds a cell and not a run, name both unbounded calls, and cite **COS-26**, opened to close it. (3) `matrix.json` said "lower it only against measured cell durations" and `harness/README.md` said 600 was "sized well above any cell observed here" — and nothing in the harness had ever recorded a cell duration, in the same change that deleted `costUsd`, the only per-cell size proxy the project had. Fixed by measuring rather than hedging: every row now carries `elapsedMs`, started with the timer so it spans exactly what the guard bounds, verified through `evaluate` → `writeResults` onto `rows.json` on disk. (4) `maxCellSeconds` was validated per cell, so a config typo read as an optimizer crash under `improve` and surfaced under `run` only after an empty `results/<stamp>/` existed; `cellLimitMs` is now exported and called once at CLI startup for `run` and `improve`, with `runCell` keeping it as a backstop and `config.test.mjs` asserting the shipped config against the shipped validator. (5) The claim that `wsp.cleanup()` orphans subprocesses was **measured rather than accepted**: a real 3s-limit cell, sampled before and five times after, showed one `claude` process holding the just-unlinked workspace as its cwd at T+0 and none by T+2s, with the workspace count back at baseline immediately. The window is real, bounded and inert — no leak, no shared directories — so the measurement is recorded as a comment and nothing changed. Suite 126 → **129**; `audit` exit 0; `lore check` exit 0 (24 files). |
+
+| 9 | COS-16 | Task Done — 2026-08-19, sessions 20 and 27 | The first style-text change this project has shipped with every surviving edit measured on its own. `plain-english-beginner.md` moves from COS-4's pass-1 text (sha256 `96fdbea4`) to a three-edit candidate (`86451ddb`) removing the jargon-rule conflict (E1), the proof-number rule that demanded a number which may not exist and stated it three times (E2), and the router's missing precedence between two bullets that both match a tool-using report (E3). **AC #1**: five decisions recorded — three fixed, defect 5 retained (COS-15 made its worked gloss example score 1.0, so the stated reason no longer holds), defect 4 retained-not-shipped. **AC #2**: run `2026-08-20T03-03-26`, 150 non-errored cells a model against baseline `19-42-55` at the same size. **AC #3**: E1/E2/E3 each measured alone at 150 cells a model in session 20's retried ablation (`02-02-28`, `02-12-32`, `02-22-33`), all clean. **AC #4**: rules 99.16 / 97.38 against the shipped file's 98.95 / 97.37 and mean reply 62.87 / 58.69 words against 62.99 / 59.74 — stated at full precision because the Sonnet rules margin is a hundredth of a point, not a margin. **AC #5**: reserve arm `03-13-05` against `19-53-49`, 150 a model, 0 errored. **AC #6**: `audit` exit 0 on 12 checks, shipped file hashes to `86451ddb…`, byte-identical to what both arms measured. **The finding**: the four-edit bundle's Opus reply-length rise of +1.71 [+0.27, +3.16] disappears to -0.12 [-2.28, +2.04] when E4 is dropped — an interaction effect no single edit showed, catchable only because each was also measured alone, which is exactly what COS-4 could not do. All twenty paired intervals contain zero. Gates: 219/219 harness tests, `lore check` exit 0. Five documents plus the experiment ledger updated, because after this merge `19-42-55` no longer measures the file that ships. |
 
 **Campaign 3.**
 
@@ -1493,3 +1486,23 @@ Both remaining issues carry known risk against that policy:
   instead direct the next `restore` session to ask the user whether to resume
   Campaign 2 at COS-16 (cell budget permitting) or `init` a fresh queue,
   per the skill's own queue-empty branch.
+
+- 2026-08-19 — session 27: resumed COS-16 and finished it, the item Campaign 2
+  had been held at since session 20. Nothing was re-authored: the three-edit
+  candidate rebuilt from the recipe in the task to the same sha256 `86451ddb`,
+  verified before a cell was spent. The two arms session 20 lost to Claude
+  Code's usage window ran clean on the first attempt — `2026-08-20T03-03-26`
+  (shared five, 30 repeats) and `03-13-05` (reserve six, 25 repeats), 300 cells
+  each, 150 a model, **0 errored in either**, about 25 minutes at ~26 cells a
+  minute. All twenty paired intervals — pooled and per-model, both splits,
+  rules/judge/composite/words — contain zero, and the four-edit bundle's Opus
+  word regression (+1.71 [+0.27, +3.16]) reads -0.12 [-2.28, +2.04] with E4
+  dropped, now on a full Sonnet arm rather than Opus alone. All six acceptance
+  criteria checked with run stamps; `audit` exit 0, 219/219 tests, `lore check`
+  exit 0. Because shipping these bytes means `19-42-55` and `19-53-49` no longer
+  measure the file that ships, `FINDINGS.md` (four passages), `docs/index.md`,
+  the epic and three stories were corrected and two rows added to the experiment
+  ledger, whose persisted-cell total moves 4540 → 5140. One mid-session claim
+  was corrected in the task notes: an `audit` exit code read through a `tail`
+  pipe was the pipe's, not the audit's; re-run unpiped it is 0, and no
+  conclusion rested on the masked reading. Cursor advances to COS-18.
