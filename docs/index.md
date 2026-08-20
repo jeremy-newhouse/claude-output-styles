@@ -50,15 +50,16 @@ following its own rules at over 90%. That gap is the shape of the remaining work
 and no model tier closes it — the best beginner judge score any of them reaches
 is 53.9%, against a 70% bar.
 
-Those beginner figures are from before COS-4 rewrote the file. On the shipped
-text beginner scores rules **98.9 / 97.4 and judge 66.8 / 60.9** on Opus and
-Sonnet, over **150 cells a model** (COS-16, runs `19-42-55` and `19-53-49`). Rule
+Those beginner figures are from before COS-4 rewrote the file. On COS-4's pass-1
+text — what shipped until COS-16 — beginner scores rules **98.9 / 97.4 and judge
+66.8 / 60.9** on Opus and Sonnet, over **150 cells a model** (COS-16, runs
+`19-42-55` and `19-53-49`). Rule
 compliance and reply length improved; the judge did not, and the bar is missed on
 both models. COS-4 published 98.5 / 97.4 and 73.9 / 58.1 for the same bytes at 35
 cells a model; the judge halves are superseded by the larger arm, which sits
 inside COS-4's own interval of [66.0, 81.9] on Opus.
 
-**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.2 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
 
 Three decisions came out of it, each measured rather than argued: styles are
 scored by [deterministic checks plus a style-aware judge](adr/score-styles-with-deterministic-checks-plus-a-style-aware-judge.md);

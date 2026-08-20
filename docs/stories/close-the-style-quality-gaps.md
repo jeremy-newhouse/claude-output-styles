@@ -96,7 +96,7 @@ so this is those intervals closing at the sample size the claims needed rather
 than a contradiction. It matters for the bar: 73.9 sits above this story's 70%
 and 66.8 sits below it, so **the bar is now missed on both models, not one**.
 
-**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.2 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
 
 **Two tiers were added after this story was written, and neither rescued it.**
 (This paragraph describes the pre-COS-4 file; the rewrite is measured on Opus and

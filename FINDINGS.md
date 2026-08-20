@@ -265,8 +265,9 @@ today's scorer throughout. Regrade with `node src/cli.mjs score --rows=…`, whi
 is free, before concluding that a number here is wrong.
 
 **The beginner row is history, not a current measurement.** COS-4 rewrote
-`plain-english-beginner.md` after these runs. On the shipped file, pooled over
-150 cells a model (COS-16, run `19-42-55`), beginner reads rules 98.9 / 97.4 and
+`plain-english-beginner.md` after these runs. On COS-4's pass-1 text — what
+shipped until COS-16 — pooled over 150 cells a model (COS-16, run `19-42-55`),
+beginner reads rules 98.9 / 97.4 and
 judge 66.8 / 60.9 on Opus and Sonnet — COS-4's own 73.9 / 58.1 at 35 cells a
 model is superseded on the judge halves by the larger arm, and both readings sit
 inside COS-4's stated interval. Haiku and Fable have not been re-measured. The
@@ -274,7 +275,7 @@ advanced and intermediate rows are unchanged and current.
 
 COS-16 has since replaced those bytes with a three-edit candidate (sha256
 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and
-judge **66.2 / 60.9** (run `2026-08-20T03-03-26`), statistically identical to the
+judge **66.1 / 60.9** (run `2026-08-20T03-03-26`), statistically identical to the
 text it replaced. Read `19-42-55` as measuring COS-4's pass-1 file.
 
 | style | rules haiku | rules sonnet | rules opus | rules fable | judge haiku | judge sonnet | judge opus | judge fable |
@@ -789,7 +790,8 @@ table shows.
 
 Over-cap share on the shared five fell from 40.0% to 14.3% and mean reply length
 from 103 to 61 words. Rules on COS-4's pass-1 text — what shipped until COS-16 —
-read 98.5 on Opus and **97.7** on — 97.4 before COS-15 taught `no_jargon` to forgive a glossed first use —
+read 98.5 on Opus and **97.7** on Sonnet — 97.4 before COS-15 taught
+`no_jargon` to forgive a glossed first use —
 the highest beginner has recorded, against 90.9–92.3 in the four-tier
 baseline. `three_question_structure` held at 100.0, so telling the model not to
 force the three beats onto an explanation did not cost the beats where they
@@ -808,20 +810,23 @@ Opus 66.8 against the 35-cell reading of 73.9** — both inside the 35-cell
 interval, which is what the larger arm was for.
 
 **Then COS-16 changed the text, and the judge did not move for that either.** The
-file that ships now removes four of the five self-contradictions COS-4 left: the
+file that ships now removes three of the five self-contradictions COS-4 left: the
 jargon rule that gave opposite instructions for a word the reader used first, the
 proof-number rule that demanded a number which may not exist and said so three
 times, and the router's missing precedence between two bullets that both match a
-tool-using report. Measured at 150 cells a model on both splits (runs
+tool-using report. A fourth — the router omitting two of the file's own six
+shapes — is retained unfixed, for the reason the next paragraph gives; the fifth
+was closed by COS-15 on the contract side. Measured at 150 cells a model on both splits (runs
 `2026-08-20T03-03-26` and `03-13-05`, 0 errored cells), it reads rules 99.2 / 97.4
-and judge 66.2 / 60.9 on the shared five, 97.0 / 95.2 and 65.4 / 58.1 on reserve.
-**All twenty paired intervals — pooled and per-model, both splits, on rules,
-judge, composite and reply words — contain zero.** Removing four written
-contradictions from a style file moved nothing this instrument can resolve.
+and judge 66.1 / 60.9 on the shared five, 97.0 / 95.2 and 65.4 / 58.1 on reserve.
+**All twenty paired intervals — the four pooled metrics on each split, and rules,
+judge and reply words per model on each split — contain zero.** Removing three
+written contradictions from a style file moved nothing this instrument can
+resolve.
 
 The one place it did matter was a regression it removed rather than caused. A
-four-edit bundle carrying a fifth change — two extra router shapes, the only edit
-of the four that *added* a rule instead of removing or bounding one — showed an
+four-edit bundle whose fourth edit added the two missing router shapes — the only
+one of the four that *added* a rule instead of removing or bounding one — showed an
 Opus reply-length rise of **+1.71 [+0.27, +3.16]** words that none of its four
 edits showed alone. Dropping that edit takes the same delta to **−0.12 [−2.28,
 +2.04]**. That is an interaction effect visible only because each edit was also
