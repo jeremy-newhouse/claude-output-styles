@@ -1,11 +1,11 @@
 ---
 id: COS-16
 title: Fix the five contradictions COS-4 left in the beginner style file
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-20 03:24'
+updated_date: '2026-08-20 03:27'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -41,12 +41,12 @@ Note the trap COS-1 and COS-4 both hit: adding rules to this file has repeatedly
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Each of the five defects is either fixed or explicitly retained, with the reason recorded
-- [ ] #2 The bundle is measured against the shipped text at n >= 146 cells per model on the five shared cases, which is what a 95% half-width of +/-4 points costs at the measured judge SD of 24.6
-- [ ] #3 Every individual edit that survives into the shipped file has its own measured effect, so no bullet ships on the strength of the bundle alone
-- [ ] #4 Deterministic rule score stays at or above the 98.5/97.4 the current file reaches, and mean reply length does not rise above 61 words
-- [ ] #5 Validated on the six reserve cases at the same sample size, before and after
-- [ ] #6 node src/cli.mjs audit exits 0 and the shipped file is verified byte-identical to the measured text by checksum
+- [x] #1 Each of the five defects is either fixed or explicitly retained, with the reason recorded
+- [x] #2 The bundle is measured against the shipped text at n >= 146 cells per model on the five shared cases, which is what a 95% half-width of +/-4 points costs at the measured judge SD of 24.6
+- [x] #3 Every individual edit that survives into the shipped file has its own measured effect, so no bullet ships on the strength of the bundle alone
+- [x] #4 Deterministic rule score stays at or above the 98.5/97.4 the current file reaches, and mean reply length does not rise above 61 words
+- [x] #5 Validated on the six reserve cases at the same sample size, before and after
+- [x] #6 node src/cli.mjs audit exits 0 and the shipped file is verified byte-identical to the measured text by checksum
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -198,4 +198,25 @@ Per-model, paired by case:
 **One figure worth naming rather than burying:** Opus reserve words, +4.89 [-2.96, +12.73]. The interval is wide and contains zero, so it is not a finding, but the point estimate is the largest movement anywhere in the table and reserve is the noisier split (74.5 to 82.4 words at baseline against 63.0/59.7 on shared). It is recorded here so a later session comparing reserve arms does not read it as new.
 
 **E4 is now RETAINED-NOT-SHIPPED, and that is the fifth AC #1 decision.** Its two router bullets (long session, follow-up) are not in the shipped file. Reasons, in order: its own single-edit arm was null on every metric (rules +0.09, judge -0.69, words -0.94, all straddling zero), so it has no individual case; it is the only one of the four that ADDS a rule rather than removing or bounding one, the shape the task description flags as having failed in both COS-1 and COS-4; and the four-edit bundle carrying it showed an Opus word regression that none of the four singles showed and that dropping E4 removes. Defect #4 (the router omitting two of the file's six shapes) therefore stands open in the file — it is a real gap, but no measured evidence supports closing it this way.
+
+AC VERIFICATION, session 27. Every criterion below is checked against a command run in this session or a run stamp cited from it.
+
+- **AC #1 — five decisions recorded.** Defects 1, 2 and 3 fixed as E1, E2, E3 and shipped. Defect 5 (the gloss example using 'API') retained, reason recorded in the session-20 note: COS-15 taught `no_jargon` to grade first use and forgive the gloss, so the example now scores 1.0 and demonstrates the compliant shape. Defect 4 retained-not-shipped, reason recorded in this session's note: E4's own arm is null on every metric, it is the only one of the four that adds a rule, and the bundle carrying it showed an Opus word regression that dropping it removes.
+- **AC #2 — bundle at n >= 146/model on the shared five.** Run `2026-08-20T03-03-26-462Z`, 150 non-errored cells per model against baseline `19-42-55` at 150/model. Paired intervals in the note above.
+- **AC #3 — every surviving edit individually measured.** E1 `2026-08-18T02-02-28`, E2 `02-12-32`, E3 `02-22-33`, each 150 cells a model with 0 errored, each paired against the same `19-42-55` baseline. The one edit with no individual case, E4, is not in the shipped file.
+- **AC #4 — rules held, length not raised.** Rules 99.16 / 97.38 against the shipped file's 98.95 / 97.37 on the same cases: Opus up 0.21, Sonnet up 0.01. Stating the full precision on purpose — the criterion's '97.4' is the rounded reading of 97.37, and the candidate clears it by a hundredth, not by a margin. Mean reply 62.87 / 58.69 words against 62.99 / 59.74, under both the restated per-model bar (63.0 / 59.7) and the criterion's original pooled 61 (candidate pools to 60.78).
+- **AC #5 — reserve validated before and after at the same size.** `19-53-49` (before) and `2026-08-20T03-13-05-686Z` (after), 150 cells a model each, 0 errored in either. Every reserve interval contains zero.
+- **AC #6 — audit and checksum.** `node src/cli.mjs audit` exits **0**, all 12 style-vs-contract checks agreeing. The shipped `plain-english-beginner.md` hashes to `86451ddb16b273426eca5318d20169b6bfa1b0f6dd304872c3b9625da7a167c3`, byte-identical to the text both arms measured.
+
+Correction to a claim made mid-session: an earlier audit invocation was piped to `tail`, so the exit code reported was the pipe's, not the audit's. Re-run unpiped, it is 0. No conclusion depended on the masked reading.
+
+Gates: `npm --prefix harness test` 219/219 pass. `lore check` exits 0 on 24 files, 0 errors, 0 warnings.
+
+DOCS UPDATED, because shipping these bytes moves what four published passages describe. `19-42-55` and `19-53-49` measured COS-4's pass-1 text; after this merge they no longer measure the file that ships, and five documents quoted them as 'the shipped text'. Corrected in `FINDINGS.md` (the four-tier table footnote, the pass-1 rules sentence, the judge-did-not-move section, and the sample-size paragraph), `docs/index.md`, `docs/epics/plain-english-output-styles.md`, and the stories `close-the-style-quality-gaps`, `extend-measurement-coverage` and `make-the-measurements-trustworthy`. Two rows added to `docs/reference/experiment-ledger.md` for the new runs, and its persisted-cell total moved 4540 -> 5140.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Shipped a three-edit rewrite of `plain-english-beginner.md` (sha256 `86451ddb`) that removes three of the five contradictions COS-4 left, and explicitly retains the other two with measured reasons. Verified by two clean arms — 300 cells each, 150 per model, 0 errored: `2026-08-20T03-03-26` on the five shared cases and `03-13-05` on the six reserve cases, paired against the same-size baselines `19-42-55` and `19-53-49`. All twenty paired 95% intervals, pooled and per-model across rules, judge, composite and reply words, contain zero. AC #4's bars hold at full precision: rules 99.16 / 97.38 against 98.95 / 97.37, mean reply 62.87 / 58.69 words against 62.99 / 59.74. The result the task existed for: the four-edit bundle's Opus word regression of +1.71 [+0.27, +3.16] disappears to -0.12 [-2.28, +2.04] when E4 is dropped — an interaction effect visible only because each edit was also measured alone, which is what COS-4 could not do. Gates: audit exit 0 on 12 checks, 219/219 harness tests, lore check exit 0. Five documents and the experiment ledger updated, because after this merge `19-42-55` no longer measures the file that ships.
+<!-- SECTION:FINAL_SUMMARY:END -->
