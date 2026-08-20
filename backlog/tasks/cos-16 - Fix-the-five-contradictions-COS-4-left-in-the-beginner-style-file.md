@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-18 12:09'
+updated_date: '2026-08-20 03:24'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -61,6 +61,8 @@ Note the trap COS-1 and COS-4 both hit: adding rules to this file has repeatedly
 6. SIZING REVISED once real throughput was known. The harness sustains ~8 cells/min at concurrency 12 on this machine (generation is only 7s a cell; the judge call and API queuing are the rest), so the naive 8-arm x 300-cell design was ~5.5h of wall clock. The four single-edit arms drop to 15 repeats (150 cells, 75/model) while the two bundle arms and both baselines stay at 150/model. AC #2's 146-cell bar binds only the bundle-versus-shipped comparison and AC #3 states no size; each edit is compared against the same 150/model baseline, so the 95% between-arm half-width goes from +/-5.6 to +/-6.8 points and 750 cells are saved. Neither figure resolves a 2-point effect, which is the honest reason the extra cells buy nothing. Total 1800 cells.
 
 7. SIZING CORRECTION, replacing item 6. The ~8 cells/min figure in item 6 was measured across the run's cold start and is wrong. A clean 120-second window on the steady-state arm gives 53 cells, i.e. 26.5 cells/min at concurrency 12. The full design is therefore ~90 minutes of wall clock, not 5.5 hours, and every arm keeps 30 repeats (150 cells per model). Item 6's trim to 15 repeats is reverted; the between-arm half-width stays +/-5.6 points. 2400 cells total.
+
+8. SESSION 27 RESUME PLAN. Candidate rebuilt from the shipped text (96fdbea4) by E1 + E2a/b/c + E3, omitting E4; sha256 verified 86451ddb16b273426eca5318d20169b6bfa1b0f6dd304872c3b9625da7a167c3, matching the figure session 20 recorded. Two arms to buy, both on that candidate: (a) the five shared cases, opus+sonnet, baseline, 30 repeats, 300 cells, replacing 02-43-48 whose Sonnet half lost 56 of 150 to the usage window; (b) the six reserve cases, same models/variant, 25 repeats, 300 cells, for AC #5 — no reserve arm has run on any three-edit candidate. Both compare against the existing baselines 19-42-55 (shared) and 19-53-49 (reserve), which do not need re-running. ~600 cells, ~25 min at the 26.5 cells/min this machine sustained. Then AC #6 (audit exit 0 + checksum), then the review/PR lifecycle.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -163,4 +165,37 @@ SESSION PARKED, PER USER DIRECTION. The blocker across both spend-limit hits (20
 None of the six acceptance criteria are checked. The task stays open.
 
 CORRECTION to plan item 6's arithmetic: it claimed the 15-repeat trim 'saves 750 cells,' but 1200 cells (4 arms x 300) trimmed to 600 (4 arms x 150) saves 600, not 750. Item 6's trim was already reverted by item 7 before anything was measured, so no shipped figure used the wrong number — flagging it only because a stray number in this file is exactly the class of defect this task exists to remove.
+
+SESSION 27: BOTH REMAINING ARMS MEASURED CLEAN. The three-edit candidate (E1+E2+E3, E4 dropped) was rebuilt from the shipped text and its sha256 verified as 86451ddb16b273426eca5318d20169b6bfa1b0f6dd304872c3b9625da7a167c3 — byte-identical to the candidate session 20 recorded, so nothing was re-authored.
+
+Two arms, 300 cells each, 150 per model, **0 errored cells in either**:
+
+| arm | run | rules O/S | judge O/S | words O/S |
+|---|---|---|---|---|
+| candidate, shared five (30 repeats) | `2026-08-20T03-03-26-462Z` | 99.16 / 97.38 | 66.15 / 60.93 | 62.87 / 58.69 |
+| candidate, reserve six (25 repeats) | `2026-08-20T03-13-05-686Z` | 96.96 / 95.19 | 65.39 / 58.09 | 79.37 / 80.88 |
+
+Compared against the same baselines session 20 measured on the shipped bytes — `19-42-55` (shared, 98.95/97.37, 66.77/60.85, 62.99/59.74) and `19-53-49` (reserve, 98.12/94.95, 63.88/61.36, 74.49/82.43). Neither baseline was re-run.
+
+Pooled paired intervals, candidate minus shipped (`node src/cli.mjs interval`, pairs by case x model):
+
+- **Shared five** — rules +0.1 [-0.3, +0.5], judge -0.3 [-3.5, +3.0], composite -0.1 [-1.8, +1.6], words -0.6 [-1.8, +0.7]. 10 pairs.
+- **Reserve six** — rules -0.5 [-1.3, +0.4], judge -0.9 [-5.3, +3.6], composite -0.7 [-2.9, +1.5], words +1.7 [-2.6, +6.0]. 12 pairs.
+
+Per-model, paired by case:
+
+| split | model | rules | judge | words |
+|---|---|---|---|---|
+| shared | opus | +0.22 [-0.05, +0.48] | -0.63 [-6.93, +5.68] | **-0.12 [-2.28, +2.04]** |
+| shared | sonnet | +0.00 [-0.92, +0.93] | +0.07 [-5.54, +5.68] | -1.05 [-3.31, +1.21] |
+| reserve | opus | -1.17 [-2.86, +0.52] | +1.51 [-5.60, +8.63] | +4.89 [-2.96, +12.73] |
+| reserve | sonnet | +0.24 [-0.10, +0.59] | -3.27 [-10.60, +4.07] | -1.55 [-6.21, +3.12] |
+
+**Every one of the 20 intervals above contains zero.** Nothing clears it in either direction, on either split, on any metric.
+
+**The result the whole side-experiment was run for.** The four-edit bundle's Opus word delta on the shared five was +1.71 [+0.27, +3.16] — a real rise that breached AC #4. Dropping E4 takes it to **-0.12 [-2.28, +2.04]**, a null. Session 20 had this on Opus alone (+0.20 [-2.75, +3.15]) with 56 of 150 Sonnet cells lost to the usage window; this run has both models clean at 150 and it holds. E4 was the sole source of the regression.
+
+**One figure worth naming rather than burying:** Opus reserve words, +4.89 [-2.96, +12.73]. The interval is wide and contains zero, so it is not a finding, but the point estimate is the largest movement anywhere in the table and reserve is the noisier split (74.5 to 82.4 words at baseline against 63.0/59.7 on shared). It is recorded here so a later session comparing reserve arms does not read it as new.
+
+**E4 is now RETAINED-NOT-SHIPPED, and that is the fifth AC #1 decision.** Its two router bullets (long session, follow-up) are not in the shipped file. Reasons, in order: its own single-edit arm was null on every metric (rules +0.09, judge -0.69, words -0.94, all straddling zero), so it has no individual case; it is the only one of the four that ADDS a rule rather than removing or bounding one, the shape the task description flags as having failed in both COS-1 and COS-4; and the four-edit bundle carrying it showed an Opus word regression that none of the four singles showed and that dropping E4 removes. Defect #4 (the router omitting two of the file's six shapes) therefore stands open in the file — it is a real gap, but no measured evidence supports closing it this way.
 <!-- SECTION:NOTES:END -->
