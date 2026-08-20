@@ -60,12 +60,13 @@ errored cells in any column.
 The beginner row measures a file COS-4 has since rewritten, and its Sonnet and
 Opus judge cells were graded against a 15-word sentence cap the file never stated
 (`FINDINGS.md`, *The judge column carries a defect the rules column had
-corrected*). On the shipped text beginner reads rules **98.9 / 97.4 and judge
-66.8 / 60.9** on Opus and Sonnet at 150 cells a model (COS-16, run `19-42-55`),
+corrected*). On COS-4's pass-1 text — what shipped until COS-16 — beginner reads
+rules **98.9 / 97.4 and judge 66.8 / 60.9** on Opus and Sonnet at 150 cells a
+model (COS-16, run `19-42-55`),
 superseding COS-4's 73.9 / 58.1 at 35; Haiku and Fable have not been re-measured
 since.
 
-**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.2 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
 
 **Word-cap overrun does not track tier.** Mean reply words divided by that
 style's own cap: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300. In tier

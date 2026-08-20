@@ -64,15 +64,15 @@ composite is not, because each style carries a different `judgeWeight`.
 Opus and Sonnet judge figures carry a known defect.** They were graded with the
 judge told a 15-word sentence cap the file never stated — the same drift
 `3370e4d` fixed in the rules column, which could be re-graded offline for free
-where the judge could not. COS-4 then rewrote the file. On the shipped text, over
-**150 cells a model**, beginner reads **rules 98.9 / 97.4 and judge 66.8 / 60.9**
-on Opus and Sonnet (COS-16, run `19-42-55`). COS-4's own figures for the same
+where the judge could not. COS-4 then rewrote the file. On COS-4's pass-1 text —
+what shipped until COS-16 — over **150 cells a model**, beginner reads **rules
+98.9 / 97.4 and judge 66.8 / 60.9** on Opus and Sonnet (COS-16, run `19-42-55`). COS-4's own figures for the same
 bytes — 98.5 / 97.4 and 73.9 / 58.1 at 35 cells a model — are superseded on the
 judge halves by that larger arm. Its Haiku and Fable columns have not been
 re-measured since the rewrite. Read the row as history; `FINDINGS.md` carries the
 current numbers.
 
-**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.2 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
 
 The four tiers span the whole released range, from the smallest model to the
 largest — and rule compliance holds across all of it, 90.9 to 97.9. Prose quality
