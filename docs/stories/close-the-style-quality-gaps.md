@@ -98,6 +98,70 @@ and 66.8 sits below it, so **the bar is now missed on both models, not one**.
 
 **COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
 
+**COS-18 asked whether the other two files carry the same defects. They do,
+unevenly.** Nobody had looked before. Run `2026-08-20T12-12-10`, 600 cells at 150
+a style a model on the shared five, 0 errored:
+
+| pattern | intermediate | advanced |
+|---|---|---|
+| reply budget scoped to one shape | **carries** | clean |
+| unbounded content requirement | **carries** | clean |
+| no reply-shape router | **carries** | **carries** |
+| a rule forbidding what another requires | **carries** | carries, weakly |
+
+Advanced is the negative control the task expected on the two patterns it was
+predicted for, and not a control at all on the other two.
+
+**The clearest result is the router.** All 138 shape violations in the run — 39
+and 47 on intermediate, 22 and 30 on advanced — fall on cases that are not status
+updates. **Not one falls on a status update.** COS-4 found the same concentration
+on beginner at 10 of 40; at fifteen times the sample it is total. Both files
+define four shapes and neither says which a reply should take, and the judge names
+the mechanism itself: *"the guide's status-update format is the only structure
+defined, and the reply instead reads as a lecture."* That is COS-31.
+
+**The method finding is the part worth carrying forward, because the obvious
+measure gives the wrong answer.** Counting over-length violations makes advanced
+look worse than intermediate — 23.6% of its Sonnet violations against 13.4%.
+Advanced overruns its cap while stating it correctly, so the symptom exists
+without the defect underneath it, and violation counts cannot tell the two apart.
+Three measures can. Intermediate's non-status replies average 1.43× and 1.13× its
+cap where advanced's average 0.95× and 0.85× — inside it. The grader attaches the
+cap to *updates* in 14 of 20 and 8 of 9 of intermediate's over-length violations
+and in **0 of advanced's 43**, every one read by hand; the word "update" is in
+neither `contracts.json` nor the judge's hard-limits line, so it can only have come
+from the file. And intermediate breaks its cap about three times as often while
+being flagged for it about half as often. A scoped cap is both broken more and
+enforced less.
+
+The same lesson bit twice. Reading the two files ranked their contradiction
+defects backwards: advanced's is far sharper on the page — a diff permitted in one
+line and forbidden in another — and fires two to four times *less* often, because
+the reply it governs is one the model seldom attempts. How bad a contradiction
+looks did not predict how often it bites, which is exactly why the task required
+judge violations from a real arm rather than a reading.
+
+**The fix for intermediate's scoped cap is measured and did not ship.** One edit,
+re-scoping the 100-word budget out of the status-update section and dropping its
+"when things are normal" hatch, moved rules **+3.0 [+0.1, +5.8]** and mean reply
+length **−24.6 [−46.4, −2.8]**, both clear of zero, taking non-status replies from
+142.9 to 96.7 words on Opus and rules to 99.1 / 97.1 — parity with advanced, which
+intermediate has trailed on every tier of the table above. Its reserve validation
+could not be completed: one arm was destroyed by the monthly spend limit and its
+retry was stopped when throughput fell to roughly 0.7 cells a minute. Unmeasured
+text does not ship, and the reserve split is where two earlier candidate rewrites
+failed after passing everything else, so the edit waits in **COS-33** with its
+recipe, its hash and its four intervals rather than going in on the strength of
+the split that did pass.
+
+**The judge did not move, for the third time running.** COS-4 on beginner
+(+1.3 [−15.0, +17.6]), COS-16's shipped candidate (−0.3 [−3.5, +3.0]), and now
+this (+2.5 [−2.8, +7.8]). Three tasks, two style files, and every measured gain in
+compliance has bought nothing the judge rewards. The open question at the foot of
+these notes — what the judge is responding to — is no longer a beginner-specific
+one.
+
+
 **Two tiers were added after this story was written, and neither rescued it.**
 (This paragraph describes the pre-COS-4 file; the rewrite is measured on Opus and
 Sonnet only.) Beginner was last on the judge on every one of the four, and the
@@ -132,7 +196,7 @@ untested tiers are Haiku and Fable.
 | [COS-4](../../backlog/tasks/cos-4%20-%20Raise-beginner-style-prose-quality.md) | Raise beginner style prose quality | To Do |
 | [COS-8](../../backlog/tasks/cos-8%20-%20Decide-whether-lower-levels-need-tighter-sentence-caps.md) | Decide whether lower levels need tighter sentence caps | Done |
 | [COS-16](../../backlog/tasks/cos-16%20-%20Fix-the-five-contradictions-COS-4-left-in-the-beginner-style-file.md) | Fix the five contradictions COS-4 left in the beginner style file | Done |
-| [COS-18](../../backlog/tasks/cos-18%20-%20Test-whether-intermediate-and-advanced-carry-beginners-defects.md) | Test whether intermediate and advanced carry beginner's defects | To Do |
+| [COS-18](../../backlog/tasks/cos-18%20-%20Test-whether-intermediate-and-advanced-carry-beginners-defects.md) | Test whether intermediate and advanced carry beginner's defects | Done |
 <!-- lore:tasks:end -->
 
 ## Notes
