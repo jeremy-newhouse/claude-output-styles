@@ -1,11 +1,11 @@
 ---
 id: COS-18
 title: Test whether intermediate and advanced carry beginner's defects
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-26 13:30'
+updated_date: '2026-08-26 13:31'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -41,11 +41,11 @@ This task is the read, the diagnosis and the measurement. If a file turns out to
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 All three style files are read against the four defect patterns above, and every instance found is quoted with file and line
-- [ ] #2 For each file, a statement of which patterns it carries and which it does not, supported by judge violations from a real arm rather than by reading alone
-- [ ] #3 Any fix is measured against the current text at n >= 146 cells per model on the five shared cases, per style changed
-- [ ] #4 A file found clean is recorded as clean, with the evidence, rather than left unmentioned
-- [ ] #5 Validated on the reserve split for every style whose text changes
+- [x] #1 All three style files are read against the four defect patterns above, and every instance found is quoted with file and line
+- [x] #2 For each file, a statement of which patterns it carries and which it does not, supported by judge violations from a real arm rather than by reading alone
+- [x] #3 Any fix is measured against the current text at n >= 146 cells per model on the five shared cases, per style changed
+- [x] #4 A file found clean is recorded as clean, with the evidence, rather than left unmentioned
+- [x] #5 Validated on the reserve split for every style whose text changes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -762,3 +762,19 @@ write a cell count you have not counted. The tally was assembled from memory of
 the runs rather than from the files, and two of the three numbers in it were
 wrong.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Diagnosed COS-4's four defect patterns across all three style files and shipped the diagnosis, not a fix.
+
+Read all three files against the four patterns with file and line for every instance (#1), then tested the reading against a 600-cell arm — intermediate and advanced, Opus and Sonnet, the five shared cases, 30 repeats, 0 errored, 0 judge timeouts (run 2026-08-20T12-12-10). Verdict (#2): intermediate carries all four; advanced carries the router and, weakly, the contradiction, and is clean on the scoped budget and the unbounded requirement, recorded as clean with its evidence (#4).
+
+The arm overturned two things a reading alone would have got wrong. Counting over-length violations makes advanced look worse than intermediate (23.6% vs 13.4% on Sonnet) because advanced overruns its cap while stating it correctly — the symptom without the defect. What separates them: intermediate's non-status replies average 1.43x and 1.13x its cap against advanced's 0.95x and 0.85x; the grader attaches the cap to 'updates' in 14 of 20 and 8 of 9 of intermediate's over-length violations and 0 of advanced's 43, every one read by hand after a regex was found to undercount; and intermediate breaks its cap ~3x as often while being flagged ~half as often. The reading also ranked the two contradiction instances backwards — advanced's is sharper on the page and fires 2-4x less often. The router result is unambiguous: all 138 shape violations across both files land on non-status cases and none on a status update.
+
+Authored and measured the fix for intermediate's scoped cap as a single edit (bd326da7 -> 8ea1c01b): rules +3.0 [+0.1, +5.8] and words -24.6 [-46.4, -2.8], both clear of zero, over 300 cells with 0 errored (#3). It did not ship. Reserve validation could not be completed — one arm lost 163 of 300 cells to the monthly spend limit, its retry was stopped at 141 when throughput fell to ~0.7 cells/min — and unmeasured text does not ship, so the style files are byte-identical to HEAD and #5 holds vacuously. The edit moved to COS-33 with its recipe, sha256 and all four intervals, so only the reserve pair remains there.
+
+Verified: 219/219 harness tests, 'audit' exit 0 unpiped, 'lore check' exit 0 across 24 files. Docs updated with counted figures — the ledger gained six run rows and its project total corrected 5140 -> 6608 after an uncounted tally was caught, the style story gained the COS-18 section, FINDINGS gained the 150-cell supersession of the advanced and intermediate Opus/Sonnet halves and the finding that reply shape, not model tier, predicts cap adherence (0 of 240 status updates over cap; 27-77% of everything else).
+
+Opened COS-30 (interval silently pools styles across a multi-style before file, which reported 'the edit did nothing' until filtered), COS-31 (the router both files carry), COS-32 (intermediate's unrationed comparison and skip-the-internals contradiction), COS-33 (ship E1).
+<!-- SECTION:FINAL_SUMMARY:END -->
