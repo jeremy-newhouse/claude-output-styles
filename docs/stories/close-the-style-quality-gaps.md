@@ -122,7 +122,8 @@ defined, and the reply instead reads as a lecture."* That is COS-31.
 
 **The method finding is the part worth carrying forward, because the obvious
 measure gives the wrong answer.** Counting over-length violations makes advanced
-look worse than intermediate — 23.6% of its Sonnet violations against 13.4%.
+look worse than intermediate: 7.7% of its Sonnet violations against 3.1%, and
+7.5% against 6.1% on Opus.
 Advanced overruns its cap while stating it correctly, so the symptom exists
 without the defect underneath it, and violation counts cannot tell the two apart.
 Three measures can. Intermediate's non-status replies average 1.43× and 1.13× its
