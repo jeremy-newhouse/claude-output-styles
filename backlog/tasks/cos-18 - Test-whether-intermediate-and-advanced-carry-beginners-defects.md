@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-26 13:31'
+updated_date: '2026-08-26 13:34'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -761,6 +761,44 @@ This is the handover's own rule biting the session that was quoting it: do not
 write a cell count you have not counted. The tally was assembled from memory of
 the runs rather than from the files, and two of the three numbers in it were
 wrong.
+
+## Review finding on this session's own work: a published share that did not reproduce
+
+Self-review of the branch diff caught a number in `docs/` that could not be
+reproduced from the rows it claimed to come from — the exact failure mode the
+campaign skill names as having passed every automated check before.
+
+The story and the ledger both said the crude over-length count gives advanced
+**23.6%** of Sonnet violations against intermediate's 13.4%. Two defects:
+
+1. **It does not reproduce.** Rebuilding the classifier gives 23.2%, not 23.6%.
+   The original regex is gone with the scratch directory and the 0.4-point gap
+   cannot be accounted for.
+2. **It was contaminated.** That classifier matched any violation containing a
+   word count, a cap and an overrun, which swept in 20-word **sentence**-cap
+   violations — 'that single sentence runs 27 words, over the 20-word cap' was
+   being counted as a reply-length violation. It roughly tripled every share.
+
+Clean counts, reply-length violations only:
+
+| style / model | violations | reply-over-length | share |
+|---|---|---|---|
+| advanced / opus | 266 | 20 | **7.5%** |
+| advanced / sonnet | 297 | 23 | **7.7%** |
+| intermediate / opus | 330 | 20 | **6.1%** |
+| intermediate / sonnet | 290 | 9 | **3.1%** |
+
+**The argument survives and reads better on the honest numbers.** The point was
+that violation share cannot separate the defect from the symptom, because
+advanced scores worse on it while complying better. On the clean count advanced
+is still higher on both models — 7.7% against 3.1% on Sonnet, roughly 2.5× —
+while breaking its cap on 33% of non-status replies against intermediate's 53%.
+
+Both documents now carry the clean figures and the ledger states that the first
+pass's shares are withdrawn. This is the second figure this session published
+and then had to correct — the first being the 'update cap' percentages — and
+both came from the same root cause: a classifier written quickly, trusted, and
+then lost before anyone re-derived from it.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
