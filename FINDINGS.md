@@ -278,6 +278,30 @@ COS-16 has since replaced those bytes with a three-edit candidate (sha256
 judge **66.1 / 60.9** (run `2026-08-20T03-03-26`), statistically identical to the
 text it replaced. Read `19-42-55` as measuring COS-4's pass-1 file.
 
+**COS-18 re-measured the advanced and intermediate rows on Opus and Sonnet at 150
+cells a model, and they no longer rest on ten.** Run `2026-08-20T12-12-10`, the
+shared five, 0 errored. The table below stands as the four-tier picture; these
+supersede its Opus and Sonnet halves for those two styles, and Haiku and Fable are
+untouched.
+
+| style | rules sonnet | rules opus | judge sonnet | judge opus |
+|---|---|---|---|---|
+| advanced | 96.8 → **97.3** | 97.8 → **99.4** | 66.0 → **68.1** | 73.9 → **74.3** |
+| intermediate | 95.6 → **94.7** | 94.2 → **95.6** | 72.6 → **72.7** | 63.9 → **69.5** |
+
+Every move is small except intermediate's Opus judge, which rises 5.6 points.
+**The clean split below survives the fifteenfold sample**: Sonnet still ranks
+intermediate above advanced (72.7 > 68.1) and Opus still ranks advanced above
+intermediate (74.3 > 69.5). That paragraph calls the split a hypothesis on ten
+cells a figure; it is now measured on 150, with the Opus gap narrowing from 10.0
+points to 4.8 and no change of direction.
+
+COS-18 also authored and measured a fix for intermediate — re-scoping its cap out
+of its status-update section — which reads rules **99.1 / 97.1** and judge
+**75.3 / 71.9** at the same sample (run `2026-08-20T12-30-35`). **It has not
+shipped**: its reserve validation could not be completed, and it waits in COS-33.
+The intermediate row here measures the file that ships today.
+
 | style | rules haiku | rules sonnet | rules opus | rules fable | judge haiku | judge sonnet | judge opus | judge fable |
 |---|---|---|---|---|---|---|---|---|
 | advanced | 96.0 | 96.8 | 97.8 | 97.9 | 52.9 | 66.0 | 73.9 | **78.3** |
@@ -411,6 +435,30 @@ gradient predicts. What the data does not do is prove no gradient exists —
 the wide intervals on the other five comparisons are consistent with small
 effects in either direction. It rules out the effect being large enough to matter
 at this sample size, and it removes the reason to suspect one.
+
+**COS-18 found the variable that does predict cap adherence, and it is not the
+model.** It is the shape of reply the case asks for. On 600 cells across
+intermediate and advanced, Opus and Sonnet, the shared five:
+
+| | status updates | everything else |
+|---|---|---|
+| advanced / opus | 0 of 60 over cap | 24 of 90 (27%) |
+| advanced / sonnet | 0 of 60 | 30 of 90 (33%) |
+| intermediate / opus | 0 of 60 | 69 of 90 (77%) |
+| intermediate / sonnet | 0 of 60 | 48 of 90 (53%) |
+
+**Not one of 240 status updates exceeds its cap**, on either style or either
+model. The same file and the same model, asked for an explanation or a report
+instead, breaks the cap between a quarter and three-quarters of the time. The tier
+table above pools those shapes together, which is part of why overrun reads there
+as a property of the model.
+
+Two things are stacked and COS-18 separates them. Non-status replies are longer
+everywhere — a shape effect, and advanced shows it while still averaging *inside*
+its cap (0.95× and 0.85×). Exceeding the cap on those shapes is a second thing,
+and it tracked one property of the style file: whether the cap's own sentence
+named a shape. Intermediate's did, and its non-status replies averaged 1.43× and
+1.13×. Re-scoping that one sentence took Opus from 1.43× to 0.97×.
 
 This is where the summary's qualifier at the top of the document comes from. The
 "roughly twice as often" figure is run `20-10-29`'s, on an advanced style file
