@@ -83,6 +83,7 @@
 - 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
 - 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
 - 2026-08-19T22:42:48-05:00 f9e162d720139f874f6f922d1e635fe6363e4131 Re-sync docs/log.md after COS-16's rebase-merge
+- 2026-08-26T08:38:07-05:00 a86ada6646665f963fd3c3ff281ad26e782bc24d Test intermediate and advanced for beginner's four defects
 
 ## docs/adr
 
@@ -151,6 +152,8 @@
 - 2026-08-18T12:21:11-05:00 db5a9f490848179fc9c0fcf06cd465d7422cc3b8 Bound the judge and rewrite calls so a stalled grader cannot hang a run
 - 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
 - 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
+- 2026-08-26T08:38:07-05:00 a86ada6646665f963fd3c3ff281ad26e782bc24d Test intermediate and advanced for beginner's four defects
+- 2026-08-26T08:38:07-05:00 af1caf26384c350138ac69b1a66223e8bcfd10ae Withdraw an over-length share that did not reproduce
 
 ## docs/runbooks
 
@@ -235,3 +238,6 @@
 - 2026-08-18T10:30:38-05:00 3f2513e4bad33e0dfd833b07dfbe7a13d5d86b37 Re-sync docs after COS-24's rebase-merge
 - 2026-08-19T22:42:19-05:00 0a53fae1f85ff6157df5dc12829e932d85af249a Fix the review's findings on COS-16's published record
 - 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
+- 2026-08-26T08:38:07-05:00 a86ada6646665f963fd3c3ff281ad26e782bc24d Test intermediate and advanced for beginner's four defects
+- 2026-08-26T08:38:07-05:00 addff0b6651a9b9a95e38f8f3cd4f1dd2bf201fc Separate "clean" from "does not bite" in the COS-18 verdict table
+- 2026-08-26T08:38:07-05:00 af1caf26384c350138ac69b1a66223e8bcfd10ae Withdraw an over-length share that did not reproduce
