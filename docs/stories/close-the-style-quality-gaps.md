@@ -105,12 +105,22 @@ a style a model on the shared five, 0 errored:
 | pattern | intermediate | advanced |
 |---|---|---|
 | reply budget scoped to one shape | **carries** | clean |
-| unbounded content requirement | **carries** | clean |
+| unbounded content requirement | **carries** | does not bite |
 | no reply-shape router | **carries** | **carries** |
 | a rule forbidding what another requires | **carries** | carries, weakly |
 
 Advanced is the negative control the task expected on the two patterns it was
 predicted for, and not a control at all on the other two.
+
+"Clean" and "does not bite" are different claims and the difference is worth
+keeping. On the scoped budget advanced is clean in the strict sense: it states
+its cap for "the whole reply" and extends it to a decision reply by name, and
+across 300 cells the grader never once described that cap as belonging to a
+status update. On the unbounded requirement it is not clean but unpunished — the
+file does carry one unrationed demand, for risk and blast radius, and the judge
+fires on it in 1.5% and 1.0% of violations against intermediate's 7.9% and 3.4%.
+That is at the floor rather than at zero, and a fix elsewhere that freed up
+attention could plausibly raise it.
 
 **The clearest result is the router.** All 138 shape violations in the run — 39
 and 47 on intermediate, 22 and 30 on advanced — fall on cases that are not status
