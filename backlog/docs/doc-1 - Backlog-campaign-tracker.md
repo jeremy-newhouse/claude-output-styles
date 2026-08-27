@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-27 23:32'
+updated_date: '2026-08-27 23:34'
 ---
 # Backlog campaign tracker
 
@@ -25,14 +25,15 @@ and pace yourself to never exceed 25% of any given 5 hour limits. I'd rather it
 take 24+ hours than max out a limit."* COS-21's grid is 2250 cells, so it is
 budgeted at roughly 75 minutes of cell running per session and takes four or five
 of them. **The cursor stays on COS-21 until its ADR is updated** — session 30
-resolved leg 1 and session 31 resolved four of leg 2's five arms; neither advanced
+resolved leg 1 and session 31 ran four of leg 2's five arms; neither advanced
 the cursor, because the issue is not done.
 
 **Where COS-21 stands after session 31:** leg 1 complete (5 arms), leg 2 at 4 of 5
 arms — `all-fixes` still to run, ~16 minutes — leg 3 (advanced × Opus) not started
 and budgeted at two sessions. Then one analysis session for the ADR and FINDINGS.md.
-**Leg 2 flipped the sign of leg 1's result**: reinforcement helps on Haiku where it
-hurt on Opus. That is a hypothesis about tier-dependence, not a finding — leg 3 is
+**Leg 2 put reinforcement on the positive side of zero on Haiku**, where on Opus it
+was neutral-to-negative — every leg 1 variant scored below baseline, but only
+`all-fixes` cleared zero. That is a hypothesis about tier-dependence, not a finding — leg 3 is
 the ADR's own cell (advanced × Opus) and nothing is confirmed, narrowed or withdrawn
 before it runs.
 
@@ -1655,17 +1656,20 @@ Both remaining issues carry known risk against that policy:
   floor. **65m40s of cell running at 8.7–9.7 cells a minute**, stopped at a
   variant boundary because a fifth arm would land at ~82 minutes, past the
   ~75-minute budget. `all-fixes` carries to session 32.
-  **The result is a sign flip between tiers.** On leg 1 (Opus) every reinforcement
-  variant scored below baseline. On Haiku, against a 68.69 baseline: long-prompt
+  **The result sits on the other side of zero from leg 1's.** On Opus every
+  reinforcement variant scored below baseline, but only `all-fixes` cleared zero —
+  the other three were nulls, not measured costs. On Haiku, against a 68.69
+  baseline: long-prompt
   **+5.2 [+2.1, +8.2]** composite and **+9.7 [+3.9, +15.6]** judge; tail-reminder
   **+3.3 [+1.1, +5.4]** and **+6.0 [+1.7, +10.3]** — both clear of zero, both
   upward, both driven entirely by judge with rules and length flat. claude-md is
   the exception and an instructive one: composite +2.0 [−1.6, +5.6] is a null,
   but it cuts mean reply length **−15.9 words [−22.4, −9.3]**, from 87.3 (over
   the 80-word cap) to 70.6 (under it), and that shortening buys no score. The
-  working hypothesis is that reinforcement helps a model already failing the
-  style and costs one already complying — **supported by this leg, not concluded
-  from it.** The ADR and FINDINGS.md remain untouched: leg 3 is the ADR's own
+  working hypothesis is that reinforcement helps a model already failing the style
+  and does not help one already complying — **supported by this leg, not concluded
+  from it.** The stronger claim, that it actively costs the complying model, rests
+  on a single leg-1 arm and is not made here. The ADR and FINDINGS.md remain untouched: leg 3 is the ADR's own
   cell and has not run.
   **One process note worth keeping:** `backlog task edit --notes` *replaces*
   implementation notes rather than appending, and wiped session 30's seven

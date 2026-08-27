@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-27 23:31'
+updated_date: '2026-08-27 23:34'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -235,7 +235,7 @@ The mechanism is visible in arm 1's rule breakdown: Haiku's baseline replies run
 
 **Second consecutive positive arm on Haiku.** Same shape as long-prompt: the gain is judge-side (+6.0), rules is flat-to-marginal and reply length does not move. Tail-reminder is the weaker of the two so far — +3.3 against long-prompt's +5.2 — and their intervals overlap heavily, so this arm does not rank them.
 
-On beginner x Opus (leg 1) tail-reminder scored 81.00 against an 83.07 baseline: 2.1 **down**, interval containing zero. The sign flip between tiers now holds for two of the three reinforcement variants measured on Haiku.
+On beginner x Opus (leg 1) tail-reminder scored 81.00 against an 83.07 baseline: 2.1 **down**, interval containing zero. Two of the three reinforcement variants measured on Haiku now sit on the opposite side of zero from their Opus counterparts.
 
 **Note on the run:** a first attempt at this arm was launched from the repo root instead of `harness/` and exited immediately with `MODULE_NOT_FOUND`. It wrote no results directory and cost no cells. The arm above is the only tail-reminder run for leg 2.
 
@@ -278,7 +278,9 @@ It buys almost nothing on score. Composite +2.0 and judge +2.9 both contain zero
 | tail-reminder | **+3.3 [+1.1, +5.4]** | **+6.0 [+1.7, +10.3]** | -2.3 [-7.1, +2.6] |
 | claude-md | +2.0 [-1.6, +5.6] | +2.9 [-4.1, +9.9] | **-15.9 [-22.4, -9.3]** |
 
-**The sign flips between tiers.** On beginner x Opus (leg 1) every reinforcement variant scored *below* baseline, and only `all-fixes` cleared zero — downward. On beginner x Haiku the same style and the same variants go the other way: two of three clear zero **upward**, and none is negative. Reinforcement appears to help a model that is failing the style more often to begin with, and to cost a model that is already complying.
+**The result sits on the opposite side of zero from leg 1's.** On beginner x Opus every reinforcement variant scored *below* baseline, but **only `all-fixes` cleared zero** — the other three were nulls, not measured costs. On beginner x Haiku the same style and the same variants go the other way: two of three clear zero **upward**, and none is negative.
+
+Reinforcement appears to help a model that is failing the style more often to begin with, and **not to help** one that is already complying. The stronger claim — that it actively *costs* the complying model — rests on a single leg-1 arm (`all-fixes`, composite -2.8 [-5.2, -0.5]) and is not made here.
 
 That is a hypothesis this leg supports, not a finding COS-21 can act on. **Two of its three legs are now in and the ADR is still untouched, deliberately** — the ADR was measured on advanced x Opus, and leg 3 is that exact cell. Nothing is confirmed, narrowed or withdrawn until leg 3 runs.
 
