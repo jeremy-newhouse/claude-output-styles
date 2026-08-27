@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-27 21:59'
+updated_date: '2026-08-27 23:31'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -187,4 +187,100 @@ Self-review of the branch diff caught one arithmetic defect in my own leg-1 summ
 Also corrected: the five clean arms total **73m15s** of wall clock (880 + 898 + 835 + 895 + 887 seconds), not the 73m17s written above.
 
 Nothing downstream moves — no published figure, interval or arm mean used either number. Recorded rather than silently edited, per the project's own convention on withdrawn figures.
+
+## Session 31 — leg 2 (beginner x haiku), arm 1 of 5
+
+**Usage probe** `2026-08-27T22-23-51-555Z` — 2 cells, 0 errored, 12.6s wall at concurrency 2. Ceilings clear before committing the arm.
+
+**Arm: beginner x haiku x baseline** — `2026-08-27T22-24-10-642Z`, 15 cases x 10 repeats = **150 cells, 0 errored**. 22:24:10Z to 22:41:28Z = **17m18s, 8.7 cells a minute**, mean cell 17.0s, concurrency 4.
+
+| metric | value |
+|---|---|
+| rules | **93.31** |
+| judge | **44.08** |
+| composite | 68.69 |
+| mean reply | 87.3 words (1.09x the 80-word cap) |
+
+Haiku sits far below leg 1's Opus baseline (83.07 composite) on the same style and variant: judge 44.08 vs 67.81, rules 93.31 vs 98.34. Mean reply runs **over** the 80-word cap rather than under it (87.3 vs 72.5), and `total_length` is the worst rule on the arm at 51.5 (n=76) — roughly half the cells break the cap. Other weak rules: `code_block_size` 0.0 (n=3), `no_process_narration` 45.0 (n=10), `three_question_structure` 55.6 (n=12), `no_jargon` 64.3 (n=56).
+
+**Leg 2 runs slower than leg 1.** 8.7 cells a minute against leg 1's 10.2, so five arms is ~87 minutes, over the ~75-minute pacing budget. Expect leg 2 to spill an arm into the next session.
+
+## Session 31 — leg 2 arm 2 of 5
+
+**Arm: beginner x haiku x long-prompt** — `2026-08-27T22-41-46-049Z`, **150 attempted, 149 non-errored, 1 errored**. 22:41:46Z to 22:58:55Z = **17m09s, 8.7 cells a minute**, mean cell 18.4s, concurrency 4. 149 clears AC #1's 146 floor.
+
+| metric | value | vs baseline arm | 95% paired interval (n=15 case-pairs) |
+|---|---|---|---|
+| rules | 93.95 | +0.6 | [-0.4, +1.6] — contains zero |
+| judge | **53.51** | **+9.7** | **[+3.9, +15.6] — clears zero** |
+| composite | **73.73** | **+5.2** | **[+2.1, +8.2] — clears zero** |
+| mean reply | 86.5 words | -1.5 | [-7.5, +4.6] — contains zero |
+
+**This is the first arm in COS-21 where a reinforcement variant helps, and it helps clearly.** On beginner x Opus (leg 1) long-prompt scored 81.84 against an 83.07 baseline — 1.2 down, interval containing zero. On beginner x Haiku the same variant is **5.2 composite up with the interval clear of zero**, driven entirely by judge (+9.7); rules and reply length are both flat.
+
+The mechanism is visible in arm 1's rule breakdown: Haiku's baseline replies run **over** the 80-word cap (87.3 words) and `total_length` is its worst rule at 51.5. Long-prompt does not shorten the replies — words are flat at -1.5 — so the gain is not the cap. It is judged quality at the same length.
+
+**Provisional read, not a conclusion:** the ADR's direction may be tier-dependent, with reinforcement paying off on a weaker model that is failing the style more often to begin with. Leg 3 (advanced x Opus) is still the ADR's own cell and decides its claims. Nothing is narrowed or withdrawn on this arm.
+
+## Session 31 — leg 2 arm 3 of 5
+
+**Arm: beginner x haiku x tail-reminder** — `2026-08-27T22-59-12-594Z`, **150 attempted, 149 non-errored, 1 errored**. 22:59:12Z to 23:15:00Z = **15m48s, 9.4 cells a minute**, mean cell 17.0s, concurrency 4.
+
+| metric | value | vs baseline arm | 95% paired interval (n=15 case-pairs) |
+|---|---|---|---|
+| rules | 93.96 | +0.6 | [-0.0, +1.2] — touches zero |
+| judge | **49.70** | **+6.0** | **[+1.7, +10.3] — clears zero** |
+| composite | **71.83** | **+3.3** | **[+1.1, +5.4] — clears zero** |
+| mean reply | 85.6 words | -2.3 | [-7.1, +2.6] — contains zero |
+
+**Second consecutive positive arm on Haiku.** Same shape as long-prompt: the gain is judge-side (+6.0), rules is flat-to-marginal and reply length does not move. Tail-reminder is the weaker of the two so far — +3.3 against long-prompt's +5.2 — and their intervals overlap heavily, so this arm does not rank them.
+
+On beginner x Opus (leg 1) tail-reminder scored 81.00 against an 83.07 baseline: 2.1 **down**, interval containing zero. The sign flip between tiers now holds for two of the three reinforcement variants measured on Haiku.
+
+**Note on the run:** a first attempt at this arm was launched from the repo root instead of `harness/` and exited immediately with `MODULE_NOT_FOUND`. It wrote no results directory and cost no cells. The arm above is the only tail-reminder run for leg 2.
+
+## Session 31 — leg 2 arm 4 of 5
+
+**Arm: beginner x haiku x claude-md** — `2026-08-27T23-15-05-218Z`, 15 cases x 10 repeats = **150 cells, 0 errored**. 23:15:05Z to 23:30:30Z = **15m25s, 9.7 cells a minute**, mean cell 16.1s, concurrency 4.
+
+| metric | value | vs baseline arm | 95% paired interval (n=15 case-pairs) |
+|---|---|---|---|
+| rules | 94.45 | +1.1 | [-0.2, +2.4] — contains zero |
+| judge | 46.97 | +2.9 | [-4.1, +9.9] — contains zero |
+| composite | 70.70 | +2.0 | [-1.6, +5.6] — contains zero |
+| mean reply | **70.6 words** | **-15.9** | **[-22.4, -9.3] — clears zero** |
+
+**The one arm so far whose effect is on length rather than quality, and the effect is large.** The CLAUDE.md restatement pulls Haiku's mean reply from 87.3 words — *over* the 80-word cap — down to 70.6, comfortably under it. That is a 15.9-word drop with the interval nowhere near zero, the largest word-count move measured anywhere in COS-21.
+
+It buys almost nothing on score. Composite +2.0 and judge +2.9 both contain zero, and rules gains only +1.1 despite `total_length` being arm 1's second-worst rule at 51.5. **Shortening the replies did not translate into a better score**, which is worth stating plainly because it is the opposite of what the length rule's weight would predict.
+
+**Ranking so far on beginner x Haiku** (all against the same baseline arm): long-prompt +5.2 (clears), tail-reminder +3.3 (clears), claude-md +2.0 (null). `all-fixes` is unmeasured — it is arm 5 and does not fit this session's pacing budget.
+
+## Session 31 — leg 2 partial summary (4 of 5 arms) and stop
+
+**Stopped at a variant boundary, on budget.** Four arms ran: 17m18s + 17m09s + 15m48s + 15m25s = **65m40s of cell running**, plus a 12.6s probe. A fifth arm is ~16 minutes and would land at ~82 minutes, past the user's ~75-minute (25%-of-window) rule. `all-fixes` is deferred to session 32.
+
+**600 cells attempted, 598 non-errored, 2 errored.** Every arm clears AC #1's 146 floor.
+
+| variant | stamp (2026-08-27) | cells ok/err | rules | judge | composite | words |
+|---|---|---|---|---|---|---|
+| baseline | `22-24-10` | 150/0 | 93.31 | 44.08 | 68.69 | 87.3 |
+| long-prompt | `22-41-46` | 149/1 | 93.95 | 53.51 | **73.73** | 86.5 |
+| tail-reminder | `22-59-12` | 149/1 | 93.96 | 49.70 | 71.83 | 85.6 |
+| claude-md | `23-15-05` | 150/0 | 94.45 | 46.97 | 70.70 | **70.6** |
+| all-fixes | — | not run | — | — | — | — |
+
+**Paired 95% intervals against the baseline arm** (n=15 case-pairs each):
+
+| variant | composite | judge | words |
+|---|---|---|---|
+| long-prompt | **+5.2 [+2.1, +8.2]** | **+9.7 [+3.9, +15.6]** | -1.5 [-7.5, +4.6] |
+| tail-reminder | **+3.3 [+1.1, +5.4]** | **+6.0 [+1.7, +10.3]** | -2.3 [-7.1, +2.6] |
+| claude-md | +2.0 [-1.6, +5.6] | +2.9 [-4.1, +9.9] | **-15.9 [-22.4, -9.3]** |
+
+**The sign flips between tiers.** On beginner x Opus (leg 1) every reinforcement variant scored *below* baseline, and only `all-fixes` cleared zero — downward. On beginner x Haiku the same style and the same variants go the other way: two of three clear zero **upward**, and none is negative. Reinforcement appears to help a model that is failing the style more often to begin with, and to cost a model that is already complying.
+
+That is a hypothesis this leg supports, not a finding COS-21 can act on. **Two of its three legs are now in and the ADR is still untouched, deliberately** — the ADR was measured on advanced x Opus, and leg 3 is that exact cell. Nothing is confirmed, narrowed or withdrawn until leg 3 runs.
+
+**Remaining work:** leg 2 arm 5 (`all-fixes`, ~16 min), then leg 3 (advanced x Opus, 5 arms at the slower advanced rate — the plan budgets two sessions for it), then the analysis session that updates the ADR and FINDINGS.md.
 <!-- SECTION:NOTES:END -->
