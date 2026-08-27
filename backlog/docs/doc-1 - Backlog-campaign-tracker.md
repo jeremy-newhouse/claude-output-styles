@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-27 22:00'
+updated_date: '2026-08-27 23:32'
 ---
 # Backlog campaign tracker
 
@@ -25,11 +25,19 @@ and pace yourself to never exceed 25% of any given 5 hour limits. I'd rather it
 take 24+ hours than max out a limit."* COS-21's grid is 2250 cells, so it is
 budgeted at roughly 75 minutes of cell running per session and takes four or five
 of them. **The cursor stays on COS-21 until its ADR is updated** — session 30
-resolved one of three legs and merged that leg's evidence; it did not advance the
-cursor, because the issue is not done.
+resolved leg 1 and session 31 resolved four of leg 2's five arms; neither advanced
+the cursor, because the issue is not done.
+
+**Where COS-21 stands after session 31:** leg 1 complete (5 arms), leg 2 at 4 of 5
+arms — `all-fixes` still to run, ~16 minutes — leg 3 (advanced × Opus) not started
+and budgeted at two sessions. Then one analysis session for the ADR and FINDINGS.md.
+**Leg 2 flipped the sign of leg 1's result**: reinforcement helps on Haiku where it
+hurt on Opus. That is a hypothesis about tier-dependence, not a finding — leg 3 is
+the ADR's own cell (advanced × Opus) and nothing is confirmed, narrowed or withdrawn
+before it runs.
 
 Grid, argued in the task's plan and settled: **beginner × Opus** (leg 1, done),
-**beginner × Haiku** (leg 2), **advanced × Opus** (leg 3 — the ADR's own cell,
+**beginner × Haiku** (leg 2, 4 of 5 arms), **advanced × Opus** (leg 3 — the ADR's own cell,
 and the one that decides whether its claims survive). Each leg is five variants ×
 150 cells. `advanced × Haiku` is deliberately excluded.
 
@@ -1639,3 +1647,30 @@ Both remaining issues carry known risk against that policy:
   `run.json` as "pre-manifest" and swept 70 improve-loop cells into a total that
   has always excluded them. Corrected figure is a 12-cell gap, still open. Merged
   as PR #28 (rebase).
+- 2026-08-27 — session 31: **COS-21 leg 2 (beginner × Haiku), four of five arms.**
+  Probed two cells (`22-23-51`, 0 errored, 12.6s) before committing, per the rule
+  that has now paid off five sessions running. Ran baseline `22-24-10`,
+  long-prompt `22-41-46`, tail-reminder `22-59-12`, claude-md `23-15-05` — 600
+  cells attempted, **598 non-errored, 2 errored**, every arm clearing AC #1's 146
+  floor. **65m40s of cell running at 8.7–9.7 cells a minute**, stopped at a
+  variant boundary because a fifth arm would land at ~82 minutes, past the
+  ~75-minute budget. `all-fixes` carries to session 32.
+  **The result is a sign flip between tiers.** On leg 1 (Opus) every reinforcement
+  variant scored below baseline. On Haiku, against a 68.69 baseline: long-prompt
+  **+5.2 [+2.1, +8.2]** composite and **+9.7 [+3.9, +15.6]** judge; tail-reminder
+  **+3.3 [+1.1, +5.4]** and **+6.0 [+1.7, +10.3]** — both clear of zero, both
+  upward, both driven entirely by judge with rules and length flat. claude-md is
+  the exception and an instructive one: composite +2.0 [−1.6, +5.6] is a null,
+  but it cuts mean reply length **−15.9 words [−22.4, −9.3]**, from 87.3 (over
+  the 80-word cap) to 70.6 (under it), and that shortening buys no score. The
+  working hypothesis is that reinforcement helps a model already failing the
+  style and costs one already complying — **supported by this leg, not concluded
+  from it.** The ADR and FINDINGS.md remain untouched: leg 3 is the ADR's own
+  cell and has not run.
+  **One process note worth keeping:** `backlog task edit --notes` *replaces*
+  implementation notes rather than appending, and wiped session 30's seven
+  sections on the first write. Recovered from `git show HEAD:` and re-applied
+  with `--append-notes`. Use `--append-notes` on any multi-session task.
+  A tail-reminder arm was also launched from the repo root instead of `harness/`
+  and died on `MODULE_NOT_FOUND` in under a second — no results directory, no
+  cells spent, re-run clean.
