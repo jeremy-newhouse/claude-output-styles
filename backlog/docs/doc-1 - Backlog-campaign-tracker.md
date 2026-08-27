@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-27 13:15'
+updated_date: '2026-08-27 21:58'
 ---
 # Backlog campaign tracker
 
@@ -15,10 +15,28 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-21** — Campaign 2 item 12. The reinforcement ADR rests on five
-cells per arm. Queue order was confirmed by the user on 2026-08-17 (see the
-Campaign 2 section below) and item 11, COS-17, is now Resolved, so the cursor
-advances in that confirmed order. Do not re-ask before taking it.
+**Next issue: COS-21 — IN PROGRESS, not yet started fresh.** Campaign 2 item 12.
+Queue order was confirmed by the user on 2026-08-17 (see the Campaign 2 section
+below). Do not re-ask before continuing it.
+
+**COS-21 is the first issue in this campaign to span sessions, deliberately.**
+On 2026-08-27 the user set a pacing rule for the whole campaign: *"do some math
+and pace yourself to never exceed 25% of any given 5 hour limits. I'd rather it
+take 24+ hours than max out a limit."* COS-21's grid is 2250 cells, so it is
+budgeted at roughly 75 minutes of cell running per session and takes four or five
+of them. **The cursor stays on COS-21 until its ADR is updated** — session 30
+resolved one of three legs and merged that leg's evidence; it did not advance the
+cursor, because the issue is not done.
+
+Grid, argued in the task's plan and settled: **beginner × Opus** (leg 1, done),
+**beginner × Haiku** (leg 2), **advanced × Opus** (leg 3 — the ADR's own cell,
+and the one that decides whether its claims survive). Each leg is five variants ×
+150 cells. `advanced × Haiku` is deliberately excluded.
+
+**AC #5 was amended with the user's approval on 2026-08-27** to wall-clock and
+cell counts. It originally asked for per-arm dollar costs, which COS-25 had
+already deleted from the harness — an acceptance criterion cannot be satisfied by
+a field that no longer exists.
 
 **Throughput depends on the style, and beginner is the cheap one.** Session 29
 measured its own on both arms rather than assuming: the Haiku arm ran 150 cells in
@@ -1596,3 +1614,28 @@ Both remaining issues carry known risk against that policy:
   superlative with two rewrites and a contract fix stacked in it that no arm
   separates). **Flagged, not fixed**: the ledger's running cell total is 82 short
   of a disk count. Cursor advances to COS-21.
+
+- 2026-08-27 — session 30: **took COS-21 and resolved leg 1 of 3; the issue stays
+  open and the cursor stays on it.** Before running anything, established that
+  **AC #5 was unsatisfiable as written** — it asked for per-arm costs that COS-25
+  deliberately removed from the harness — and amended it, with the user's
+  approval, to wall-clock and cell counts. The user set the campaign's pacing rule
+  in the same exchange (25% of any 5-hour window; "I'd rather it take 24+ hours
+  than max out a limit"), which is what makes COS-21 a multi-session issue.
+  **Leg 1, beginner × Opus, five variants at 150 non-errored cells each, 0 errored
+  across all five**: baseline composite 83.07, long-prompt 81.84, claude-md 81.36,
+  tail-reminder 81.00, all-fixes 80.24. Paired against baseline over 15 case pairs,
+  **only all-fixes clears zero** — composite −2.8 [−5.2, −0.5], judge −4.7
+  [−9.1, −0.4]. The ADR's headline claim, `claude-md` at −9.4, comes back **−1.7
+  [−4.5, +1.1]** on this leg. Direction reproduces; magnitude and ranking do not.
+  Nothing is concluded yet: leg 3 tests the ADR's own cell and is not run.
+  **Lost one arm to the monthly spend limit** (`15-15-54`, 121 of 150 errored) —
+  the fourth this campaign — then re-probed with two cells after a pause, found it
+  clear, and retried it clean. Worth separating: the session was inside its
+  5-hour-window budget at 34 minutes; **the monthly limit is a different ceiling
+  and that budget does not protect against it.** **Resolved 70 of the 82 cells
+  session 29 flagged as missing from the ledger total**: 9 directories carry an
+  `improve.json` and no `run.json`, and the previous count read a missing
+  `run.json` as "pre-manifest" and swept 70 improve-loop cells into a total that
+  has always excluded them. Corrected figure is a 12-cell gap, still open. Merged
+  as PR #TBD.

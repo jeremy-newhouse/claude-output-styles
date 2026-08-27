@@ -87,6 +87,7 @@
 - 2026-08-26T08:38:41-05:00 2dfe318d1051570223728a8bf6ea57ef03765df5 Re-sync docs/log.md after COS-18's rebase-merge
 - 2026-08-27T08:19:06-05:00 c2f6f8b10502b4e65e83f13081b252dda6792eea Complete the four-tier beginner row on Haiku and Fable
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
+- 2026-08-27T08:19:33-05:00 0dd85d74fa86e80575b9381dd5d91dfe4db55110 Re-sync docs/log.md after COS-17's rebase-merge
 
 ## docs/adr
 
