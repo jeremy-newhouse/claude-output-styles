@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-27 21:55'
+updated_date: '2026-08-27 21:59'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -177,4 +177,14 @@ Paired against baseline, 15 case pairs: rules −0.9 [−2.1, +0.3]; judge **−
 3. **The ADR's per-variant magnitudes and its ranking do not reproduce here.** It has claude-md worst at −9.4 and all-fixes second at −8.7; beginner x Opus has all-fixes worst at −2.8 and claude-md third at −1.7. Every delta is a third to a fifth of the ADR's. Whether that is a style difference or the ADR's five-cell arms is exactly what leg 3 (advanced x opus, the ADR's own cell) settles.
 
 **Wall-clock and cell counts for AC #5**, this session: probe 2 cells / 34.4s; probe 2 cells / 37s; five clean arms 750 cells / 73m17s; one lost arm 150 attempted / 3m20s. **904 cells attempted, 754 non-errored, 121 errored to the monthly spend limit and 29 usable-but-orphaned.**
+
+## Session 30 — review correction
+
+Self-review of the branch diff caught one arithmetic defect in my own leg-1 summary above, corrected here and in the ledger before the PR.
+
+**The session's cell accounting is 904 attempted, 783 non-errored, 121 errored.** The earlier line in these notes reads '754 non-errored ... and 29 usable-but-orphaned', which treats the 29 survivors of the lost arm as something other than non-errored. They are non-errored; they are merely orphaned, because their arm finished 121 cells short of AC #1's floor and no figure can use it. The correct split of the 783 is **750 load-bearing** (the five clean arms), **4 probe cells**, and **29 orphaned**.
+
+Also corrected: the five clean arms total **73m15s** of wall clock (880 + 898 + 835 + 895 + 887 seconds), not the 73m17s written above.
+
+Nothing downstream moves — no published figure, interval or arm mean used either number. Recorded rather than silently edited, per the project's own convention on withdrawn figures.
 <!-- SECTION:NOTES:END -->
