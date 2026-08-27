@@ -50,40 +50,53 @@ decision.
 
 ## Where things stand
 
-Five shared cases, ten cells per pair, **all four model tiers**, no errored cells
-in any column. Rules and judge are directly comparable across styles; the
-composite is not, because each style carries a different `judgeWeight`.
+Five shared cases, **all four model tiers**, no errored cells in any column.
+Advanced and intermediate are ten cells a pair; beginner is 150, on the file that
+ships today. Rules and judge are directly comparable across styles; the composite
+is not, because each style carries a different `judgeWeight`.
 
 | style | rules (opus / sonnet / haiku / fable) | judge (opus / sonnet / haiku / fable) |
 |---|---|---|
 | advanced | 97.8 / 96.8 / 96.0 / 97.9 | 73.9 / 66.0 / 52.9 / 78.3 |
 | intermediate | 94.2 / 95.6 / 94.3 / 93.1 | 63.9 / 72.6 / 62.2 / 67.7 |
-| beginner | 91.5 / 92.3 / 90.9 / 91.4 | 45.9 / 48.4 / 37.5 / 53.9 |
+| beginner | **99.2 / 97.4 / 95.8 / 99.3** | **66.1 / 60.9 / 48.2 / 65.2** |
 
-**The beginner row is a snapshot of a file that has since been rewritten, and its
-Opus and Sonnet judge figures carry a known defect.** They were graded with the
-judge told a 15-word sentence cap the file never stated — the same drift
-`3370e4d` fixed in the rules column, which could be re-graded offline for free
-where the judge could not. COS-4 then rewrote the file. On COS-4's pass-1 text —
-what shipped until COS-16 — over **150 cells a model**, beginner reads **rules
-98.9 / 97.4 and judge 66.8 / 60.9** on Opus and Sonnet (COS-16, run `19-42-55`). COS-4's own figures for the same
-bytes — 98.5 / 97.4 and 73.9 / 58.1 at 35 cells a model — are superseded on the
-judge halves by that larger arm. Its Haiku and Fable columns have not been
-re-measured since the rewrite. Read the row as history; `FINDINGS.md` carries the
-current numbers.
+**The beginner row is the only current one, and it is the odd one out in this
+table.** It measures the file that ships today (sha256 `86451ddb`) at **150 cells
+a model, 0 errored in every column**, where advanced and intermediate rest on ten:
+Opus and Sonnet from run `2026-08-20T03-03-26` (COS-16), Haiku and Fable from
+`2026-08-27T12-35-06` and `2026-08-27T12-50-55` (COS-17). All four share the same
+five cases, the same scorer, the same contract and the same judge prompt — every
+one of those last changed before the earliest of the runs, which is what makes the
+columns comparable across a seven-day gap.
 
-**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+**The figures it replaced were 91.5 / 92.3 / 90.9 / 91.4 and 45.9 / 48.4 / 37.5 /
+53.9**, and they are gone from the table rather than footnoted beside it, because
+they measured style text that two hand rewrites have replaced and because their
+Opus and Sonnet judge cells were graded with the judge told a 15-word sentence cap
+the file never stated. That drift is the same one `3370e4d` fixed in the rules
+column, which could be re-graded offline for free where the judge could not.
+COS-4's pass-1 text read rules 98.9 / 97.4 and judge 66.8 / 60.9 on Opus and
+Sonnet at 150 cells (COS-16, run `19-42-55`); the shipped bytes are statistically
+identical to it, every paired interval containing zero.
+
+**What the completed row shows.** Beginner's rules column now beats advanced on
+three tiers of four and loses on Haiku by 0.2 — it was the weakest style on every
+tier before. Its judge column rose 10.7 / 12.5 / 20.2 / 11.3 points, and it is
+still last of the three styles on every tier. Rule compliance was never the
+problem, and fixing it did not fix the prose.
 
 The four tiers span the whole released range, from the smallest model to the
-largest — and rule compliance holds across all of it, 90.9 to 97.9. Prose quality
-does not: the judge ranges 37.5 to 78.3 over the same twelve cells. That is the
+largest — and rule compliance holds across all of it, 93.1 to 99.3. Prose quality
+does not: the judge ranges 48.2 to 78.3 over the same twelve cells. That is the
 epic's central result. The style files carry their rules everywhere; what a tier
 changes is how well it writes, not how well it complies.
 
-The top tier is not a clean win. Fable leads the judge on advanced and beginner
-but is last of four on intermediate rules, and Sonnet — two tiers down — still
-writes the best intermediate. Nor does a larger model buy cap adherence: word-cap
-overrun does not track tier, and the model that keeps best to the cap is Sonnet.
+The top tier is not a clean win. Fable leads the judge on advanced but is last of
+four on intermediate rules, Opus edges it on beginner, and Sonnet — two tiers
+down — still writes the best intermediate. Nor does a larger model buy cap
+adherence: word-cap overrun does not track tier, and the model that keeps best to
+the cap is Sonnet, on both the pre-rewrite text and the shipped one.
 
 Advanced is the only style the optimizer improved. Its rewrite gained 6.9 points
 on Opus and 5.9 on Sonnet, is 32 words shorter than the original, and ends with a
@@ -91,7 +104,9 @@ countable word cap. Intermediate is unchanged from first release: six rewrites
 were generated across intermediate and beginner and every one was rejected,
 either by the keep rule or by out-of-sample testing. Beginner has since been
 rewritten **by hand**, by COS-1 and then COS-4 — the only route that has ever
-changed it.
+changed it. COS-17 measured what that bought on all four tiers: reply length fell
+from 1.28×–1.69× the 80-word cap to 0.73×–0.90×, under it on every model, and all
+ten of its case × model cells fell.
 
 Rule compliance is high everywhere and prose quality is not. That is the shape of
 the remaining work: the styles are followed, and beginner in particular is not
