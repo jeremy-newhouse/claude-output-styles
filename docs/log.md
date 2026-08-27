@@ -88,7 +88,8 @@
 - 2026-08-27T08:19:06-05:00 c2f6f8b10502b4e65e83f13081b252dda6792eea Complete the four-tier beginner row on Haiku and Fable
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
 - 2026-08-27T08:19:33-05:00 0dd85d74fa86e80575b9381dd5d91dfe4db55110 Re-sync docs/log.md after COS-17's rebase-merge
-- 2026-08-27T16:58:36-05:00 2ac7c322082e5d0e12e55c68482e3c7e99dcfdcc Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
+- 2026-08-27T17:00:16-05:00 9dbbf18cdf91f3a5509cfef2569bfb7ae1ad1afc Correct session 30's non-errored cell count
+- 2026-08-27T17:00:16-05:00 eb0da72846fb9f2bfe10cb656db3fe295f9fe350 Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
 
 ## docs/adr
 
@@ -163,7 +164,8 @@
 - 2026-08-26T08:38:07-05:00 af1caf26384c350138ac69b1a66223e8bcfd10ae Withdraw an over-length share that did not reproduce
 - 2026-08-27T08:19:06-05:00 c2f6f8b10502b4e65e83f13081b252dda6792eea Complete the four-tier beginner row on Haiku and Fable
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
-- 2026-08-27T16:58:36-05:00 2ac7c322082e5d0e12e55c68482e3c7e99dcfdcc Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
+- 2026-08-27T17:00:16-05:00 9dbbf18cdf91f3a5509cfef2569bfb7ae1ad1afc Correct session 30's non-errored cell count
+- 2026-08-27T17:00:16-05:00 eb0da72846fb9f2bfe10cb656db3fe295f9fe350 Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
 
 ## docs/runbooks
 
@@ -253,4 +255,4 @@
 - 2026-08-26T08:38:07-05:00 af1caf26384c350138ac69b1a66223e8bcfd10ae Withdraw an over-length share that did not reproduce
 - 2026-08-27T08:19:06-05:00 c2f6f8b10502b4e65e83f13081b252dda6792eea Complete the four-tier beginner row on Haiku and Fable
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
-- 2026-08-27T16:58:36-05:00 2ac7c322082e5d0e12e55c68482e3c7e99dcfdcc Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
+- 2026-08-27T17:00:16-05:00 eb0da72846fb9f2bfe10cb656db3fe295f9fe350 Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
