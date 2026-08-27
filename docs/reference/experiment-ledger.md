@@ -122,9 +122,11 @@ do that rather than trust either.
 
 **COS-21 adds 904 attempted cells** across eight directories — two 2-cell probes,
 five clean 150-cell arms and one 150-cell arm the monthly spend limit destroyed.
-754 are non-errored; 750 of those are load-bearing (the five arms of the
-beginner x Opus leg), and the remaining 4 are the probes. The 121 errored cells
-and the 29 orphaned survivors of `15-15-54` are recorded and used for nothing.
+**783 are non-errored** — the five arms' 750 load-bearing cells, 4 probe cells,
+and the 29 cells of `15-15-54` that returned before the spend limit bit. Only the
+750 are used for a figure: the 29 survivors are non-errored but orphaned, their
+arm being 121 short of COS-21's floor, and the 121 errored cells are recorded and
+used for nothing.
 
 **And the count above resolves 70 of the 82 unexplained cells.** Re-counting from
 disk after this session returns **7900 rows in 97 directories**. Subtracting this
