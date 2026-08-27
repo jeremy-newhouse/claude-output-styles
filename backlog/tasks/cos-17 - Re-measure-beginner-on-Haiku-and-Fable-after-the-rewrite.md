@@ -1,11 +1,11 @@
 ---
 id: COS-17
 title: Re-measure beginner on Haiku and Fable after the rewrite
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-27 13:07'
+updated_date: '2026-08-27 13:13'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies:
@@ -32,11 +32,11 @@ Fable is deliberately absent from `matrix.models` and has no bare alias — it n
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Beginner measured on Haiku and Fable on the five shared cases at n >= 146 non-errored cells per model, matching the sample size the Opus and Sonnet figures are held to
-- [ ] #2 Figures reported beside the existing Opus and Sonnet numbers with the same paired case x model treatment and intervals, not as bare arm means
-- [ ] #3 The four-tier table in FINDINGS.md, the epic and the coverage story carries four current beginner columns, and the history footnotes are removed rather than left beside live numbers
-- [ ] #4 Whether the rewrite's length effect reproduces on the two middle tiers is stated as a result either way, and read against COS-7's finding that overrun does not track tier
-- [ ] #5 Aborted cells are reported separately and excluded from every quoted mean
+- [x] #1 Beginner measured on Haiku and Fable on the five shared cases at n >= 146 non-errored cells per model, matching the sample size the Opus and Sonnet figures are held to
+- [x] #2 Figures reported beside the existing Opus and Sonnet numbers with the same paired case x model treatment and intervals, not as bare arm means
+- [x] #3 The four-tier table in FINDINGS.md, the epic and the coverage story carries four current beginner columns, and the history footnotes are removed rather than left beside live numbers
+- [x] #4 Whether the rewrite's length effect reproduces on the two middle tiers is stated as a result either way, and read against COS-7's finding that overrun does not track tier
+- [x] #5 Aborted cells are reported separately and excluded from every quoted mean
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -108,4 +108,36 @@ Restricting to the four conversational cases removes the seam (the project's own
 **So the deltas are stated as directional, not as measured effect sizes**, and the load-bearing figures in this task are the four current arm means, each on 150 non-errored cells with no confound between them.
 
 **Aborted and errored cells (AC #5).** Haiku 0 of 150, Fable 0 of 150. Neither new arm lost a cell. The task's own warning that Haiku aborts on write-then-verify cases did not bite, because none of the five shared cases is one -- agentic-read-report reads a file and does not edit or test. The 2-cell probe (2026-08-27T12-34-30) also returned 0 errored. Every mean above is over non-errored cells; there are none to exclude.
+
+**AC verification, session 29.**
+
+AC #1 — run manifests and row composition read directly. 2026-08-27T12-35-06: beginner x haiku x baseline, 5 cases x 30 repeats = 150 rows, 'complete: true', **0 errored, 0 no-reply**. 2026-08-27T12-50-55: same shape on claude-fable-5[1m], 150 rows, **0 errored, 0 no-reply**. Both n=150 >= the 146 the criterion asks for, and the five cases are exactly the shared five.
+
+AC #2 — the four tiers are reported side by side in FINDINGS.md, the epic and the coverage story, and FINDINGS.md carries the paired intervals beside them: pooled 10 case x model pairs and each model's 5, on rules/judge/words/composite, computed with 'node src/cli.mjs interval' (COS-27's method, harness/src/interval.mjs). Not arm-mean subtraction.
+
+AC #3 — all three documents now carry four current beginner columns. The historical figures (rules 90.9/92.3/91.5/91.4, judge 37.5/48.4/45.9/53.9) are stated as replaced, in one place each, and no history footnote is left standing beside a live number. FINDINGS.md's judge-defect section was rewritten too: it described the beginner row it no longer applies to.
+
+AC #4 — answered as a result in FINDINGS.md's *Does word-cap overrun track model tier?* and in the coverage story. The effect reproduces on both middle tiers: Haiku 1.406 -> 0.899 x cap, Fable 1.648 -> 0.830, all ten case x model cells falling. Read against COS-7: the fall per tier (0.507 to 0.900) is larger than the largest adjacent-tier difference COS-7 measured (0.339), and the after column turns in a different place than COS-7's sequence did, so the ordering is not the capability ordering and does not survive a change of style text.
+
+AC #5 — there were no aborted cells to report or exclude: 0 of 150 on each arm, stated in FINDINGS.md and both docs. The task anticipated Haiku aborts on write-then-verify cases; none of the five shared cases edits a file, so the failure mode was out of scope for this arm rather than absent in general.
+
+**Gates.** npm --prefix harness test 219/219 pass. 'node src/cli.mjs audit' exit 0, all 12 checks agree. 'lore check --plain' exit 0 (read unpiped), 24 files, 0 errors, 0 warnings. 'lore sync' run after the doc edits.
+
+**One thing found and not fixed here.** Counting rows.json across harness/results returns 6996 rows in 89 directories (6284 run-manifest, 4 improve-manifest, 708 pre-manifest). Net of improve cells that is 6992 against the ledger's running total plus this session's 302, which is 6910 — an **82-cell discrepancy that predates COS-17**. Recorded in the ledger as an open discrepancy rather than resolved by writing either figure, since which is wrong has not been established.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Measured the shipped beginner style file (sha256 86451ddb) on Haiku and Fable at 150 non-errored cells a model on the five shared cases, completing the four-tier beginner row that had been half history since COS-4.
+
+Runs 2026-08-27T12-35-06 (Haiku) and 2026-08-27T12-50-55 (Fable), 0 errored cells in either, preceded by a 2-cell usage probe. Arm means rules 95.8 / 99.3 and judge 48.2 / 65.2, beside COS-16's 99.2 / 97.4 and 66.1 / 60.9 on Opus and Sonnet. The four columns are comparable because every input that could separate the two run days last changed before the earlier of them - checks.mjs, contracts.json, judge.mjs, run.mjs and cases.json all at 2026-08-17 or 2026-08-18, verified from git log.
+
+The length effect reproduces on both middle tiers and is the clearest result: mean reply words fall from 1.406x to 0.899x beginner's 80-word cap on Haiku and 1.648x to 0.830x on Fable, with all ten case x model cells falling and both tiers crossing from over the cap to under it. Read against COS-7, the per-tier fall (0.507 to 0.900) exceeds the largest adjacent-tier difference COS-7 could measure (0.339), so length is a property of the file rather than the tier - COS-7's conclusion reached from the other direction.
+
+Paired intervals (interval.mjs, pairing case x model) are published beside the means rather than arm-mean subtraction: pooled over 10 pairs, judge +11.0 [+3.4, +18.7], words -53.0 [-91.4, -14.6], composite +8.7 [+1.8, +15.6], rules +6.4 [-0.7, +13.5]. They are stated as directional, not as effect sizes, because the pre-rewrite side carries two documented confounds - a pre-3370e4d contract on its rules and judge, and the COS-10 text-block seam on its agentic cells. Dropping the agentic case keeps every sign and clears no interval at 8 pairs.
+
+FINDINGS.md, docs/epics/plain-english-output-styles.md and docs/stories/extend-measurement-coverage.md now carry four current beginner columns with the history removed rather than footnoted beside them; FINDINGS.md's judge-defect section was rewritten because it described a row it no longer applies to; two ledger entries added.
+
+Verified by: the run manifests and row composition read directly (150 rows, complete: true, 0 errored, 0 no-reply, 5 cases x 30 repeats each); npm --prefix harness test 219/219; audit exit 0; lore check exit 0 on 24 files, read unpiped.
+<!-- SECTION:FINAL_SUMMARY:END -->

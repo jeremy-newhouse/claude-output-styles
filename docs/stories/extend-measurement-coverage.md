@@ -12,7 +12,7 @@ tasks:
 generated:
   by: lore/0.2.0
   at: 2026-08-16T12:50:00.000Z
-lore_task_status: todo
+lore_task_status: in-progress
 ---
 
 # Extend measurement coverage
@@ -48,25 +48,37 @@ tested a suspicion the two-model data raised but could not settle. Opus overruns
 word caps more often than Sonnet, which may be a property of that model or a
 property of the tier. Four points on the curve tell them apart — see below.
 
-Coverage, five shared cases, ten cells per pair. All four tiers measured, no
-errored cells in any column.
+Coverage, five shared cases. All four tiers measured, no errored cells in any
+column. Advanced and intermediate are ten cells a pair; **beginner is 150**.
 
 | style | haiku | sonnet | opus | fable |
 |---|---|---|---|---|
 | advanced | rules 96.0 / judge 52.9 | rules 96.8 / judge 66.0 | rules 97.8 / judge 73.9 | rules 97.9 / judge 78.3 |
 | intermediate | rules 94.3 / judge 62.2 | rules 95.6 / judge 72.6 | rules 94.2 / judge 63.9 | rules 93.1 / judge 67.7 |
-| beginner | rules 90.9 / judge 37.5 | rules 92.3 / judge 48.4 | rules 91.5 / judge 45.9 | rules 91.4 / judge 53.9 |
+| beginner | rules **95.8** / judge **48.2** | rules **97.4** / judge **60.9** | rules **99.2** / judge **66.1** | rules **99.3** / judge **65.2** |
 
-The beginner row measures a file COS-4 has since rewritten, and its Sonnet and
-Opus judge cells were graded against a 15-word sentence cap the file never stated
-(`FINDINGS.md`, *The judge column carries a defect the rules column had
-corrected*). On COS-4's pass-1 text — what shipped until COS-16 — beginner reads
-rules **98.9 / 97.4 and judge 66.8 / 60.9** on Opus and Sonnet at 150 cells a
-model (COS-16, run `19-42-55`),
-superseding COS-4's 73.9 / 58.1 at 35; Haiku and Fable have not been re-measured
-since.
+**COS-17 completed the beginner row and this story's own goal with it.** The row
+now measures the file that ships (sha256 `86451ddb`) on all four tiers at 150
+non-errored cells a model: Opus and Sonnet from run `2026-08-20T03-03-26`
+(COS-16), Haiku and Fable from `2026-08-27T12-35-06` and `2026-08-27T12-50-55`.
+The two pairs are seven days apart and still comparable, because every input that
+could separate them last changed before the earlier run — `checks.mjs` and
+`contracts.json` at 2026-08-17, `judge.mjs` and `run.mjs` at 2026-08-18,
+`cases.json` at 2026-08-17.
 
-**COS-16 has since changed those bytes.** The shipped file is now the three-edit candidate (sha256 `86451ddb`). At the same 150 cells a model it reads rules **99.2 / 97.4** and judge **66.1 / 60.9** on the shared five (run `2026-08-20T03-03-26`), and every paired interval against `19-42-55` contains zero — the figures above stand as current within noise, but `19-42-55` measures the text COS-16 replaced, not the text that ships.
+The figures it replaced (rules 90.9 / 92.3 / 91.5 / 91.4, judge 37.5 / 48.4 /
+45.9 / 53.9) are removed rather than footnoted: they measured text two hand
+rewrites have replaced, and their Opus and Sonnet judge cells were graded against
+a 15-word sentence cap the file never stated (`FINDINGS.md`, *The judge column
+carries a defect the rules column had corrected*). COS-4's pass-1 text read rules
+98.9 / 97.4 and judge 66.8 / 60.9 on Opus and Sonnet at 150 cells (COS-16, run
+`19-42-55`), superseding COS-4's own 73.9 / 58.1 at 35; the shipped bytes are
+statistically identical to it.
+
+**Beginner's rules column moved from last of three on every tier to ahead of
+advanced on three of four**, losing only on Haiku by 0.2. Its judge column rose
+10.7 / 12.5 / 20.2 / 11.3 points on Haiku / Sonnet / Opus / Fable and is still
+last of the three styles everywhere.
 
 **Word-cap overrun does not track tier.** Mean reply words divided by that
 style's own cap: Sonnet 0.961, Haiku 1.088, Fable 1.229, Opus 1.300. In tier
@@ -76,6 +88,18 @@ smallest model overruns significantly *more* than the second smallest
 indistinguishable (opus − fable +0.070, CI [−0.118, +0.259]). The only structure
 the data resolves is that Sonnet keeps to the cap and the other three do not —
 one model, not a gradient.
+
+**COS-17 re-asked that question on one style at fifteen times the sample, and the
+answer held.** Beginner alone, mean reply words ÷ its 80-word cap, before the hand
+rewrites and after: Haiku 1.406 → 0.899, Sonnet 1.284 → 0.734, Opus 1.686 →
+0.786, Fable 1.648 → 0.830. In tier order the after column reads 0.899, 0.734,
+0.786, 0.830 — Sonnet again keeps best to the cap, and the smallest model is now
+the *worst* overrunner of the four. The sequence turns in a different place than
+the pooled one above, which is the point: it is not the capability ordering, and
+it does not survive a change of style text. **The rewrite moved every tier by 0.507
+to 0.900, where the largest adjacent-tier difference measured here is 0.339** —
+length is a property of the file, not of the model. All four means are now under
+the cap, and all ten of the arms' case × model cells fell.
 
 **Fable finishes the agentic work and stops obeying the style.** On
 `agentic-fix-verify` it aborted 0 of 6 cells against Haiku's 5 of 6, on cells
@@ -145,7 +169,8 @@ corrected figures are in `FINDINGS.md`.
 - The per-model comparison in the findings spans all four tiers.
 - Any model-specific failure mode is recorded, or its absence stated explicitly.
 - Whether word-cap overrun tracks model tier is answered from the four-tier
-  figures.
+  figures — answered twice, on the pooled three-style data and again on beginner
+  alone after its rewrite. No, both times.
 - The one-file-for-every-model decision is confirmed across the range or amended.
 
 ## Tasks
@@ -155,7 +180,7 @@ corrected figures are in `FINDINGS.md`.
 |---|---|---|
 | [COS-5](../../backlog/tasks/cos-5%20-%20Measure-the-styles-on-Haiku.md) | Measure the styles on Haiku | Done |
 | [COS-7](../../backlog/tasks/cos-7%20-%20Measure-the-styles-on-Fable.md) | Measure the styles on Fable | Done |
-| [COS-17](../../backlog/tasks/cos-17%20-%20Re-measure-beginner-on-Haiku-and-Fable-after-the-rewrite.md) | Re-measure beginner on Haiku and Fable after the rewrite | To Do |
+| [COS-17](../../backlog/tasks/cos-17%20-%20Re-measure-beginner-on-Haiku-and-Fable-after-the-rewrite.md) | Re-measure beginner on Haiku and Fable after the rewrite | In Progress |
 <!-- lore:tasks:end -->
 
 ## Notes
