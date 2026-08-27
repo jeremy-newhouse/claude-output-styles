@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-27 21:58'
+updated_date: '2026-08-27 22:00'
 ---
 # Backlog campaign tracker
 
@@ -1638,4 +1638,4 @@ Both remaining issues carry known risk against that policy:
   `improve.json` and no `run.json`, and the previous count read a missing
   `run.json` as "pre-manifest" and swept 70 improve-loop cells into a total that
   has always excluded them. Corrected figure is a 12-cell gap, still open. Merged
-  as PR #TBD.
+  as PR #28 (rebase).
