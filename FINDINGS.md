@@ -305,16 +305,29 @@ the two new tiers against the pre-rewrite arms they replace, over 10 pairs:
 | words | **−53.0 [−91.4, −14.6]** | −40.6 [−86.0, +4.8] | −65.4 [−151.1, +20.3] |
 | composite | **+8.7 [+1.8, +15.6]** | +7.8 [−2.4, +18.1] | +9.6 [−5.0, +24.2] |
 
-**Read those as directional and read the arm means as the result.** Two confounds
-sit on the before side, and both are the ones this document already describes for
-the Opus and Sonnet halves. Its stored `rulesScore` predates `3370e4d`, so
-re-scoring it offline reads Haiku 91.1 and Fable 91.6 against the published 90.9
-and 91.4, and its judge cells cannot be re-graded offline at all. And all 20 of
-its rows predate the COS-10 text-block seam, 4 of them on the agentic case.
-Dropping that case — the same exclusion the sentence-length table below makes, for
-the same reason — keeps every sign and clears none of the three intervals at 8
-pairs: words −45.2 [−93.1, +2.8], rules +2.9 [−3.3, +9.0], judge +9.6 [−0.1,
-+19.4]. The four arm means above carry no such confound between them.
+**Read those as directional and read the arm means as the result.** One confound
+sits on the before side and one does not, and which is which matters.
+
+**The judge halves are clean.** `3370e4d` landed at 13:14 UTC on 2026-08-16; the
+Haiku and Fable baselines ran at 22:59 and 23:48 the same day, so both were graded
+*after* the cap was corrected. The defect described below reaches the Opus and
+Sonnet columns of the historical row and not these two — the two rises above are
+the only before-and-after judge comparison on beginner that the cap drift never
+touched.
+
+**The rules halves need a re-score first.** `checks.mjs` and `contracts.json`
+changed again on 2026-08-17, after both baselines, so their stored `rulesScore`
+is graded by an older scorer; re-deriving offline reads Haiku 91.1 and Fable 91.6
+against the published 90.9 and 91.4. That is free (`node src/cli.mjs score
+--rows=…`) and it does not move the sign.
+
+**The seam reaches both.** All 20 before-side rows predate the COS-10 text-block
+fix, 4 of them on the agentic case, so their word counts read high and their
+sentences under-split. Dropping that case — the same exclusion the sentence-length
+table below makes, for the same reason — keeps every sign and clears none of the
+three intervals at 8 pairs: words −45.2 [−93.1, +2.8], rules +2.9 [−3.3, +9.0],
+judge +9.6 [−0.1, +19.4]. The four arm means above carry no confound between
+them.
 
 **No cell was aborted or excluded.** Both new arms returned 150 of 150 with a
 reply; the 2-cell usage probe that preceded them returned 2 of 2. Every mean here
@@ -400,18 +413,19 @@ that as a hypothesis, not a result: it is 10 cells per figure, one judge model,
 and the three-model data already showed the same split without enough points to
 name it.
 
-Beginner follows its own rules better than any other style and still reads worst
-on the judge, on all four models. That is the signature of a style whose stated
+Beginner follows its own rules as well as any other style — better on three tiers
+of four — and still reads worst on the judge, on all four models. That is the signature of a style whose stated
 rules do not capture what makes it good, which is why the optimizer could not fix
 it by rewording them — and **COS-17 shows the signature survives the rewrite that
 fixed the rules half.** The hand rewrites moved beginner's rules from last of
 three on every tier to ahead of advanced on three of four, and its judge up
 10.7 / 12.5 / 20.2 / 11.3 points on Haiku / Sonnet / Opus / Fable — and it is
-still last on the judge everywhere. (The Sonnet and Opus judge rises are inflated
-by an unknown amount: the historical figures were graded against a 15-word
-sentence cap the file never stated. See *The judge column carries a defect the
-rules column had corrected*, below. The Haiku and Fable rises carry the same
-defect.) Opus's 66.1 is the best beginner judge score in the current table and
+still last on the judge everywhere. (The Sonnet and Opus rises of 12.5 and 20.2
+are inflated by an unknown amount — their historical figures were graded against a
+15-word sentence cap the file never stated; see *The judge column carries a defect
+the rules column had corrected*, below. **Haiku's 10.7 and Fable's 11.3 are not**:
+both baselines ran nine hours after the fix.) Opus's 66.1 is the best beginner
+judge score in the current table and
 still 3.9 points under the 70% bar; Haiku's 48.2 is 21.8 under it.
 (Individual two-cell samples inside optimizer runs have scored higher; those are
 not comparable with a 150-cell arm and are not a style's score.)
@@ -449,13 +463,18 @@ reply down against a rule no reader of the style could see.
 Advanced was graded at 20 throughout and is unaffected. Intermediate's Opus and
 Sonnet columns come from `12-44-03`, before the fix, and its Haiku and Fable
 columns from `22-59-53` and `23-48-45`, after it — so **that row's judge column is
-not comparable across models**. Beginner's row had the same defect until COS-17
-re-measured all four tiers after the fix; it is now internally comparable, and the
-historical figures this section describes (37.5 / 48.4 / 45.9 / 53.9) are the ones
-the table no longer carries. "Haiku is last every time" survives on both rows —
-on intermediate only because Haiku is last by margins larger than the effect, and
-on beginner because the defect is gone. The rule is simply that a judge figure predating `3370e4d` is quotable
-only for advanced; anything resting on the other two needs a fresh arm. COS-4
+not comparable across models**. Beginner's row is free of it entirely: its Opus and
+Sonnet halves were re-measured by COS-16 and its Haiku and Fable halves by COS-17,
+all four after the fix. The historical beginner figures this section describes
+(37.5 / 48.4 / 45.9 / 53.9) are the ones the table no longer carries — and of
+those four, only the Opus and Sonnet pair ever carried the defect, since
+`22-59-53` and `23-48-45` ran nine hours after `3370e4d` landed.
+
+"Haiku is last every time" survives on both rows — on intermediate only because
+Haiku is last by margins larger than the effect, and on beginner outright, because
+no cell in that row carries the defect. The rule is simply that a judge figure
+predating `3370e4d` is quotable only for advanced; anything resting on the other
+two needs a fresh arm. COS-4
 ran one, and beginner read 12.8 and 22.3 points higher on it. **How much of
 that is the corrected cap and how much is COS-1's added text is not separable** —
 both changed between the two runs, and no arm isolates either.

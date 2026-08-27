@@ -82,8 +82,11 @@ identical to it, every paired interval containing zero.
 
 **What the completed row shows.** Beginner's rules column now beats advanced on
 three tiers of four and loses on Haiku by 0.2 — it was the weakest style on every
-tier before. Its judge column rose 10.7 / 12.5 / 20.2 / 11.3 points, and it is
-still last of the three styles on every tier. Rule compliance was never the
+tier before. Its judge column rose 20.2 / 12.5 / 10.7 / 11.3 points, in this
+table's Opus / Sonnet / Haiku / Fable order, and it is still last of the three
+styles on every tier. The Opus and Sonnet halves of that rise are inflated by the
+cap defect above; the Haiku and Fable halves are not, because both of the
+baselines they replace ran after `3370e4d` landed. Rule compliance was never the
 problem, and fixing it did not fix the prose.
 
 The four tiers span the whole released range, from the smallest model to the

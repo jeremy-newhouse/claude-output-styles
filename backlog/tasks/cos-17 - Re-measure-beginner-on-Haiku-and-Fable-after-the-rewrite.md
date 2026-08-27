@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-27 13:13'
+updated_date: '2026-08-27 13:17'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies:
@@ -124,6 +124,19 @@ AC #5 — there were no aborted cells to report or exclude: 0 of 150 on each arm
 **Gates.** npm --prefix harness test 219/219 pass. 'node src/cli.mjs audit' exit 0, all 12 checks agree. 'lore check --plain' exit 0 (read unpiped), 24 files, 0 errors, 0 warnings. 'lore sync' run after the doc edits.
 
 **One thing found and not fixed here.** Counting rows.json across harness/results returns 6996 rows in 89 directories (6284 run-manifest, 4 improve-manifest, 708 pre-manifest). Net of improve cells that is 6992 against the ledger's running total plus this session's 302, which is 6910 — an **82-cell discrepancy that predates COS-17**. Recorded in the ledger as an open discrepancy rather than resolved by writing either figure, since which is wrong has not been established.
+
+**Correction, found in this session's own branch review.** The notes above say the before side's judge cells carry the pre-3370e4d 15-word-cap defect. **They do not, and the timestamps settle it.** 3370e4d landed 2026-08-16 08:14:52 -0500 = **13:14 UTC**; the Haiku baseline 22-59-53 ran at 22:59 UTC and the Fable baseline 23-48-45 at 23:48 UTC, both nine hours later. Only 12-44-03 (12:44 UTC), which is the historical row's **Opus and Sonnet** source, predates the fix.
+
+Two consequences, and both improve the result rather than weaken it:
+
+1. **The Haiku +10.7 and Fable +11.3 judge rises are the only before-and-after judge comparison on beginner that the cap drift never touched.** The Sonnet +12.5 and Opus +20.2 rises, which come from the historical row, do carry it.
+2. FINDINGS.md's judge-defect section said beginner's row was not comparable across models. It is now free of the defect **entirely** — COS-16 re-measured Opus and Sonnet after the fix, COS-17 measured Haiku and Fable after it, and the two historical Haiku/Fable cells it replaced were themselves post-fix.
+
+What the before side does still carry: its stored rulesScore is graded by a pre-2026-08-17 checks.mjs and contracts.json (COS-15's and COS-9's changes, not 3370e4d), so re-scoring is needed before comparing rules — 91.1 and 91.6 against the published 90.9 and 91.4; and all 20 rows predate the COS-10 seam, 4 of them agentic.
+
+Corrected in FINDINGS.md and the ledger row before the PR.
+
+**A second correction from the same review.** A draft sentence read 'Beginner follows its own rules better than any other style'. False on Haiku, where beginner's 95.8 sits 0.2 below advanced's 96.0. It now reads 'as well as any other style — better on three tiers of four'. The related claim earlier in the document was already corrected the same way before the first commit.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
