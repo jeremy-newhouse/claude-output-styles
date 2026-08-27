@@ -90,6 +90,7 @@
 - 2026-08-27T08:19:33-05:00 0dd85d74fa86e80575b9381dd5d91dfe4db55110 Re-sync docs/log.md after COS-17's rebase-merge
 - 2026-08-27T17:00:16-05:00 9dbbf18cdf91f3a5509cfef2569bfb7ae1ad1afc Correct session 30's non-errored cell count
 - 2026-08-27T17:00:16-05:00 eb0da72846fb9f2bfe10cb656db3fe295f9fe350 Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
+- 2026-08-27T17:00:39-05:00 6f7018371e9a2f6dee12e43ffb0917e98198dc43 Re-sync docs/log.md after COS-21's rebase-merge
 
 ## docs/adr
 
