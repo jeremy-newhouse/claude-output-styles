@@ -1,10 +1,11 @@
 ---
 id: COS-17
 title: Re-measure beginner on Haiku and Fable after the rewrite
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-08-17 03:46'
-updated_date: '2026-08-17 03:51'
+updated_date: '2026-08-27 13:07'
 labels:
   - 'doc:stories/extend-measurement-coverage'
 dependencies:
@@ -37,3 +38,74 @@ Fable is deliberately absent from `matrix.models` and has no bare alias — it n
 - [ ] #4 Whether the rewrite's length effect reproduces on the two middle tiers is stated as a result either way, and read against COS-7's finding that overrun does not track tier
 - [ ] #5 Aborted cells are reported separately and excluded from every quoted mean
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Confirm the shipped beginner text is the COS-16/COS-4 candidate (sha256 86451ddb) and that the Opus/Sonnet comparison targets are 2026-08-20T03-03-26 (shared five, n=150/model, 0 errored) and 03-13-05 (reserve six).
+2. Probe with 2 cells (haiku + fable, one case, repeats=1) before committing 300 — the monthly spend limit was hit in session 28. Measure throughput from the probe's elapsedMs.
+3. Run the Haiku arm: --styles=plain-english-beginner --models=haiku --variants=baseline --cases=<five shared> --repeats=30 (150 cells), matching the Opus/Sonnet sample size.
+4. Run the Fable arm the same way with --models='claude-fable-5[1m]' (quoted; no bare alias).
+5. Report figures with the same paired case x model treatment: use 'interval' against the 03-03-26 rows, FILTERED to one style (interval pools styles - COS-30). Both reference runs are single-style so no filtering is needed there.
+6. Count and report aborted/errored cells separately; exclude them from every mean.
+7. Update FINDINGS.md's four-tier table, the epic and docs/stories/extend-measurement-coverage.md with four current beginner columns; remove the history footnotes. Author outside lore-managed regions, then lore sync; lore check must exit 0.
+8. State whether the rewrite's length effect reproduces on Haiku and Fable, read against COS-7's finding that overrun does not track tier.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Session 29 preflight and sizing.
+
+Shipped beginner text confirmed unchanged at sha256 86451ddb (the COS-16 three-edit candidate), so the arms measure the file that ships.
+
+Comparison targets confirmed on disk: run 2026-08-20T03-03-26 is beginner x {opus,sonnet} x baseline, 150 cells a model, 0 errored, on exactly the five shared cases (conv-status-auth, conv-explain-cache, agentic-read-report, conv-status-holdout, conv-followup-drift). Run 2026-08-20T03-13-05 is the same pair on the reserve six.
+
+Usage probe before committing 300 cells: run 2026-08-27T12-34-30, 2 cells (haiku + claude-fable-5[1m], conv-status-auth, repeats=1). Both returned, 0 errored. No limit in force.
+
+Throughput measured on this session's own Haiku arm rather than assumed: 30 of 150 cells in ~19 minutes = ~1.6 cells a minute at concurrency 4. Per-cell elapsedMs is only ~8.6s (median 7.9s), so the judge call, not the cell, is the wall clock. Both 150-cell arms are therefore ~95 minutes each, ~3.2 hours total. This is well under session 27's 31 cells a minute and in the range session 28 warned about.
+
+Throughput correction. The ~1.6 cells a minute in the note above was wrong — it came from estimating elapsed wall time rather than reading a clock. Counted against the run stamps: the Haiku arm ran 150 cells from 12:35:06Z to 12:50:57Z, 15m51s, **9.5 cells a minute**. That is in line with session 27's beginner figure and unlike session 28's intermediate/advanced arms. Beginner's replies are short and its judge calls are cheap.
+
+**Haiku arm: run 2026-08-27T12-35-06, 150 cells, 0 errored.** beginner x haiku x baseline, the five shared cases, 30 repeats. Arm means rules **95.8**, judge **48.2**.
+
+Against the pre-rewrite Haiku baseline (run 2026-08-16T22-59-53 filtered to beginner, haiku, the five shared cases, non-errored: 10 cells, 5 pairs), paired by case:
+- rules +5.0 [-6.2, +16.1], t=1.24, df=4
+- judge +10.7 [-1.0, +22.5], t=2.54, df=4
+- words -40.6 [-86.0, +4.8], t=-2.48, df=4
+- composite +7.8 [-2.4, +18.1], t=2.12, df=4
+
+Two confounds on that comparison, both already documented in FINDINGS.md for the Opus/Sonnet halves and both applying here:
+1. The before side's stored rulesScore is graded against the pre-3370e4d contract (beginner held to a 15-word sentence cap the file never stated). Re-scoring it offline with 'node src/cli.mjs score' reads rules 91.1, against 90.9 in the published four-tier table. The judge cells cannot be re-graded offline at all, so the judge delta carries the same defect.
+2. All 10 before-side rows predate the COS-10 text-block fix; 2 of them are agentic cells whose text is the whole turn glued into one string. 'score' says so on stdout. agentic-read-report is one of the five shared cases, so its word count and its rule scores are not comparable across the seam.
+
+Mean reply words, Haiku, per case (before -> after): conv-status-auth 75.5 -> 60.1, conv-explain-cache 198.5 -> 108.2, agentic-read-report 162.0 -> 92.9, conv-status-holdout 66.0 -> 55.7, conv-followup-drift 60.5 -> 42.7. Arm mean 112.5 -> 71.9 over five cases and 100.1 -> 66.7 over the four conversational ones. Every case falls. Against beginner's 80-word cap the arm mean moves from over it to under it.
+
+**Fable arm: run 2026-08-27T12-50-55, 150 cells, 0 errored.** beginner x claude-fable-5[1m] x baseline, the five shared cases, 30 repeats. Ran 12:50:55Z to 13:05:30Z, 14m35s, 10.3 cells a minute. Arm means rules **99.3**, judge **65.2**.
+
+**The four columns are like-for-like, and that is checked rather than assumed.** The Opus and Sonnet halves come from run 2026-08-20T03-03-26 (150 cells a model, 0 errored, the same five cases, the same style bytes sha256 86451ddb). Everything that could make the two days incomparable last changed before that run: checks.mjs and contracts.json at 2026-08-17 (606ee23, 72abcc7), judge.mjs and run.mjs at 2026-08-18 (b96a293), cases.json at 2026-08-17 (2319902). Same scorer, same contract, same judge prompt, same runner, same cases, same bytes. The only difference between the columns is the model.
+
+**Current four-tier beginner row, 150 cells a model, 0 errored in every column:**
+
+| model | rules | judge | mean reply words | words / 80-word cap |
+|---|---|---|---|---|
+| haiku | 95.8 | 48.2 | 71.9 | 0.899 |
+| sonnet | 97.4 | 60.9 | 58.7 | 0.734 |
+| opus | 99.2 | 66.1 | 62.9 | 0.786 |
+| fable | 99.3 | 65.2 | 66.4 | 0.830 |
+
+**Paired intervals, pooled over the two new tiers (10 pairs, case x model, df=9), against the pre-rewrite arms:** rules +6.4 [-0.7, +13.5] t=2.05; judge **+11.0 [+3.4, +18.7]** t=3.26; words **-53.0 [-91.4, -14.6]** t=-3.12; composite **+8.7 [+1.8, +15.6]** t=2.86. Per model at 5 pairs each: Haiku rules +5.0 [-6.2,+16.1], judge +10.7 [-1.0,+22.5], words -40.6 [-86.0,+4.8]; Fable rules +7.9 [-6.6,+22.3], judge +11.3 [-4.8,+27.4], words -65.4 [-151.1,+20.3].
+
+**Mean reply words per case, before -> after.** Haiku: conv-status-auth 75.5->60.1, conv-explain-cache 198.5->108.2, agentic-read-report 162.0->92.9, conv-status-holdout 66.0->55.7, conv-followup-drift 60.5->42.7. Fable: 76.5->61.3, 249.0->77.3, 174.5->75.0, 74.0->52.5, 85.0->65.9. **Ten of ten case-model cells fall.** Arm mean over cap: Haiku 1.406 -> 0.899, Fable 1.648 -> 0.830. Both tiers cross from over the cap to under it.
+
+**What the before/after comparison can and cannot carry.** The pre-rewrite arms are the four-tier baseline's own cells: run 2026-08-16T22-59-53 filtered to beginner x haiku x the five shared cases (10 cells, 0 errored) and 2026-08-16T23-48-45 for Fable (10 cells, 0 errored). Two confounds sit on them and both are already documented in FINDINGS.md for the Opus/Sonnet halves:
+
+1. **Contract drift.** The stored rulesScore on the before side is graded against the pre-3370e4d contract, which held beginner to a 15-word sentence cap the file never stated. Re-scoring offline reads Haiku 91.1 and Fable 91.6 against the published 90.9 and 91.4. The judge cells cannot be re-graded offline at all, so the judge delta inherits the same defect and reads high by an unknown amount.
+2. **The COS-10 text-block seam.** All 20 before-side rows predate it; 4 of them are agentic cells carrying the whole turn glued into one string, which inflates their word counts and mis-splits their sentences. 'score' prints this on stdout. agentic-read-report is one of the five shared cases.
+
+Restricting to the four conversational cases removes the seam (the project's own convention -- see FINDINGS.md's sentence-length table, which excludes the agentic case for exactly this reason). Pooled over 8 pairs: words **-45.2 [-93.1, +2.8]**, rules +2.9 [-3.3, +9.0], judge +9.6 [-0.1, +19.4]. Same signs, same rough magnitudes, wider intervals at 8 pairs than at 10 -- none of the three clears zero there.
+
+**So the deltas are stated as directional, not as measured effect sizes**, and the load-bearing figures in this task are the four current arm means, each on 150 non-errored cells with no confound between them.
+
+**Aborted and errored cells (AC #5).** Haiku 0 of 150, Fable 0 of 150. Neither new arm lost a cell. The task's own warning that Haiku aborts on write-then-verify cases did not bite, because none of the five shared cases is one -- agentic-read-report reads a file and does not edit or test. The 2-cell probe (2026-08-27T12-34-30) also returned 0 errored. Every mean above is over non-errored cells; there are none to exclude.
+<!-- SECTION:NOTES:END -->
