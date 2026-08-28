@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 03:48'
+updated_date: '2026-08-28 20:03'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -178,4 +178,39 @@ Session spend now **$13.6567**.
 Also relevant to the bar itself: per-cell judge SD is 24.6, so the arms behind AC #4's 46.2 / 42.0 / 51.2 / 54.7 carry intervals about 30 points wide. Whether those figures are really below 65 has never been established at a sample size that could tell. Any retry should size the arm first — **COS-19** sets the precedent at 146 cells per model — and **COS-20** may change that number by separating judge-call variance from reply variance.
 
 Dependencies added: COS-10, COS-11, COS-13, COS-16.
+
+**Session (2026-08-28): AC #4 re-measured post-COS-10 seam fix — agentic half resolved, conversational half confirmed still open.**
+
+COS-10 fixed the harness seam that concatenated pre-tool narration into the text the judge scored on agentic cells (judge.mjs now defaults to the `final` view, the message after the last tool call). This had never been re-measured against AC #4's own two cases since that fix landed. It was worth a clean read before any further authoring, since session 6's own notes said AC #4 "depends on" this fix.
+
+**Probe run `2026-08-28T19-56-51`, 24 cells, 0 errors** — both AC #4 cases x 3 styles x opus+sonnet x baseline x repeats=2, pooled per case+model (n=6, 2 repeats x 3 styles, single-sample 95% t-interval):
+
+| case | model | mean | 95% CI |
+|---|---|---|---|
+| agentic-fix-verify | opus | 86.5 | [68.4, 104.6] |
+| agentic-fix-verify | sonnet | 92.7 | [83.9, 101.4] |
+| conv-decision-holdout | opus | 54.5 | [34.5, 74.5] |
+| conv-decision-holdout | sonnet | 47.0 | [30.7, 63.3] |
+
+**agentic-fix-verify now clears the 65% bar on both models, with the interval excluding 65 from above on both.** This is a huge move from session 6's contaminated reading (46.2 opus / 42.0 sonnet) — the seam fix alone did what two authoring passes could not, exactly as session 6's own close-out predicted. n=6 is below this project's usual 146-cell precision floor, but the effect size (20-30 points clear of bar on both models) is far larger than the ~24-point pooled judge SD found elsewhere in this project, so a further arm was not run — the point is not close enough to need it. No style-file text was touched to get this result; it was purely the instrument becoming accurate.
+
+**conv-decision-holdout remains below bar, consistent with session 6.** Sonnet's interval (upper bound 63.3) excludes 65 from below. Opus's point estimate (54.5) is also below bar though its interval is wide enough to contain 65. Read the two together with session 6's own n=3-6 arms (which also had it below bar on every model): this is now three independent measurements agreeing, none of them close to 65.
+
+**Violation text from this run's low cells (fresh diagnosis, not assumed from session 6's stale text):** the dominant failure mode is unchanged from session 6 — length overrun on nearly every low-scoring cell (128-260 words against 80-120 caps depending on style), missing numeric trade-offs (the case's prompt gives no numbers, and models often hedge or ask the user for them rather than guessing and saying so), and threshold-conditional recommendations ("absorb unless the hike exceeds ~$150k") read by the judge as not committing.
+
+**No new authoring attempted this session.** Session 6 already ran two passes targeting exactly these violations: pass 1 (the shipped decision/multi-tool sections) did not move this case's judge score meaningfully, and pass 2 specifically restated the word cap and banned threshold-conditional recommendations — and made both cases worse (agentic-fix-verify opus dropped to 33.0, conv-decision-holdout sonnet to 36.2), then was fully reverted. This project's broader finding (COS-16's ablations, COS-4 session 35) is that further prescriptive rule-additions on an already-diagnosed length/specificity gap test null or negative more often than they help; a worked-example lever (the pattern that worked for COS-4 pass 1 and COS-16) is the one class of edit not yet tried specifically for this case's numberless-decision shape, but designing and measuring one is a fresh authoring task, not something to rush at the end of a measurement session — flagging it as the one concrete lever worth trying next rather than attempting it unmeasured here.
+
+Gates this session: `npm --prefix harness test` 225/225 (with `FORCE_COLOR=0`, per the prior session's trap note); `node src/cli.mjs audit` exit 0. No style file or harness code changed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+AC #4 (judge > 65% on agentic-fix-verify and conv-decision-holdout, both opus and sonnet) is closer but still not met, so the task returns to To Do rather than Done — nothing is marked complete that is not.
+
+**agentic-fix-verify now clears 65% on both models** (86.5 opus, 92.7 sonnet, n=6, 95% CI excludes 65 from above on both) once judged against the final message only, per COS-10's fix — up from session 6's contaminated 46.2/42.0. No style-file authoring was needed for this half; it was an instrument fix.
+
+**conv-decision-holdout does not clear 65% on either model** (54.5 opus, 47.0 sonnet), matching session 6's own arms and now confirmed a third time. Sonnet's interval excludes 65 from below. The dominant failure is unchanged: length overrun, missing numeric trade-offs on a genuinely numberless prompt, and threshold-conditional recommendations the judge reads as non-committal. Two authoring passes in session 6 already targeted exactly this and one made it measurably worse; no new lever was tested this session, so none is claimed.
+
+Gates: `npm --prefix harness test` 225/225 (`FORCE_COLOR=0`); `audit` exit 0. No style file or harness code changed this session — this was a measurement-only session verifying an instrument fix's effect on an open AC.
+<!-- SECTION:FINAL_SUMMARY:END -->
