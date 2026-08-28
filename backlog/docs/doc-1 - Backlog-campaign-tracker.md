@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-28 01:44'
+updated_date: '2026-08-28 01:45'
 ---
 # Backlog campaign tracker
 
@@ -45,7 +45,7 @@ not run.
 session with room for the analysis to start.
 
 Grid, argued in the task's plan and settled: **beginner × Opus** (leg 1, done),
-**beginner × Haiku** (leg 2, 4 of 5 arms), **advanced × Opus** (leg 3 — the ADR's own cell,
+**beginner × Haiku** (leg 2, done), **advanced × Opus** (leg 3, 3 of 5 arms — the ADR's own cell,
 and the one that decides whether its claims survive). Each leg is five variants ×
 150 cells. `advanced × Haiku` is deliberately excluded.
 

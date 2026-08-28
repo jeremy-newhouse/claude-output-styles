@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-28 01:43'
+updated_date: '2026-08-28 01:45'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -362,4 +362,8 @@ rules 98.31, judge 62.93, **composite 87.69**, mean 109.5 words.
 | tail-reminder | 87.69 | -0.7 [-3.1, +1.7] | -2.3 [-9.2, +4.6] |
 
 Both measured reinforcement variants are **nulls**, consistently ~0.7 below baseline but with intervals spanning zero. **`claude-md` and `all-fixes` remain, and `claude-md` carries the ADR's largest claim (a 9.4-point restatement gap).** Nothing is confirmed, narrowed or withdrawn until both run: two nulls do not settle an ADR whose headline number comes from the arm not yet measured.
+
+## Session 32 — review correction
+
+Self-review of the branch diff (`git diff dev...HEAD`) caught one real defect: the tracker's grid paragraph still read "**beginner x Haiku** (leg 2, 4 of 5 arms)" two paragraphs after the cursor section had been updated to say leg 2 was complete. Corrected in place to "leg 2, done" and "leg 3, 3 of 5 arms". No figure was affected — the contradiction was in the status labels only. Line count checked before and after every `doc update` (1680 -> 1703 -> 1703); no truncation.
 <!-- SECTION:NOTES:END -->
