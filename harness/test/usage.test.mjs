@@ -129,6 +129,16 @@ test('judge --concurrency is accepted end to end, not rejected as an unrecognise
   assert.doesNotMatch(stderr, /does not take --concurrency/)
 })
 
+test('interval rejects --rows alongside --before/--after end to end', () => {
+  // Regression guard from review: this check lives only in cli.mjs's runtime
+  // branch, not in args.mjs's FLAGS table (which allows all three flags on
+  // `interval` at once), so nothing else catches it if the branch is ever
+  // refactored away. Exercise the actual CLI, not just the flag list.
+  const { status, stderr } = runCli(['interval', '--rows=a.json', '--before=b.json', '--after=c.json'])
+  assert.notEqual(status, 0)
+  assert.match(stderr, /interval takes --rows on its own, not alongside --before\/--after/)
+})
+
 test('--help still short-circuits every one of the flags above, on both subcommands', () => {
   for (const args of [['run', '--help', '--modles=haiku'], ['improve', '--help', '--variants=a,b']]) {
     const out = execFileSync(process.execPath, [CLI, ...args], { encoding: 'utf8', timeout: 20000 })

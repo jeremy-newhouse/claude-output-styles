@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:47'
-updated_date: '2026-08-28 14:01'
+updated_date: '2026-08-28 14:18'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -76,6 +76,10 @@ Correction to the arm 1 note above: both rules (96.6 vs 96.0) and judge (57.1 vs
 Arm 2/4 (advanced x fable, run 2026-08-28T03-13-14-527Z) hit repeated session-limit errors: 45 of 150 cells errored (all on conv-status-holdout tail + all of conv-followup-drift), 105 non-errored -- below AC #1's n>=146 floor. User directed (2026-08-28) to skip further Fable measurement rather than keep re-hitting the session limit. Scope decision: advanced x fable and intermediate x fable stay at insufficient sample for this task; will document as a known gap in FINDINGS/AC #1 rather than block the rest of COS-19. Proceeding with intermediate x haiku (last measurable arm) and the tooling/doc work.
 
 Arm 3/4 done: intermediate x haiku, run 2026-08-28T13-31-38-172Z. 150/150 cells, 0 errored, complete:true. ~11m43s wall clock, ~12.8 cells/min. All three measurable arms (advanced x haiku, intermediate x haiku, and advanced x fable at its degraded 105/150) are now on disk. Fable arms excluded from further attempts per user direction (2026-08-28) after repeated session-limit errors. Moving to AC #2's single-sample interval tooling next.
+
+Post-review correction: /code-review high caught a real statistical bug in singleSampleInterval before merge -- it treated all 150 rows (5 cases x 30 repeats) as independent observations, understating every interval by roughly 5x (n=150,df=149 vs the correct n=5,df=4). Fixed to group by case first, same de-clustering pairedInterval already does. Corrected per-cell CIs are much wider (n=5 on every cell regardless of repeat count) and are what FINDINGS.md now publishes.
+
+That fix also invalidated the original "clean split" re-check (Sonnet/Opus confirmed, Haiku collapsed), which had compared the flawed narrow CIs for overlap. Redid it properly using this project's own paired-interval method (pair advanced vs intermediate rows by case, same model) instead: EVERY model's interval contains zero, including Sonnet and Opus, which FINDINGS.md had called "confirmed" via arm-mean subtraction alone, never actually paired until now. Haiku is the one case where the point estimate itself moved (+9.3 at n=10 -> +1.6 at n=150) as the paired SE fell 7.4->1.2 -- real precision gain on the paired comparison specifically, not on the single-sample table. This is a bigger, more defensible AC #3 finding than the one originally reported. FINDINGS.md, the epic doc and the story doc all updated to match; 224/224 harness tests pass (interval tests rewritten for the grouped behavior); lore check exit 0.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -83,13 +87,13 @@ Arm 3/4 done: intermediate x haiku, run 2026-08-28T13-31-38-172Z. 150/150 cells,
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Raised 10 of 12 four-tier cells to n=150 non-errored (advanced/intermediate x haiku this session, joining beginner's full row and advanced/intermediate x opus/sonnet from COS-16/17/18). AC #1 is unchecked: advanced x Fable and intermediate x Fable remain at their original n=10 -- two attempts to raise them hit repeated session-limit errors on claude-fable-5[1m] (one, run 2026-08-28T03-13-14-527Z, got 105/150 before the user directed stopping), and the user approved closing this out with a follow-up (COS-34, linked to this story) rather than keep re-hitting the limit.
 
-AC #2: added singleSampleInterval to harness/src/interval.mjs (a 95% Student-t interval on one run's own mean, reusing tCritical95), wired through `interval --rows=` in cli.mjs, tested in interval.test.mjs and args.test.mjs. Every judge figure in FINDINGS.md's four-tier table now carries one.
+AC #2: added singleSampleInterval to harness/src/interval.mjs (a 95% Student-t interval over per-case means, reusing tCritical95). First version pooled all rows as independent and understated every interval ~5x -- caught by /code-review high before merge and fixed to de-cluster by case first, same as pairedInterval already does. Every judge figure in FINDINGS.md's four-tier table now carries an honest (wide, n=5 on every cell) interval.
 
-AC #3: re-checked every conclusion in FINDINGS.md's four-tier section against the new data. Two were withdrawn/restated: (1) "beginner's rules beat advanced on three tiers of four" no longer holds once advanced's own 150-cell Sonnet/Opus figures (COS-18) are used instead of its old ten-cell ones -- it's parity, 2 of 4 each way. (2) The "clean split" (which models rank intermediate above advanced on the judge) held on Sonnet and Opus at 150 cells but collapsed on Haiku -- a 9.3-point gap at n=10 read as 1.6 points with heavily overlapping CIs at n=150. Both corrections applied to FINDINGS.md, the epic doc, and the story doc via lore.
+AC #3: re-checked every conclusion in FINDINGS.md's four-tier section. Two withdrawn/restated: (1) "beginner's rules beat advanced on three tiers of four" -- parity once advanced's own 150-cell figures are used, 2 of 4 each way. (2) The "clean split" (which models rank intermediate above advanced on the judge) -- re-tested with this project's own paired-by-case method (never actually applied to this specific claim before), EVERY model's interval contains zero, including Sonnet and Opus which had been called "confirmed" on arm-mean subtraction alone. Haiku's point estimate itself moved (+9.3 at n=10 -> +1.6 at n=150) as paired SE fell 7.4->1.2, real precision gain on the paired comparison. Applied to FINDINGS.md, the epic doc, and the story doc via lore.
 
-AC #4: confirmed every cell the live table currently carries -- including the two still-underpowered Fable cells -- comes from a run measured after 3370e4d landed (13:14 UTC 2026-08-16). No re-measurement was needed for this AC; the contamination was already fully retired from the table, just never stated as such in one place. Documented in FINDINGS.md's "judge column carries a defect" section.
+AC #4: confirmed every cell the live table currently carries -- including the two still-underpowered Fable cells -- comes from a run measured after 3370e4d landed (13:14 UTC 2026-08-16). No re-measurement needed; the contamination was already fully retired, just never stated as such in one place.
 
-AC #5: recorded per-arm cell counts and wall-clock in docs/reference/experiment-ledger.md (458 attempted cells this session: 8 probes + 2 clean 150-cell arms + 1 degraded 105/150 Fable attempt). Disk-counted rows.json across harness/results/: 9866 rows in 118 directories. Flagged (not resolved, per this doc's own established practice) that COS-21's legs 2-3 (~1500 cells) were never logged in this ledger table -- that gap is COS-21's, not COS-19's, and backfilling it is out of scope here.
+AC #5: recorded per-arm cell counts and wall-clock in the ledger (458 attempted cells this session). Disk-counted rows.json across harness/results/: 9866 rows in 118 directories. Flagged (not resolved) that COS-21's legs 2-3 (~1500 cells) were never logged in the ledger table -- that gap is COS-21's, not COS-19's.
 
-Verification: 223/223 harness tests pass (4 new), lore check exit 0.
+Verification: 224/224 harness tests pass (6 new/rewritten for the interval fix), lore check exit 0. /code-review high found the interval bug pre-merge; fixed and re-verified rather than shipped.
 <!-- SECTION:FINAL_SUMMARY:END -->

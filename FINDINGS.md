@@ -370,11 +370,11 @@ unchanged from the historical baseline and their interval is wide accordingly.
 | intermediate | 95.6 → **94.7** | 94.2 → **95.6** | 72.6 → **72.7** | 63.9 → **69.5** |
 
 Every move is small except intermediate's Opus judge, which rises 5.6 points.
-**The clean split survives the fifteenfold sample on Sonnet and Opus**: Sonnet
-still ranks intermediate above advanced (72.7 > 68.1) and Opus still ranks
-advanced above intermediate (74.3 > 69.5), the Opus gap narrowing from 10.0
-points to 4.8 with no change of direction. **It does not survive on Haiku** —
-see below.
+The arm means still rank Sonnet's intermediate above its advanced (72.7 > 68.1)
+and Opus's advanced above its intermediate (74.3 > 69.5) — **but whether that
+direction is distinguishable from case-to-case noise was never actually
+tested with a paired interval until COS-19; see the "clean split" re-check
+below, which finds it is not, on any of the four models.**
 
 COS-18 also authored and measured a fix for intermediate — re-scoping its cap out
 of its status-update section — which reads rules **99.1 / 97.1** and judge
@@ -396,29 +396,41 @@ Both intervals contain zero at 5 pairs — read the arm means below as the load-
 bearing figures, same caveat as every paired delta in this section.
 
 **Every judge figure below now carries a 95% interval** — `interval --rows=…`'s
-single-sample mode (COS-19 AC #2), one independent observation per cell, not a
-before/after pairing:
+single-sample mode (COS-19 AC #2). **It is computed over case means, not raw
+cells**: five shared cases, repeats averaged within each case first, then a
+Student-t interval over the resulting five numbers (n=5, df=4 on every row
+regardless of repeat count). A first version of this tool treated all 150
+rows as independent and reported spuriously tight bands (roughly ±5 points);
+review caught it before it shipped. Repeats are not independent draws of
+*which case got asked* — only of the model's answer to a fixed prompt — so a
+30-repeat arm still carries only 5 independent data points for this question,
+the same as a 2-repeat arm:
 
-| style | model | n | rules | judge | judge 95% CI |
+| style | model | n cases | rules | judge | judge 95% CI |
 |---|---|---|---|---|---|
-| advanced | haiku | 150 | 96.6 | 57.1 | [51.9, 62.2] |
-| advanced | sonnet | 150 | 97.3 | 68.1 | [63.4, 72.8] |
-| advanced | opus | 150 | 99.4 | 74.3 | [70.2, 78.3] |
-| advanced | fable | **10** | 97.9 | 78.3 | [63.9, 92.7] |
-| intermediate | haiku | 150 | 95.5 | 58.7 | [53.7, 63.6] |
-| intermediate | sonnet | 150 | 94.7 | 72.7 | [69.0, 76.5] |
-| intermediate | opus | 150 | 95.6 | 69.5 | [65.6, 73.4] |
-| intermediate | fable | **10** | 93.1 | 67.7 | [48.9, 86.5] |
-| beginner | haiku | 150 | 95.8 | 48.2 | [44.2, 52.3] |
-| beginner | sonnet | 150 | 97.4 | 60.9 | [56.8, 65.0] |
-| beginner | opus | 150 | 99.2 | 66.1 | [62.7, 69.6] |
-| beginner | fable | 150 | 99.3 | 65.2 | [61.5, 68.9] |
+| advanced | haiku | 5 | 96.6 | 57.1 | [18.5, 95.6] |
+| advanced | sonnet | 5 | 97.3 | 68.1 | [33.6, 102.6] |
+| advanced | opus | 5 | 99.4 | 74.3 | [47.0, 101.6] |
+| advanced | fable | 5 | 97.9 | 78.3 | [60.3, 96.3] |
+| intermediate | haiku | 5 | 95.5 | 58.7 | [23.1, 94.3] |
+| intermediate | sonnet | 5 | 94.7 | 72.7 | [46.5, 98.9] |
+| intermediate | opus | 5 | 95.6 | 69.5 | [39.1, 99.9] |
+| intermediate | fable | 5 | 93.1 | 67.7 | [33.5, 101.9] |
+| beginner | haiku | 5 | 95.8 | 48.2 | [24.9, 71.5] |
+| beginner | sonnet | 5 | 97.4 | 60.9 | [38.9, 82.9] |
+| beginner | opus | 5 | 99.2 | 66.1 | [48.2, 84.1] |
+| beginner | fable | 5 | 99.3 | 65.2 | [43.0, 87.5] |
 
-**Ten of twelve cells now carry a half-width near ±4 points, matching AC #1's
-prediction.** The two Fable rows still marked **10** are the ones COS-34 owns —
-their half-width is 3 to 5 times wider (±14.4 and ±18.8) purely from sample
-size, not from any defect in the data: both runs are as clean of the
-pre-`3370e4d` contamination as every other cell in this table (see below).
+**These intervals do not narrow between the n=10 and n=150 cells** — every
+row shows n=5, because case count, not cell count, is what this particular
+interval is sized on. That does not mean the extra cells bought nothing:
+raising repeats per case shrinks the SE of a *paired* comparison (below),
+because pairing removes case-to-case spread and what is left — within-case,
+across-repeat noise — is exactly what more repeats reduces. AC #1's
+"±4-point half-width at n≥146" plan was about that reproducibility question
+(would this arm's own mean move if re-run), not about generalizing past
+these five specific cases; this table answers the second, harder question
+honestly, which is why its bands are wide on every row, old and new alike.
 
 The composite score is deliberately omitted: each style carries a different
 `judgeWeight` (0.3 / 0.4 / 0.5), so composites are not comparable across rows.
@@ -452,22 +464,44 @@ beginner by 0.9 over Fable, and Sonnet — two tiers down — beats every other 
 on intermediate, 72.7. The only stable fact is at the bottom: Haiku is last
 every time, confirmed again at n=150 on all three styles it was re-measured on.
 
-**One half of the "clean split" survives at n=150; the other collapsed.**
-Published as: Haiku and Sonnet rank intermediate above advanced on the judge
-(62.2 > 52.9 and 72.6 > 66.0); Opus and Fable rank advanced above intermediate
-(73.9 > 63.9 and 78.3 > 67.7). Re-measured at 150 cells a side (COS-18 for
-Sonnet/Opus, COS-19 for Haiku): **Sonnet confirmed** — intermediate still leads
-advanced on the judge, 72.7 to 68.1, a 4.6-point gap between CIs `[69.0, 76.5]`
-and `[63.4, 72.8]` that only barely overlap. **Opus confirmed** — advanced still
-leads intermediate, 74.3 to 69.5, gap narrowed from 10.0 to 4.8 points but the
-direction holds (COS-18, stated above). **Haiku does not survive** — the gap
-that read 9.3 points at n=10 (62.2 vs 52.9) is 1.6 points at n=150 (58.7 vs
-57.1), with judge CIs `[53.7, 63.6]` and `[51.9, 62.2]` overlapping almost
-entirely. **Withdrawn as a Haiku finding**; read as noise. **Fable is untested**
-at n=10 (COS-34) and its 10.6-point gap (78.3 vs 67.7) is exactly as much of a
-hypothesis as it was before this session — the split was never "two models each
-direction," it was one confirmed pair (Opus) and three unconfirmed or now-refuted
-readings, and that is the honest state of it today.
+**None of the "clean split" survives a properly paired test — including the
+two halves this project already called confirmed.** Published as: Haiku and
+Sonnet rank intermediate above advanced on the judge (62.2 > 52.9 and
+72.6 > 66.0); Opus and Fable rank advanced above intermediate (73.9 > 63.9 and
+78.3 > 67.7). Every one of those four readings is an arm-mean subtraction —
+this project's own paired-interval method (COS-27, used throughout for
+before/after comparisons) had never actually been pointed at this specific
+claim. COS-19 did that: pair each model's advanced and intermediate rows by
+case (repeats averaged within a case first, same as any other paired
+interval here), for all four models:
+
+| model | n pairs | judge Δ (intermediate − advanced) |
+|---|---|---|
+| haiku, old (n=10/side) | 5 | +9.3 [−11.2, +29.8] |
+| haiku, new (n=150/side) | 5 | +1.6 [−1.8, +5.0] |
+| sonnet (n=150/side) | 5 | +4.6 [−5.3, +14.5] |
+| opus (n=150/side) | 5 | −4.8 [−15.1, +5.6] |
+| fable (n=10/side) | 5 | −10.6 [−30.5, +9.3] |
+
+**Every interval contains zero.** Sonnet and Opus's gaps — the two this
+project's own text called "confirmed" after COS-18 — were confirmed by
+arm-mean subtraction alone and had never been paired. Tested the way this
+project tests everything else, neither clears zero: Sonnet's mean point
+estimate is +4.6 but the 95% band is 20 points wide; Opus's is −4.8 inside a
+band nearly as wide. **Haiku is the one case where more data changed the
+picture rather than just widening the band around it**: the point estimate
+itself collapsed from +9.3 to +1.6 as the paired SE fell from 7.4 to 1.2 —
+more repeats per case genuinely bought precision here, because pairing
+removes the between-case spread that dominates the single-sample table above,
+and what is left (within-case, across-repeat noise) really does shrink with
+n. **The honest reading of the whole family: a small case-controlled sample
+(5 cases) cannot distinguish any of these four directions from noise, on any
+model, at any sample size tested.** The split was never "two models each
+direction, both solid" — it was four point estimates that happened to point
+in a way that read as a pattern, and the only one worth calling a result at
+all is that Haiku's estimate shrank toward zero as data accumulated, which is
+what noise collapsing under more repeats looks like, not what a real effect
+sharpening under more repeats looks like.
 
 Beginner follows its own rules about as well as advanced now — see above — and
 still reads worst on the judge, on all four models. That is the signature of a style whose stated

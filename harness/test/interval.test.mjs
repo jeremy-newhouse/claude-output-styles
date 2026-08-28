@@ -119,11 +119,12 @@ test('METRICS.words strips code blocks first, matching total_length\'s conventio
 
 // ---------- singleSampleInterval: hand-computable ----------
 
-test('singleSampleInterval matches a hand-computed single-sample t-interval', () => {
-  // Values 2,4,6,8,10,12 -> mean 7, sample SD sqrt(14)~3.7417, SE=SD/sqrt(6)~1.5275,
-  // df=5, t(0.025,5)=2.571 — same numbers as the pairedInterval hand-check above,
-  // since a paired diff sequence and a raw value sequence are both single samples.
-  const rows = [2, 4, 6, 8, 10, 12].map(v => ({ v }))
+test('singleSampleInterval matches a hand-computed single-sample t-interval on case means, not raw rows', () => {
+  // Six cases, values 2,4,6,8,10,12 -> mean 7, sample SD sqrt(14)~3.7417,
+  // SE=SD/sqrt(6)~1.5275, df=5, t(0.025,5)=2.571 — same numbers as the
+  // pairedInterval hand-check above, since a diff sequence and a case-mean
+  // sequence are both single samples once repeats are collapsed.
+  const rows = [2, 4, 6, 8, 10, 12].map((v, i) => ({ caseId: `c${i}`, v }))
   const r = singleSampleInterval(rows, { getValue: row => row.v })
   assert.equal(r.n, 6)
   assert.equal(r.df, 5)
@@ -133,10 +134,23 @@ test('singleSampleInterval matches a hand-computed single-sample t-interval', ()
   assert.ok(Math.abs(r.hi - (7 + 2.571 * (Math.sqrt(14) / Math.sqrt(6)))) < 1e-6)
 })
 
-test('singleSampleInterval throws with fewer than two rows', () => {
-  assert.throws(() => singleSampleInterval([{ v: 1 }], { getValue: r => r.v }), /need at least 2 rows/)
+test('singleSampleInterval averages repeats within a case before taking the interval', () => {
+  // Two cases, five repeats each, means 6 and 10 -> single sample [6, 10],
+  // not fifteen independent rows. n must read 2 (cases), not 10 (rows).
+  const rows = [
+    ...[4, 5, 6, 7, 8].map(v => ({ caseId: 'c1', v })),
+    ...[8, 9, 10, 11, 12].map(v => ({ caseId: 'c2', v }))
+  ]
+  const r = singleSampleInterval(rows, { getValue: row => row.v })
+  assert.equal(r.n, 2)
+  assert.equal(r.df, 1)
+  assert.ok(Math.abs(r.mean - 8) < 1e-9)
+})
+
+test('singleSampleInterval throws with fewer than two groups', () => {
+  assert.throws(() => singleSampleInterval([{ caseId: 'c1', v: 1 }], { getValue: r => r.v }), /need at least 2 groups/)
 })
 
 test('singleSampleInterval requires getValue', () => {
-  assert.throws(() => singleSampleInterval([{ v: 1 }, { v: 2 }]), /getValue is required/)
+  assert.throws(() => singleSampleInterval([{ caseId: 'c1', v: 1 }, { caseId: 'c2', v: 2 }]), /getValue is required/)
 })

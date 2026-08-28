@@ -33,6 +33,37 @@ export function tCritical95 (df) {
 const defaultKey = r => `${r.caseId}|${r.model}`
 const mean = xs => xs.reduce((s, x) => s + x, 0) / xs.length
 
+function groupByKey (rows, keyOf, getValue) {
+  const m = new Map()
+  for (const r of rows) {
+    const k = keyOf(r)
+    if (!m.has(k)) m.set(k, [])
+    m.get(k).push(getValue(r))
+  }
+  return m
+}
+
+/**
+ * The shared arithmetic behind both interval functions below: a two-tailed
+ * 95% Student-t interval on a list of independent values (paired diffs for
+ * `pairedInterval`, per-case means for `singleSampleInterval`). Not exported
+ * — callers differ in what a "value" is and what extra fields are worth
+ * returning alongside it (a paired comparison's `t` tests against zero; a
+ * single sample's `sd` describes its own spread), so each keeps its own
+ * public shape rather than share one.
+ */
+function studentTInterval (values, fnName, unit) {
+  const n = values.length
+  if (n < 2) throw new Error(`${fnName}: need at least 2 ${unit}, got ${n}`)
+  const m = mean(values)
+  const df = n - 1
+  const variance = values.reduce((s, x) => s + (x - m) ** 2, 0) / df
+  const sd = Math.sqrt(variance)
+  const se = sd / Math.sqrt(n)
+  const tCrit = tCritical95(df)
+  return { n, df, mean: m, sd, se, lo: m - tCrit * se, hi: m + tCrit * se }
+}
+
 /**
  * Pair `beforeRows` against `afterRows` by `keyOf` (default: case + model),
  * averaging repeats within each side of a pair, then return a paired 95%
@@ -45,53 +76,38 @@ const mean = xs => xs.reduce((s, x) => s + x, 0) / xs.length
  */
 export function pairedInterval (beforeRows, afterRows, { getValue, keyOf = defaultKey } = {}) {
   if (typeof getValue !== 'function') throw new Error('pairedInterval: getValue is required')
-  const group = rows => {
-    const m = new Map()
-    for (const r of rows) {
-      const k = keyOf(r)
-      if (!m.has(k)) m.set(k, [])
-      m.get(k).push(getValue(r))
-    }
-    return m
-  }
-  const beforeGroups = group(beforeRows)
-  const afterGroups = group(afterRows)
+  const beforeGroups = groupByKey(beforeRows, keyOf, getValue)
+  const afterGroups = groupByKey(afterRows, keyOf, getValue)
   const missing = [...beforeGroups.keys()].filter(k => !afterGroups.has(k))
   if (missing.length) throw new Error(`pairedInterval: no after-side rows for: ${missing.join(', ')}`)
   const extra = [...afterGroups.keys()].filter(k => !beforeGroups.has(k))
   if (extra.length) throw new Error(`pairedInterval: no before-side rows for: ${extra.join(', ')}`)
 
   const diffs = [...beforeGroups.keys()].map(k => mean(afterGroups.get(k)) - mean(beforeGroups.get(k)))
-  const n = diffs.length
-  if (n < 2) throw new Error(`pairedInterval: need at least 2 pairs, got ${n}`)
-  const d = mean(diffs)
-  const df = n - 1
-  const variance = diffs.reduce((s, x) => s + (x - d) ** 2, 0) / df
-  const se = Math.sqrt(variance) / Math.sqrt(n)
-  const tCrit = tCritical95(df)
-  const t = se === 0 ? Infinity : d / se
-  return { n, df, mean: d, se, t, lo: d - tCrit * se, hi: d + tCrit * se }
+  const r = studentTInterval(diffs, 'pairedInterval', 'pairs')
+  const t = r.se === 0 ? Infinity : r.mean / r.se
+  return { ...r, t }
 }
 
 /**
  * A single-sample 95% Student-t confidence interval on one saved run's own
- * mean — not a before/after comparison. Each row is treated as one
- * independent observation, matching how FINDINGS.md already states an arm's
- * mean (COS-19 AC #2: every judge figure needs an interval, and an arm that
- * was never compared against a "before" run still needs one).
+ * mean — not a before/after comparison (COS-19 AC #2: every judge figure
+ * needs an interval, and an arm that was never compared against a "before"
+ * run still needs one).
+ *
+ * Groups rows by `keyOf` (default: case id) and averages repeats within each
+ * group first, the same de-clustering `pairedInterval` does before
+ * differencing — repeats of the same case are not independent draws, they
+ * are the same prompt answered several times, so the interval is taken over
+ * per-case means (n = case count), not over every row (n = cases x repeats).
+ * Treating repeats as independent observations understates the interval by
+ * roughly sqrt(repeats): a 5-case, 30-repeat arm has n=5, not n=150.
  */
-export function singleSampleInterval (rows, { getValue } = {}) {
+export function singleSampleInterval (rows, { getValue, keyOf = r => r.caseId } = {}) {
   if (typeof getValue !== 'function') throw new Error('singleSampleInterval: getValue is required')
-  const values = rows.map(getValue)
-  const n = values.length
-  if (n < 2) throw new Error(`singleSampleInterval: need at least 2 rows, got ${n}`)
-  const m = mean(values)
-  const df = n - 1
-  const variance = values.reduce((s, x) => s + (x - m) ** 2, 0) / df
-  const sd = Math.sqrt(variance)
-  const se = sd / Math.sqrt(n)
-  const tCrit = tCritical95(df)
-  return { n, df, mean: m, sd, se, lo: m - tCrit * se, hi: m + tCrit * se }
+  const groups = groupByKey(rows, keyOf, getValue)
+  const means = [...groups.values()].map(mean)
+  return studentTInterval(means, 'singleSampleInterval', 'groups')
 }
 
 /** The four metrics FINDINGS.md publishes as paired percentage-point/word deltas. */
