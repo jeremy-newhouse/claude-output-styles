@@ -16,6 +16,7 @@ output-style harness
   node src/cli.mjs interval  --before=results/<stamp>/rows.json[,results/<stamp2>/rows.json]
                              --after=results/<stamp>/rows.json[,results/<stamp2>/rows.json]
                              --metric=rules|judge|composite|words
+  node src/cli.mjs interval  --rows=results/<stamp>/rows.json --metric=rules|judge|composite|words
 
   run      evaluate the matrix and write results/<stamp>/{rows,summary,run,report.md},
            re-written after every completed cell so a killed run keeps what it measured.
@@ -31,7 +32,8 @@ output-style harness
   interval a paired 95% Student-t interval between two saved runs on the same cases —
            pairs rows by case + model, averaging repeats within a pair. --before/--after
            each take a comma-separated list of rows.json paths, pooled before pairing.
-           Runs no cell — reads saved rows only
+           --rows alone gives a single-sample 95% interval on one run's own mean instead
+           of a before/after comparison. Runs no cell — reads saved rows only
 
   --help   print this and exit, on any subcommand
 `

@@ -100,6 +100,10 @@ runs belong in the optimizer table below.
 | `2026-08-27T21-10-56` | 150 | same, **tail-reminder** retried — leg 1 arm 3 | **0 errored**, 13m55s. Rules 97.69, judge 64.31, composite 81.00, 75.3 words. Paired against baseline: rules −0.6 [−1.4, +0.2], judge −3.5 [−11.2, +4.2], composite −2.1 [−6.1, +1.9], words +2.6 [−1.8, +6.9]. All contain zero. The ADR called this variant −0.7 and "inside the noise band for five cases"; at 150 cells the point estimate is −2.1 and it is still noise. |
 | `2026-08-27T21-25-00` | 150 | same, **claude-md** — leg 1 arm 4 | **0 errored**, 14m55s. Rules 97.98, judge 64.74, composite 81.36, 72.5 words. Paired against baseline: rules −0.4 [−1.2, +0.5], judge −3.1 [−9.0, +2.9], composite −1.7 [−4.5, +1.1], words −0.2 [−3.8, +3.4]. **This is the ADR's headline claim** — restating the rules in `CLAUDE.md` as "the most damaging at 9.4 points", the finding FINDINGS.md's delete-your-tone-rules recommendation rests on. On beginner × Opus it is a fifth that size and its interval contains zero. The ADR's 9.4 is an arm-mean difference at n=5, not a paired interval, so the two are like-for-like in sign only. |
 | `2026-08-27T21-40-04` | 150 | same, **all-fixes** — leg 1 arm 5 | **0 errored**, 14m47s. Rules 97.40, judge 63.08, composite 80.24, 74.3 words. Paired against baseline: rules −0.9 [−2.1, +0.3], judge **−4.7 [−9.1, −0.4]** t=−2.32, composite **−2.8 [−5.2, −0.5]** t=−2.59, words +1.5 [−6.1, +9.2]. **The only arm in the leg whose interval clears zero.** Stacking all three layers is measurably worse than the bare style file; no single layer is. |
+| `2026-08-28T02-56-32` to `02-58-04` | 8 | four 2-cell probes: advanced x haiku, advanced x fable, intermediate x haiku, intermediate x fable, baseline, `conv-status-auth` + `agentic-read-report`, 1 repeat each — **COS-19's opening probes** | **0 errored across all four.** Run before committing any of the four 150-cell arms below; each took under a minute. |
+| `2026-08-28T02-58-38-491Z` | 150 | advanced, Haiku, baseline, the five shared cases, 30 repeats — **COS-19's advanced x haiku arm** | **0 errored.** Rules **96.6**, judge **57.1** `[51.9, 62.2]`. 13m45s (02:58:38Z start, file mtime 22:12:23 local +5h = 03:12:23Z), **10.9 cells a minute**. Paired against `22-59-53` filtered to advanced × haiku × the five shared cases (10 cells, 5 pairs): rules +0.6 [−4.7, +5.8], judge +4.2 [−18.2, +26.5], words +8.1 [−5.5, +21.8], composite +1.7 [−4.9, +8.2] — directional, neither clears zero at 5 pairs. |
+| `2026-08-28T03-13-14-527Z` | 150 attempted, 105 usable | advanced, `claude-fable-5[1m]`, baseline, the five shared cases, 30 repeats — **COS-19's advanced x fable attempt — degraded** | **45 errored**, all on session-limit rejections: the back half of `conv-status-holdout` and the whole of `conv-followup-drift`. 105 non-errored is below COS-19's 146 floor for this cell; **no table figure uses this directory**. The user directed stopping further Fable attempts after this one rather than keep re-hitting the limit — raising this cell is COS-34. Kept on disk under COS-11's rule. |
+| `2026-08-28T13-31-38-172Z` | 150 | intermediate, Haiku, baseline, the five shared cases, 30 repeats — **COS-19's intermediate x haiku arm** | **0 errored.** Rules **95.5**, judge **58.7** `[53.7, 63.6]`. ~11m43s (13:31:38Z start, file mtime 08:43:21 local +5h = 13:43:21Z), **12.8 cells a minute**. Paired against `22-59-53` filtered the same way: rules +1.3 [−2.2, +4.7], judge −3.5 [−24.1, +17.1], words −5.9 [−25.2, +13.3], composite −0.7 [−8.4, +7.1] — directional, neither clears zero at 5 pairs. |
 
 Total persisted: 6608 cells — 640 before COS-16, plus 2400 from its first two arms and interrupted ablation, plus 1500 from the retried single-edit arms and the first E1+E2+E3 attempt, plus 600 from the two clean arms that shipped it, plus **1468 from COS-18** across six runs (125 + 600 + 300 + 300 + 2 + 141), of which **900 are load-bearing** — its 600-cell diagnostic arm and its 300-cell E1 arm, both 0 errored. The other 568 are recorded and used for nothing: 125 from a launch on the wrong case set, 300 from the reserve arm the spend limit destroyed (164 of them errored), 141 from the reserve retry stopped for slowness, and 2 from a deliberate probe (every attempted cell writes a row, errored or not; see `20-25-32` and `02-02-28` above). Improve-loop cells before COS-3 are additional and
 were not saved at all; from COS-3 onward every one of them is on disk.
@@ -172,6 +176,27 @@ was worth validating; `22-27-15` is the validation, and it reversed the probe's
 answer on Opus and Sonnet; `22-59-53` then measured Haiku's own baseline at six
 times the probe's sample and removed the reason the probe had been believed.
 Quoting any one of the three alone misrepresents what was measured.
+
+**COS-19 adds 458 attempted cells** across five directories — four 2-cell
+probes (8 cells) and three 150-cell arms, of which two (advanced x haiku,
+intermediate x haiku) are clean and one (advanced x fable) lost 45 cells to
+session-limit errors. **413 are non-errored**, of which 308 are load-bearing
+(the two clean arms) and 105 are recorded and used for nothing (the degraded
+Fable attempt, below COS-19's 146 floor for that cell).
+
+**This entry does not attempt the same reconciliation COS-21's did, and says
+so rather than fake a total.** Disk-counting today (`node -e` over
+`results/*/rows.json`, same method as every count above) returns **9866 rows in
+118 directories** — 1966 more than the 7900-in-97 figure two entries above,
+against an expected rise of 458. The gap is consistent with COS-21's own legs 2 and 3: the table above carries
+only COS-21's leg 1 (904 cells, the figure the 7900 count was reconciled
+against), and this project's tracker records COS-21 as having run 2250 cells
+across three legs before it closed — roughly 1500 more, close to the 1508
+unaccounted here (the 8-cell residual is plausibly legs 2/3's own probes, not
+traced further). Those ten arms never got a row in this table. That is COS-21's
+bookkeeping gap, not COS-19's, and backfilling it is out of scope here; it is
+recorded so the next session does not re-derive a false reconciliation from a
+table it can see is incomplete.
 
 ### Optimizer runs
 

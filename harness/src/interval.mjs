@@ -73,6 +73,27 @@ export function pairedInterval (beforeRows, afterRows, { getValue, keyOf = defau
   return { n, df, mean: d, se, t, lo: d - tCrit * se, hi: d + tCrit * se }
 }
 
+/**
+ * A single-sample 95% Student-t confidence interval on one saved run's own
+ * mean — not a before/after comparison. Each row is treated as one
+ * independent observation, matching how FINDINGS.md already states an arm's
+ * mean (COS-19 AC #2: every judge figure needs an interval, and an arm that
+ * was never compared against a "before" run still needs one).
+ */
+export function singleSampleInterval (rows, { getValue } = {}) {
+  if (typeof getValue !== 'function') throw new Error('singleSampleInterval: getValue is required')
+  const values = rows.map(getValue)
+  const n = values.length
+  if (n < 2) throw new Error(`singleSampleInterval: need at least 2 rows, got ${n}`)
+  const m = mean(values)
+  const df = n - 1
+  const variance = values.reduce((s, x) => s + (x - m) ** 2, 0) / df
+  const sd = Math.sqrt(variance)
+  const se = sd / Math.sqrt(n)
+  const tCrit = tCritical95(df)
+  return { n, df, mean: m, sd, se, lo: m - tCrit * se, hi: m + tCrit * se }
+}
+
 /** The four metrics FINDINGS.md publishes as paired percentage-point/word deltas. */
 export const METRICS = {
   rules: r => r.rulesScore * 100,

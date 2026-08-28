@@ -13,7 +13,7 @@ export const FLAGS = {
   score: ['rows'],
   judge: ['rows', 'judgements', 'judges', 'judge-repeats', 'reference', 'styles', 'cases', 'concurrency'],
   audit: ['styles'],
-  interval: ['before', 'after', 'metric']
+  interval: ['before', 'after', 'metric', 'rows']
 }
 
 // The only flag with no value at all. Every other flag in FLAGS takes one —
