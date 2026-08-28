@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:47'
-updated_date: '2026-08-28 14:18'
+updated_date: '2026-08-28 14:22'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -95,5 +95,5 @@ AC #4: confirmed every cell the live table currently carries -- including the tw
 
 AC #5: recorded per-arm cell counts and wall-clock in the ledger (458 attempted cells this session). Disk-counted rows.json across harness/results/: 9866 rows in 118 directories. Flagged (not resolved) that COS-21's legs 2-3 (~1500 cells) were never logged in the ledger table -- that gap is COS-21's, not COS-19's.
 
-Verification: 224/224 harness tests pass (6 new/rewritten for the interval fix), lore check exit 0. /code-review high found the interval bug pre-merge; fixed and re-verified rather than shipped.
+Verification: 225/225 harness tests pass (interval tests rewritten for the grouped behavior, plus a new mutual-exclusivity regression test), lore check exit 0. /code-review high found the interval pseudo-replication bug and the untested --rows/--before/--after mutual exclusivity pre-merge; both fixed and re-verified rather than shipped as found.
 <!-- SECTION:FINAL_SUMMARY:END -->
