@@ -4,6 +4,7 @@ title: Close the style quality gaps
 tags:
   - styles
 summary: Add guidance and cases for the two scenarios every style handles badly, and lift beginner prose quality
+status: todo
 tasks:
   - cos-1
   - cos-4

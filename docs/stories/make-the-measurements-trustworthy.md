@@ -5,6 +5,7 @@ tags:
   - measurement
   - evidence
 summary: Fix the scorer, then re-establish every published figure at a sample size its claims need
+status: todo
 tasks:
   - cos-10
   - cos-11

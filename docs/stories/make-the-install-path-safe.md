@@ -4,6 +4,7 @@ title: Make the install path safe
 tags:
   - docs
 summary: Document how style names resolve so an unresolvable outputStyle stops failing silently
+status: done
 tasks:
   - cos-6
 generated:

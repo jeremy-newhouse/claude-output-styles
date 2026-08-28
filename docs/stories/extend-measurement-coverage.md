@@ -5,6 +5,7 @@ tags:
   - harness
   - models
 summary: Measure all three styles at both ends of the model range — Haiku and Fable — not just the two tiers in the middle
+status: done
 tasks:
   - cos-5
   - cos-7

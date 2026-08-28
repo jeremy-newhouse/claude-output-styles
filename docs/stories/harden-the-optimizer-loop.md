@@ -4,6 +4,7 @@ title: Harden the optimizer loop
 tags:
   - harness
 summary: A reserve split the optimizer never sees, and persisted transcripts so improve runs are auditable
+status: done
 tasks:
   - cos-2
   - cos-3
