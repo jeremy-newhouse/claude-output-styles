@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-28 01:45'
+updated_date: '2026-08-28 02:39'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -366,4 +366,54 @@ Both measured reinforcement variants are **nulls**, consistently ~0.7 below base
 ## Session 32 — review correction
 
 Self-review of the branch diff (`git diff dev...HEAD`) caught one real defect: the tracker's grid paragraph still read "**beginner x Haiku** (leg 2, 4 of 5 arms)" two paragraphs after the cursor section had been updated to say leg 2 was complete. Corrected in place to "leg 2, done" and "leg 3, 3 of 5 arms". No figure was affected — the contradiction was in the status labels only. Line count checked before and after every `doc update` (1680 -> 1703 -> 1703); no truncation.
+
+## Session 33 — leg 3 arm 4 of 5
+
+**Arm 4 — `claude-md`, run `2026-08-28T02-02-08-988Z`**: 150 rows / **150 non-errored / 0 errored**. Wall clock from the log: started 02:02:08Z, wrote at completion — mean 14.6 s/cell at concurrency 4.
+rules 98.33, judge 62.41, **composite 87.55**, mean 106.3 words.
+
+**Paired 95% intervals vs leg 3 baseline `2026-08-28T00-49-16-410Z`** (15 pairs, df=14):
+
+| metric | delta | 95% CI | clears zero |
+|---|---|---|---|
+| composite | -0.9 | [-3.6, +1.9] | no |
+| judge | -2.8 | [-10.2, +4.6] | no |
+| rules | -0.0 | [-0.9, +0.9] | no |
+| words | -3.2 | [-12.5, +6.2] | no |
+
+**This is the ADR headline claim and it does not survive.** The ADR reports the CLAUDE.md restatement as the single most damaging variant at -9.4 points off five cells, and FINDINGS.md recommends deleting CLAUDE.md tone rules on the strength of that number. At 150 cells on advanced x Opus — the ADRs own cell — the measured effect is -0.9 composite with a 95% interval of [-3.6, +1.9]. A tenth the size, and the interval contains zero on every metric including rules. Three of leg 3s four measured arms are now nulls (long-prompt -0.7, tail-reminder -0.7, claude-md -0.9), all clustered near zero with wide overlapping intervals. Only all-fixes (arm 5) remains.
+
+## Session 33 — leg 3 arm 5 of 5, leg 3 complete
+
+**Arm 5 — `all-fixes`, run `2026-08-28T02-20-08-256Z`**: 150 rows / **150 non-errored / 0 errored**. Wall clock 02:20:08Z to 02:38:44Z = **18m36s**, mean 15.6 s/cell at concurrency 4.
+rules 97.54, judge 61.45, **composite 86.71**, mean 115.0 words.
+
+**Paired 95% intervals vs leg 3 baseline `2026-08-28T00-49-16-410Z`** (15 pairs, df=14):
+
+| metric | delta | 95% CI | clears zero |
+|---|---|---|---|
+| composite | -1.7 | [-4.1, +0.8] | no |
+| judge | -3.8 | [-10.1, +2.5] | no |
+| rules | -0.8 | [-2.1, +0.5] | no |
+| words | +5.3 | [-8.9, +19.6] | no |
+
+**Leg 3 (advanced x Opus, the ADRs own cell) is now complete: 5 arms, 750 attempted / 750 non-errored / 0 errored.**
+
+| arm | composite | vs baseline (95% CI) | judge CI |
+|---|---|---|---|
+| baseline | 88.40 | — | — |
+| long-prompt | 87.67 | -0.7 [-2.6, +1.1] | -2.2 [-7.3, +2.9] |
+| tail-reminder | 87.69 | -0.7 [-3.1, +1.7] | -2.3 [-9.2, +4.6] |
+| claude-md | 87.55 | -0.9 [-3.6, +1.9] | -2.8 [-10.2, +4.6] |
+| all-fixes | 86.71 | -1.7 [-4.1, +0.8] | -3.8 [-10.1, +2.5] |
+
+**Every one of the four reinforcement variants is a null on advanced x Opus.** Not one composite or judge interval excludes zero, including all-fixes, which was the single arm that cleared zero on leg 1 (beginner x Opus, -2.8 [-5.2, -0.5]). All four point estimates sit in a narrow band (-0.7 to -1.7 composite), consistent with a small negative direction that 150 cells still cannot resolve from noise, not with the ADR-magnitude gaps (4.5 to 9.4 points off five cells) that motivated the ADR.
+
+**This is the ADRs own cell.** advanced x Opus was the exact style/model the ADR was measured on, at 30x its n, on style text rewritten since. Nothing in the ADRs claimed magnitudes reproduces here. The direction is weakly consistent (all four point estimates negative) but none is distinguishable from zero.
+
+Session 33 leg 3 wall clock: claude-md 14m + all-fixes 18m36s, plus session 32s 68m47s already recorded = leg 3 total across sessions 32-33 covers all 5 arms. This sessions cell running: ~2-cell probe (13s) + claude-md (150 cells, ~14-19min per the earlier arm note) + all-fixes (18m36s).
+
+**Grid complete: 2250 cells (3 legs x 5 arms x 150), 0 errored across all of it.**
+
+Ready for the analysis: confirm/narrow/withdraw each ADR claim against leg 3 (AC #3), then update the ADR and re-state FINDINGS.md (AC #4).
 <!-- SECTION:NOTES:END -->
