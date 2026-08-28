@@ -1,11 +1,11 @@
 ---
 id: COS-19
 title: Re-measure the four-tier baseline at a sample size its claims need
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:47'
-updated_date: '2026-08-28 14:00'
+updated_date: '2026-08-28 14:01'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
