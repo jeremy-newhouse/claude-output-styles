@@ -397,17 +397,25 @@ if (cmd === 'run') {
   console.log(`wrote ${outDir}`)
 
 } else if (cmd === 'interval') {
-  // A paired 95% Student-t interval between two saved runs, reproducing
-  // FINDINGS.md's published method (COS-27). Runs no cell.
-  const { pairedInterval, METRICS } = await import('./interval.mjs')
-  if (!args.before || !args.after) throw new Error('interval needs --before=results/<stamp>/rows.json and --after=...')
+  // Either a paired 95% Student-t interval between two saved runs (COS-27),
+  // or a single-sample 95% interval on one run's own mean (COS-19 AC #2).
+  // Runs no cell either way.
+  const { pairedInterval, singleSampleInterval, METRICS } = await import('./interval.mjs')
   const metric = args.metric ?? 'rules'
   const getValue = METRICS[metric]
   if (!getValue) throw new Error(`--metric=${metric} is not one of: ${Object.keys(METRICS).join(', ')}`)
   const loadRows = paths => pick(paths, []).flatMap(p => readJson(resolve(p)))
-  const beforeRows = loadRows(args.before)
-  const afterRows = loadRows(args.after)
-  const r = pairedInterval(beforeRows, afterRows, { getValue })
-  const sign = r.mean >= 0 ? '+' : ''
-  console.log(`${metric}: ${sign}${r.mean.toFixed(1)} [${r.lo >= 0 ? '+' : ''}${r.lo.toFixed(1)}, ${r.hi >= 0 ? '+' : ''}${r.hi.toFixed(1)}], t=${r.t.toFixed(2)}, df=${r.df}, n=${r.n} pairs`)
+  if (args.rows) {
+    if (args.before || args.after) throw new Error('interval takes --rows on its own, not alongside --before/--after')
+    const rows = loadRows(args.rows)
+    const r = singleSampleInterval(rows, { getValue })
+    console.log(`${metric}: ${r.mean.toFixed(1)} [${r.lo.toFixed(1)}, ${r.hi.toFixed(1)}], sd=${r.sd.toFixed(1)}, df=${r.df}, n=${r.n}`)
+  } else {
+    if (!args.before || !args.after) throw new Error('interval needs --before=results/<stamp>/rows.json and --after=..., or --rows=results/<stamp>/rows.json alone')
+    const beforeRows = loadRows(args.before)
+    const afterRows = loadRows(args.after)
+    const r = pairedInterval(beforeRows, afterRows, { getValue })
+    const sign = r.mean >= 0 ? '+' : ''
+    console.log(`${metric}: ${sign}${r.mean.toFixed(1)} [${r.lo >= 0 ? '+' : ''}${r.lo.toFixed(1)}, ${r.hi >= 0 ? '+' : ''}${r.hi.toFixed(1)}], t=${r.t.toFixed(2)}, df=${r.df}, n=${r.n} pairs`)
+  }
 }

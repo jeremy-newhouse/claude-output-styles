@@ -16,6 +16,7 @@ tasks:
   - cos-21
   - cos-24
   - cos-22
+  - cos-34
 generated:
   by: lore/0.3.0
   at: 2026-08-17T03:50:43.715Z
@@ -195,11 +196,12 @@ run spent on nothing.
 | [COS-12](../../backlog/tasks/cos-12%20-%20Flush-run-rows-incrementally-so-a-killed-run-keeps-the-cells-it-paid-for.md) | Flush run rows incrementally so a killed run keeps the cells it paid for | Done |
 | [COS-13](../../backlog/tasks/cos-13%20-%20Fix-the-agentic-fixtures-contradictory-assertion.md) | Fix the agentic fixture's contradictory assertion | Done |
 | [COS-15](../../backlog/tasks/cos-15%20-%20Make-the-contract-audit-express-conditional-caps.md) | Make the contract audit express conditional caps | Done |
-| [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | To Do |
+| [COS-19](../../backlog/tasks/cos-19%20-%20Re-measure-the-four-tier-baseline-at-a-sample-size-its-claims-need.md) | Re-measure the four-tier baseline at a sample size its claims need | Done |
 | [COS-20](../../backlog/tasks/cos-20%20-%20Validate-the-judge-instrument-itself.md) | Validate the judge instrument itself | Done |
 | [COS-21](../../backlog/tasks/cos-21%20-%20Re-test-the-variant-sweep-the-reinforcement-ADR-rests-on.md) | Re-test the variant sweep the reinforcement ADR rests on | Done |
 | [COS-24](../../backlog/tasks/cos-24%20-%20Stop-the-CLI-silently-substituting-defaults-for-malformed-flags.md) | Stop the CLI silently substituting defaults for malformed flags | Done |
 | [COS-22](../../backlog/tasks/cos-22%20-%20Harden-the-fixture-guard-COS-13-added.md) | Harden the fixture guard COS-13 added | Done |
+| [COS-34](../../backlog/tasks/cos-34%20-%20Measure-advanced-x-Fable-and-intermediate-x-Fable-at-COS-19s-sample-size.md) | Measure advanced x Fable and intermediate x Fable at COS-19's sample size | To Do |
 <!-- lore:tasks:end -->
 
 ## Notes
@@ -253,3 +255,18 @@ same style-and-judge pairing, and 22.33 to 31.31 across the six style x model
 arms. Neither is a general constant even so — both are Sonnet-as-judge figures,
 and the three other tiers COS-20 measured span 23.08 to 29.38 pooled. COS-19 is
 still what widens them past one saved arm.
+
+**COS-19 closed ten of the twelve cells.** Advanced x Haiku and intermediate x
+Haiku joined advanced/intermediate x Opus/Sonnet (COS-18) and beginner's full
+row (COS-16/17) at n=150, each carrying a 95% interval (`FINDINGS.md`'s per-cell
+table). Advanced x Fable and intermediate x Fable are the exception: repeated
+session-limit errors on `claude-fable-5[1m]` stopped COS-19 from raising them
+past their original ten cells, so this story's own bar — "every conclusion... is
+confirmed, narrowed, or withdrawn against those intervals" — is met for ten
+cells and open for two, tracked in COS-34. **One conclusion moved on
+re-check**: the "clean split" (which models rank intermediate above advanced on
+the judge, and which rank the reverse) held on Sonnet and Opus at 150 cells but
+collapsed on Haiku, where the 9.3-point gap the ten-cell arm showed narrowed to
+1.6 points with heavily overlapping intervals — withdrawn as a Haiku finding.
+Beginner's "beats advanced on three tiers of four" rules claim also did not
+survive advanced's own 150-cell figures and is restated as parity.

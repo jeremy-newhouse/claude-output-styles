@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-28 02:44'
+updated_date: '2026-08-28 14:03'
 ---
 # Backlog campaign tracker
 
@@ -15,30 +15,23 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-19 — NOT YET STARTED.** Campaign 2 item 13. Queue order was
+**Next issue: COS-4 — NOT YET STARTED.** Campaign 2 item 14. Queue order was
 confirmed by the user on 2026-08-17 (see the Campaign 2 section below). Do not
 re-ask before taking it.
 
-**COS-21 resolved in session 33** (sessions 30-33 total): all 5 ACs verified,
-2250 cells across 3 legs, ADR narrowed and FINDINGS.md re-stated. See Resolved,
-row 12. The pacing rule the user set on 2026-08-27 (*"never exceed 25% of any
-given 5 hour limit... I'd rather it take 24+ hours than max out a limit"*)
-still applies to every session — read the paragraph below before sizing
-COS-19's first arm.
-
-**COS-19 is likely another multi-session issue.** It re-measures every judge
-cell in the four-tier `FINDINGS.md` table at the same >=146-cell floor COS-21
-used (AC #1), a table the tracker's queue notes already flag as "the largest"
-of the measurement items. Read the task's full description before planning —
-it names a **pre-3370e4d contamination** (AC #4: some published beginner and
-intermediate judge figures come from a run whose judge was told a sentence cap
-the style file never stated) that must be retired, not just re-measured over.
-Follow COS-21's per-session loop: probe 2 cells first, run one arm at a time,
-record wall-clock and non-errored cell count per arm as you go (not batched to
-the end), stop at a variant/style boundary at budget, and correct the ledger
-by counting `rows.json` on disk rather than by summing a remembered figure
-(AC #5 — same trap COS-21's AC #5 named, and COS-21's own disk count came back
-clean this session, so the running total should still be reliable going in).
+**COS-19 resolved in session 34, faster than expected — one session, not
+several.** Raised advanced x haiku and intermediate x haiku to n=150 (joining
+beginner's full row and advanced/intermediate x opus/sonnet from COS-16/17/18):
+10 of 12 four-tier cells now carry n>=146. Advanced x Fable and intermediate x
+Fable stayed at n=10 — two attempts hit repeated session-limit errors on
+`claude-fable-5[1m]`, the user directed stopping rather than keep re-hitting it,
+and the two cells moved to COS-34 (appended, item 27) with the user's explicit
+approval. AC #1 is unchecked on COS-19 for that reason; ACs #2-#5 are checked.
+See Resolved, row 13, and the task's own final summary for the two conclusions
+AC #3's re-check withdrew. **COS-34 is not queued next** — it stays appended at
+the end behind items 14-26; take it in order like any other appended item, and
+probe Fable's session-limit behavior again before committing a full arm, same
+as COS-19 did.
 
 **Throughput depends on the style, and beginner is the cheap one.** Session 29
 measured its own on both arms rather than assuming: the Haiku arm ran 150 cells in
@@ -179,7 +172,7 @@ before taking one.
 | 10 | COS-18 | styles | **Resolved, session 28.** Intermediate carries all four defects; advanced carries the router and, weakly, the contradiction. Diagnosis shipped, fix did not — its reserve validation was destroyed by the monthly spend limit and its retry stopped for slowness, so the measured edit moved to COS-33. See Resolved. |
 | 11 | COS-17 | measurement | **Resolved, session 29.** Beginner on Haiku and Fable, 150 non-errored cells a model, 0 errored on either arm. The four-tier beginner row is now current on every tier. See Resolved. |
 | 12 | COS-21 | measurement | **Resolved, sessions 30-33.** All four ADR magnitude claims withdrawn or narrowed at 30x n; ADR and FINDINGS.md updated. See Resolved. |
-| 13 | COS-19 | measurement | The four-tier baseline at a sample size its claims need. Last of the measurement work, so it measures final text. |
+| 13 | COS-19 | measurement | **Resolved, session 34.** Raised 10 of 12 four-tier cells to n=150; advanced/intermediate x Fable stayed at n=10 after repeated Fable session-limit errors, moved to COS-34 with user approval. AC #2's single-sample interval tool, AC #3's withdrawal of two conclusions (beginner-vs-advanced rules parity, Haiku's clean-split collapse), AC #4 confirmed already-clean. See Resolved. |
 | 14 | COS-4 | styles | Beginner judge > 70% on Opus and Sonnet. Currently 73.9 / 58.1. Achievability unproven. |
 | 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
 | 16 | COS-22 | harness | **Moved to Campaign 3, item 3, 2026-08-18; resolved session 24.** Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
@@ -194,6 +187,7 @@ before taking one.
 | 24 | COS-31 | styles | **Opened by session 28**, and **appended**. Both intermediate and advanced lack a reply-shape router. All 138 shape violations in COS-18's arm fall on non-status cases and none on a status update. Costs one 300-cell arm per style plus reserve. Read COS-29 first — copying beginner's router copies its dangling antecedent. |
 | 25 | COS-32 | styles | **Opened by session 28**, and **appended**. Intermediate's unrationed comparison rule (`:28`) and its skip-the-internals contradiction (`:27` against `:33`). Two edits, measured separately. Also carries the decision on advanced's own weak contradiction (`:23` against `:43`). |
 | 26 | COS-33 | styles | **Opened by session 28**, and **appended**. Ship COS-18's measured E1 — the re-scoped intermediate cap. **Its shared-five arm is complete and must not be re-run**: rules +3.0 [+0.1, +5.8], words −24.6 [−46.4, −2.8], 300 cells, 0 errored. Only the reserve pair is outstanding, and that is roughly four hours a side at session 28's measured throughput. |
+| 27 | COS-34 | measurement | **Opened by session 34**, and **appended**. Advanced x Fable and intermediate x Fable are the two four-tier cells COS-19 could not raise to n>=146 — repeated session-limit errors on `claude-fable-5[1m]` stopped it twice, the second attempt landing 105 of 150. Re-attempt when Fable's session-limit behavior allows a full arm, or size to whatever it can sustain and say so. |
 
 The order is a valid topological sort of the recorded dependencies, and every
 phase boundary is a real constraint rather than a preference:
@@ -285,6 +279,7 @@ that omitted `--variants` ran five cells instead of one.
 | 10 | COS-18 | Task Done — 2026-08-26, session 28 | All 5 ACs verified; **the diagnosis shipped and the fix did not**, and no style file changed. **AC #1** read all three files against COS-4's four patterns with file and line for every instance. **AC #2/#4** rest on run `2026-08-20T12-12-10` — intermediate and advanced, Opus and Sonnet, the five shared cases, 30 repeats, **600 cells, 0 errored, 0 judge timeouts**: intermediate carries all four patterns; advanced carries the router and, weakly, the contradiction, and is **recorded clean** on the scoped budget and the unbounded requirement. Arm scores advanced 99.4 / 97.3 rules and 74.3 / 68.1 judge, intermediate 95.6 / 94.7 and 69.5 / 72.7 — 150 cells a figure against the four-tier table's ten, and the table's "clean split" survives it in both directions. **The arm overturned the reading twice, which is why AC #2 forbade settling it by reading.** Counting over-length violations makes advanced look *worse* than intermediate (23.6% vs 13.4% on Sonnet) because advanced overruns its cap while stating it correctly — symptom without defect. Three measures separate them: intermediate's non-status replies average 1.43× and 1.13× its cap against advanced's 0.95× and 0.85×; the grader attaches the cap to *updates* in **14 of 20 and 8 of 9** of intermediate's over-length violations and **0 of advanced's 43**, every one read by hand after a regex was caught undercounting (the earlier 35.0% / 44.4% figures are withdrawn); and intermediate breaks its cap ~3× as often while being flagged ~half as often. The reading also ranked the two contradiction instances backwards — advanced's is far sharper on the page and fires 2–4× *less* often. Cleanest result in the run: **all 138 shape violations across both files fall on non-status cases and not one on a status update**, against COS-4's 10 of 40 on beginner. **AC #3**: the fix for intermediate's scoped cap was authored and measured as a single edit (`bd326da7` → `8ea1c01b`), 300 cells, 0 errored — rules **+3.0 [+0.1, +5.8]** and words **−24.6 [−46.4, −2.8]**, both clear of zero, non-status replies 1.43× → 0.97× on Opus, rules 99.1 / 97.1 reaching parity with advanced. **AC #5 is vacuous and honestly so**: the reserve before arm lost 163 of 300 cells to the monthly spend limit (all 150 Sonnet), the retry was stopped at 141 when throughput fell to ~0.7 cells/min, so **E1 was reverted** and moved to **COS-33** with its recipe, sha256 and all four intervals. Unmeasured text does not ship, and the reserve split is where two earlier candidate rewrites failed after passing everything else. 1468 cells written across six runs, 900 of them load-bearing, 568 recorded and used for nothing. Gates: 219/219 harness tests, `audit` exit 0 unpiped, `lore check` exit 0 over 24 files. Ledger project total corrected 5140 → **6608** after an uncounted tally was caught in this session's own draft. Opened COS-30, COS-31, COS-32, COS-33. |
 | 11 | COS-17 | Task Done — 2026-08-27, session 29 | All 5 ACs verified. **Two clean arms, 0 errored cells in either**: `2026-08-27T12-35-06` (beginner × Haiku) and `2026-08-27T12-50-55` (beginner × Fable), the five shared cases, 30 repeats, 150 cells a model — composition read straight off the rows rather than assumed (5 cases × 30, `complete: true`, 0 errored, 0 no-reply). Arm means rules **95.8 / 99.3** and judge **48.2 / 65.2**, which with COS-16's 99.2 / 97.4 and 66.1 / 60.9 makes **the four-tier beginner row current on every tier for the first time** — it had been half history since COS-4. **The columns are comparable and that was checked, not assumed**: every input that could separate the two run days last changed before the earlier one (`checks.mjs`, `contracts.json`, `cases.json` at 2026-08-17; `judge.mjs`, `run.mjs` at 2026-08-18, all read from `git log`), so scorer, contract, judge prompt, runner, cases and style bytes are identical and the model is the only difference. **AC #4's answer is the strongest result**: the rewrite's length effect reproduces on both middle tiers, mean reply words falling from **1.406× to 0.899×** beginner's cap on Haiku and **1.648× to 0.830×** on Fable, **all ten case × model cells falling**, both tiers crossing from over the cap to under it. Read against COS-7: the per-tier fall (0.507 to 0.900) is larger than the largest adjacent-tier difference COS-7 could measure (0.339), and the after column turns in a different place than COS-7's sequence — so the ordering is not the capability ordering and does not survive a change of style text. **Length is a property of the file, not the tier**, which is COS-7's conclusion reached from the other direction. **AC #2** publishes paired intervals beside the means (COS-27's `interval`, pairing case × model): pooled over 10 pairs, judge +11.0 [+3.4, +18.7], words −53.0 [−91.4, −14.6], composite +8.7 [+1.8, +15.6], rules +6.4 [−0.7, +13.5]. **They are stated as directional, not as effect sizes**, and the reason is written down: the pre-rewrite side carries a pre-`3370e4d` contract on both its rules and its judge (re-scoring reads 91.1 / 91.6 against the published 90.9 / 91.4; the judge cannot be re-graded offline at all) and the COS-10 seam on its agentic cells. Dropping the agentic case — the project's own convention — keeps every sign and clears no interval at 8 pairs. The four arm means carry no confound between them and are the load-bearing figures. **AC #5 is satisfied vacuously and says so**: 0 aborted cells of 300, nothing to exclude; the task's expected Haiku write-then-verify aborts were out of scope because none of the five shared cases edits a file. **AC #3** removed the history from FINDINGS.md, the epic and the coverage story rather than footnoting it beside live numbers, and rewrote FINDINGS.md's judge-defect section, which described a row it no longer applies to. Gates: 219/219 harness tests, `audit` exit 0, `lore check` exit 0 over 24 files read unpiped. **Recorded and not resolved**: counting `rows.json` across `harness/results/` returns 6996 rows in 89 directories, which is 82 more than the ledger's running total plus this session's 302 — a discrepancy that predates COS-17, written into the ledger as open rather than papered over by picking a figure. |
 | 12 | COS-21 | Task Done — 2026-08-28, sessions 30-33 | All 5 ACs verified. **2250 cells across 3 legs x 5 arms, 2248 non-errored / 2 errored** (disk-counted, matches the sum of recorded per-arm figures — AC #5's ledger check found no discrepancy this time), 30x the ADR's original per-arm n, every figure carrying a paired 95% interval. **AC #1-#2**: beginner × Opus, beginner × Haiku, advanced × Opus (the ADR's own cell) — argued in the task plan from where reinforcement is most likely to help (beginner, closest to a CLAUDE.md restatement) vs the ADR's own claim (advanced × Opus). **AC #3**: every ADR claim checked against a leg-3 interval. The 9.4-point `claude-md` gap comes back **−0.9 [−3.6, +1.9]**, a null at a tenth the size. The 4.5-point `long-prompt` gap comes back **−0.7 [−2.6, +1.1]** on advanced × Opus and **reverses sign** on beginner × Haiku (**+5.2 [+2.1, +8.2]**, clearing zero upward). "Every layer measured worse" is withdrawn as a general claim — 3 of 4 layers cleared zero upward on Haiku. Only the tail-reminder "inside the noise band" claim is confirmed (−0.7 [−3.1, +1.7], near-exact match). The two-model Sonnet replication claim is out of scope — COS-21 ran no Sonnet leg. **AC #4**: `docs/adr/reject-harness-level-reinforcement-of-style-rules.md` updated in place (status: "Accepted, narrowed by re-test"), new evidence section and per-claim verdicts added, Decision narrowed to scope the no-reinforcement default to models already complying with the style rather than a blanket rule, Consequences rewritten to withdraw the "CLAUDE.md restatement is a liability, deleting is an improvement" claim. `FINDINGS.md`'s recommendation re-stated to match. Gates: 219/219 harness tests, `lore check` exit 0 over 24 files. |
+| 13 | COS-19 | Task Done — 2026-08-28, session 34 | **AC #1 unchecked, ACs #2-#5 checked, closed with the user's explicit approval.** Raised advanced x haiku (`2026-08-28T02-58-38-491Z`) and intermediate x haiku (`2026-08-28T13-31-38-172Z`) to 150 cells each, 0 errored — 10 of 12 four-tier cells now at n>=150, joining beginner's full row (COS-16/17) and advanced/intermediate x opus/sonnet (COS-18). Advanced x Fable stopped at 105/150 (`2026-08-28T03-13-14-527Z`, 45 errored on session-limit rejections); the user directed no further Fable attempts, so advanced/intermediate x Fable stay at their original n=10 and moved to **COS-34** (appended, item 27). **AC #2**: added `singleSampleInterval` to `harness/src/interval.mjs` (a 95% Student-t interval on one run's own mean, not a before/after pairing), wired through `interval --rows=`, tested. Every judge figure in `FINDINGS.md`'s four-tier table now carries one; ten of twelve read a ~±4-point half-width, the two n=10 Fable cells ±14 to ±19. **AC #3**: re-checked every conclusion in the four-tier section and withdrew two — "beginner's rules beat advanced on three tiers of four" (used advanced's stale ten-cell figures; at 150 cells each way it's parity, 2 of 4) and half of the "clean split" (Sonnet and Opus still rank as published at 150 cells; Haiku's 9.3-point gap at n=10 collapsed to 1.6 points with heavily overlapping CIs at n=150 — withdrawn as a Haiku finding). Updated `FINDINGS.md`, the epic doc and this story doc via `lore`. **AC #4**: confirmed every cell the live table carries today — the two still-underpowered Fable cells included — comes from a run measured after `3370e4d` landed; the contamination was already fully retired, just never stated as such in one place. **AC #5**: recorded per-arm cell counts and wall-clock in the ledger (458 attempted cells this session); disk-counted 9866 rows in 118 directories and flagged, not resolved, that COS-21's legs 2-3 (~1500 cells) were never logged in the ledger table — that gap predates COS-19 and backfilling it was out of scope. Gates: 223/223 harness tests (4 new, for the interval tool), `lore check` exit 0 over 24 files. |
 
 **Campaign 3.**
 
@@ -1711,3 +1706,30 @@ Both remaining issues carry known risk against that policy:
   rules" advice as unproven. Gates: 219/219 harness tests, `lore check` exit
   0 over 24 files. All 5 ACs verified and checked; task marked Done. Cursor
   advances to **COS-19**.
+
+- 2026-08-28 — session 34: restored, verified no drift (`dev`/`main` both at
+  `0a4fb13`, clean, no leftover branches, COS-19 To Do and unstarted, tracker
+  cursor agreed), branched `feature/COS-19` off `dev`. Probed 2 cells on all
+  four target arms (advanced/intermediate x haiku/fable), 8/8 clean, then ran
+  advanced x haiku full (`2026-08-28T02-58-38-491Z`, 150/150, 0 errored,
+  13m45s). Started advanced x fable; it lost 45 of 150 cells to repeated
+  session-limit errors (`2026-08-28T03-13-14-527Z`, 105 usable). **The user
+  directed skipping further Fable attempts** rather than keep re-hitting the
+  limit. Ran intermediate x haiku full (`2026-08-28T13-31-38-172Z`, 150/150,
+  0 errored, ~11m43s) — the last measurable arm. Built AC #2's single-sample
+  interval tool (`singleSampleInterval` in `interval.mjs`, wired through
+  `interval --rows=`, 4 new tests, 223/223 total). Computed judge intervals
+  for all 12 four-tier cells and rewrote `FINDINGS.md`'s per-cell table and
+  surrounding prose, withdrawing two conclusions AC #3's re-check disproved
+  (beginner-vs-advanced rules parity; Haiku's half of the "clean split"
+  collapsing at n=150). Confirmed AC #4 already fully satisfied — no live
+  cell predates `3370e4d`. Updated the epic doc and this story doc via
+  `lore link`/`lore sync`; `lore check` exit 0 over 24 files. Updated the
+  ledger with this session's runs and an honest disk recount (9866 rows in
+  118 directories), flagging COS-21's un-logged legs 2-3 as the gap's likely
+  source rather than forcing a false reconciliation. **Asked the user how to
+  close AC #1's Fable gap**; they chose opening a follow-up (COS-34, appended
+  as queue item 27, linked to this story) over leaving COS-19 In Progress.
+  COS-19 marked Done with AC #1 unchecked and the caveat recorded. Cursor
+  advances to **COS-4**, item 14 — COS-34 stays appended behind items 14-26,
+  not next.

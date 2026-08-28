@@ -31,6 +31,10 @@ test('validateFlags accepts a well-formed invocation for every subcommand', () =
   assert.doesNotThrow(() => validateFlags('interval', { _: ['interval'], before: 'a.json', after: 'b.json' }))
 })
 
+test('interval also accepts --rows on its own, for a single-sample interval', () => {
+  assert.doesNotThrow(() => validateFlags('interval', { _: ['interval'], rows: 'x.json', metric: 'judge' }))
+})
+
 test('judge accepts --concurrency, same as run/improve', () => {
   // Regression from review: judge's rejudge() call is sized by opts.concurrency
   // same as run/improve size evaluate()'s pool, but FLAGS.judge originally

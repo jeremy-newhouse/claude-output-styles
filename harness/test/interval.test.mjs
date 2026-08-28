@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { pairedInterval, tCritical95, METRICS } from '../src/interval.mjs'
+import { pairedInterval, singleSampleInterval, tCritical95, METRICS } from '../src/interval.mjs'
 import { words, stripCode } from '../src/checks.mjs'
 
 // ---------- tCritical95 ----------
@@ -115,4 +115,28 @@ test('METRICS.words strips code blocks first, matching total_length\'s conventio
   const row = { text: 'One two three.\n\n```js\nconst four = 5; const six = 7;\n```' }
   assert.equal(METRICS.words(row), words(stripCode(row.text)).length)
   assert.equal(METRICS.words(row), 3)
+})
+
+// ---------- singleSampleInterval: hand-computable ----------
+
+test('singleSampleInterval matches a hand-computed single-sample t-interval', () => {
+  // Values 2,4,6,8,10,12 -> mean 7, sample SD sqrt(14)~3.7417, SE=SD/sqrt(6)~1.5275,
+  // df=5, t(0.025,5)=2.571 — same numbers as the pairedInterval hand-check above,
+  // since a paired diff sequence and a raw value sequence are both single samples.
+  const rows = [2, 4, 6, 8, 10, 12].map(v => ({ v }))
+  const r = singleSampleInterval(rows, { getValue: row => row.v })
+  assert.equal(r.n, 6)
+  assert.equal(r.df, 5)
+  assert.ok(Math.abs(r.mean - 7) < 1e-9)
+  assert.ok(Math.abs(r.sd - Math.sqrt(14)) < 1e-9)
+  assert.ok(Math.abs(r.lo - (7 - 2.571 * (Math.sqrt(14) / Math.sqrt(6)))) < 1e-6)
+  assert.ok(Math.abs(r.hi - (7 + 2.571 * (Math.sqrt(14) / Math.sqrt(6)))) < 1e-6)
+})
+
+test('singleSampleInterval throws with fewer than two rows', () => {
+  assert.throws(() => singleSampleInterval([{ v: 1 }], { getValue: r => r.v }), /need at least 2 rows/)
+})
+
+test('singleSampleInterval requires getValue', () => {
+  assert.throws(() => singleSampleInterval([{ v: 1 }, { v: 2 }]), /getValue is required/)
 })
