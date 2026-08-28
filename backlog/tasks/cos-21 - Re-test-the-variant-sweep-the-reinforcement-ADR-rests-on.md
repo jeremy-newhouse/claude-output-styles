@@ -1,11 +1,11 @@
 ---
 id: COS-21
 title: Re-test the variant sweep the reinforcement ADR rests on
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-28 02:39'
+updated_date: '2026-08-28 02:43'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -40,11 +40,11 @@ Re-run it properly and either confirm the ADR, narrow it to what the evidence su
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The five variants are swept at n >= 146 non-errored cells per arm, on current style text
-- [ ] #2 The sweep covers more than one style and more than one model, with the choice of which argued from where reinforcement is most likely to help rather than from convenience
-- [ ] #3 Every figure carries an interval, and each of the ADR's claims is confirmed, narrowed or withdrawn against them
-- [ ] #4 The ADR is updated in place or superseded by a new one, and FINDINGS.md's recommendation to delete CLAUDE.md tone rules is re-stated to match whatever the evidence now supports
-- [ ] #5 AMENDED 2026-08-27 (user-approved): wall-clock elapsed and non-errored cell count are recorded per arm, and the ledger's cell total is corrected by counting rows.json on disk rather than by adding to the recorded figure. The original criterion asked for per-arm dollar costs and quoted a 3.9x long-prompt figure; COS-25 deliberately deleted cost tracking from the harness on the user's judgement that subscription-run dollar figures were meaningless, so no field exists to satisfy it. Wall-clock is the substitute the harness actually emits (elapsedMs per row).
+- [x] #1 The five variants are swept at n >= 146 non-errored cells per arm, on current style text
+- [x] #2 The sweep covers more than one style and more than one model, with the choice of which argued from where reinforcement is most likely to help rather than from convenience
+- [x] #3 Every figure carries an interval, and each of the ADR's claims is confirmed, narrowed or withdrawn against them
+- [x] #4 The ADR is updated in place or superseded by a new one, and FINDINGS.md's recommendation to delete CLAUDE.md tone rules is re-stated to match whatever the evidence now supports
+- [x] #5 AMENDED 2026-08-27 (user-approved): wall-clock elapsed and non-errored cell count are recorded per arm, and the ledger's cell total is corrected by counting rows.json on disk rather than by adding to the recorded figure. The original criterion asked for per-arm dollar costs and quoted a 3.9x long-prompt figure; COS-25 deliberately deleted cost tracking from the harness on the user's judgement that subscription-run dollar figures were meaningless, so no field exists to satisfy it. Wall-clock is the substitute the harness actually emits (elapsedMs per row).
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -416,4 +416,29 @@ Session 33 leg 3 wall clock: claude-md 14m + all-fixes 18m36s, plus session 32s 
 **Grid complete: 2250 cells (3 legs x 5 arms x 150), 0 errored across all of it.**
 
 Ready for the analysis: confirm/narrow/withdraw each ADR claim against leg 3 (AC #3), then update the ADR and re-state FINDINGS.md (AC #4).
+
+## Session 33 — analysis, ledger disk-count, gates
+
+**Analysis complete.** Every ADR claim checked against a leg-3 (advanced x Opus, the ADRs own cell) paired interval, and cross-checked against legs 1-2:
+- 9.4-point claude-md gap: withdrawn (measured -0.9 [-3.6,+1.9])
+- 4.5-point long-prompt gap: withdrawn, and reverses sign on beginner x Haiku (+5.2 [+2.1,+8.2])
+- "every layer measured worse": withdrawn as general claim — beginner x Haiku had 3/4 layers clear zero upward
+- tail-reminder "inside the noise band, rejected as unnecessary not harmful": confirmed (-0.7 [-3.1,+1.7], near-exact match)
+- two-model combined-variant replication (Opus 84.6->81.0, Sonnet 87.0->84.8): out of scope, COS-21 ran no Sonnet leg
+
+**ADR updated in place** (`docs/adr/reject-harness-level-reinforcement-of-style-rules.md`): added a "Re-test (COS-21)" section with the full leg 1-3 table and per-claim verdicts, narrowed the Decision to scope the no-reinforcement default to models already complying with the style (Opus-tier) rather than a blanket rule, and rewrote Consequences to withdraw the "CLAUDE.md restatement is a liability, deleting is an improvement" claim. Status changed to "Accepted, narrowed by re-test."
+
+**FINDINGS.md re-stated to match**: the "What actually helps" section now states the 9.4/4.5-point figures did not reproduce and links the ADR; "Recommended changes" withdraws the CLAUDE.md-deletion advice and qualifies the SIMPLE_SYSTEM_PROMPT advice to Opus-tier only, since Haiku measured the opposite sign.
+
+**AC #5 ledger check**: counted rows.json on disk (not summed from memory) across all 15 COS-21 arms: 2250 attempted, 2 errored (leg 2 long-prompt and tail-reminder, 1 each), 2248 non-errored. Matches the sum of per-arm figures already recorded — no correction needed, the COS-21-scoped total was accurate.
+
+**Gates**: `npm --prefix harness test` 219/219 pass. `lore sync` ran clean (updated docs/log.md), `lore check` exit 0, 24 files, 0 errors, 0 warnings.
+
+**COS-21 grid final: 3 legs, 15 arms, 2250 non-errored-target cells, 2248 non-errored / 2 errored, 0 orphaned in the load-bearing set** (one earlier leg-1 arm was lost to a usage ceiling and retried clean, per session 30s notes — not counted here since it was superseded).
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Re-swept all 5 variants across 3 style/model legs (beginner x Opus, beginner x Haiku, advanced x Opus, the ADR's own cell) at 150 non-errored cells per arm — 30x the original n — with paired 95% intervals throughout. 2250 attempted, 2248 non-errored (disk-counted). The ADR's headline claims (9.4-pt CLAUDE.md gap, 4.5-pt long-prompt gap, 'every layer measured worse') did not reproduce on the ADR's own cell (all four leg-3 variants are nulls) and the long-prompt direction reverses on beginner x Haiku (+5.2 [+2.1,+8.2]). Only tail-reminder's 'inside the noise band' claim confirmed. Updated docs/adr/reject-harness-level-reinforcement-of-style-rules.md in place (status: narrowed by re-test) and re-stated FINDINGS.md's recommendations to match — withdrew the 'delete CLAUDE.md tone rules' advice as unproven. Gates: 219/219 harness tests, lore check exit 0 (24 files).
+<!-- SECTION:FINAL_SUMMARY:END -->

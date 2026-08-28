@@ -91,16 +91,22 @@ Advanced style, Opus, 5 cases per variant, one run each. Higher is better.
 | all three together | 81.5% | 89.2% | 63.4% |
 | claude-md (rules restated in CLAUDE.md) | 80.8% | 90.3% | 58.4% |
 
-**Every added instruction layer made it worse.** Restating the style's rules in
-`CLAUDE.md` was the single most damaging change, costing 9.4 points. Forcing the
-long system prompt — the fix circulating in blog posts — cost 4.5 points.
+**Update (COS-21, 2026-08-28): re-tested at 30x this table's n, with a paired
+interval per figure, on the exact cell above (advanced, Opus) plus two more
+legs. The 9.4- and 4.5-point figures did not reproduce — both are withdrawn.**
+On advanced x Opus, every variant above is a null: composite deltas of −0.7 to
+−1.7, no interval excluding zero. On a second Opus leg (beginner style) only
+one of four variants — all three layers stacked — cleared zero, and it cleared
+downward (−2.8 points). On a Haiku leg, three of four layers instead cleared
+zero **upward** (+3.3 to +5.2 points): a model missing baseline far more often
+(judge 44% vs Opus's 82%) measurably benefited from the same layers that cost
+Opus nothing measurable. Full detail: `docs/adr/reject-harness-level-reinforcement-of-style-rules.md`.
 
-This replicates in the two-model run: `all-fixes` lost ground on both models
-(Opus 84.6% → 81.0%, Sonnet 87.0% → 84.8%).
-
-The result matches Anthropic's guidance for Opus 5: instructions stack on top of
-what the model already does, so adding guardrails costs tokens and output length
-without improving adherence. Removing beats adding.
+The result still matches Anthropic's guidance for Opus 5 in direction —
+instructions stack on top of what the model already does, so redundant
+guardrails cost tokens and length without confirmed adherence gains on a
+model already complying — but the claimed magnitudes above should not be
+quoted, and the conclusion does not extend to a weaker or struggling model.
 
 ## Recommended changes
 
@@ -108,11 +114,18 @@ without improving adherence. Removing beats adding.
 exists, or add `name:` frontmatter to the `evolv-*.md` files. Right now the
 global setting is inert.
 
-**Do not add a CLAUDE.md style section.** It measurably hurts. If a project
-CLAUDE.md already restates tone rules, deleting them is an improvement.
+**Withdrawn (COS-21):** the earlier advice here — that a CLAUDE.md style
+section measurably hurts, and deleting one is an improvement — rested on a
+five-cell arm that did not reproduce at 150 cells on the same cell. Treat a
+CLAUDE.md restatement as unproven, not as confirmed harm; do not delete one
+on the strength of this document.
 
-**Do not set `CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT=0`.** It hurt here, despite the
-advice circulating online.
+**Do not set `CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT=0`** on a model already
+complying with the style (Opus, here) — no benefit measured across two Opus
+legs, though the cost is also not statistically confirmed. On a model missing
+baseline more often (Haiku), the re-test measured this as a clear net
+*positive* (+5.2 [+2.1, +8.2]) — do not apply this advice to a weaker model
+without measuring that cell.
 
 **Fix the two failing rules inside the style file itself**, since that is the
 only lever that measured neutral-to-positive:

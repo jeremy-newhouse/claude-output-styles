@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-28 01:45'
+updated_date: '2026-08-28 02:44'
 ---
 # Backlog campaign tracker
 
@@ -15,63 +15,47 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-21 — IN PROGRESS, not yet started fresh.** Campaign 2 item 12.
-Queue order was confirmed by the user on 2026-08-17 (see the Campaign 2 section
-below). Do not re-ask before continuing it.
+**Next issue: COS-19 — NOT YET STARTED.** Campaign 2 item 13. Queue order was
+confirmed by the user on 2026-08-17 (see the Campaign 2 section below). Do not
+re-ask before taking it.
 
-**COS-21 is the first issue in this campaign to span sessions, deliberately.**
-On 2026-08-27 the user set a pacing rule for the whole campaign: *"do some math
-and pace yourself to never exceed 25% of any given 5 hour limits. I'd rather it
-take 24+ hours than max out a limit."* COS-21's grid is 2250 cells, so it is
-budgeted at roughly 75 minutes of cell running per session and takes four or five
-of them. **The cursor stays on COS-21 until its ADR is updated** — session 30
-resolved leg 1 and session 31 ran four of leg 2's five arms; neither advanced
-the cursor, because the issue is not done.
+**COS-21 resolved in session 33** (sessions 30-33 total): all 5 ACs verified,
+2250 cells across 3 legs, ADR narrowed and FINDINGS.md re-stated. See Resolved,
+row 12. The pacing rule the user set on 2026-08-27 (*"never exceed 25% of any
+given 5 hour limit... I'd rather it take 24+ hours than max out a limit"*)
+still applies to every session — read the paragraph below before sizing
+COS-19's first arm.
 
-**Where COS-21 stands after session 32:** leg 1 complete (5 arms), **leg 2 complete
-(5 arms)**, leg 3 (advanced × Opus) at **3 of 5 arms** — `claude-md` and `all-fixes`
-remain, ~19 minutes each. Then one analysis session for the ADR and FINDINGS.md.
-**Leg 3 is now producing nulls in the ADR's own cell.** `long-prompt` is
-−0.7 [−2.6, +1.1] composite and `tail-reminder` −0.7 [−3.1, +1.7], both against an
-88.40 baseline, both with judge intervals about 10 points wide. The ADR quotes a
-4.5-point long-prompt gap off five cells; at 150 cells that size is not supported,
-though the direction is still faintly negative. **This does not settle the ADR** —
-its headline claim is the 9.4-point `claude-md` restatement gap, and that arm has
-not run.
-
-**Rate correction.** The plan sized advanced at ~5 cells/min. Session 32 measured
-**7.9 cells/min** across three arms (19m02s, 18m25s, 16m07s). An advanced arm is
-~19 minutes, so leg 3 is ~95 minutes total and the two remaining arms fit one
-session with room for the analysis to start.
-
-Grid, argued in the task's plan and settled: **beginner × Opus** (leg 1, done),
-**beginner × Haiku** (leg 2, done), **advanced × Opus** (leg 3, 3 of 5 arms — the ADR's own cell,
-and the one that decides whether its claims survive). Each leg is five variants ×
-150 cells. `advanced × Haiku` is deliberately excluded.
-
-**AC #5 was amended with the user's approval on 2026-08-27** to wall-clock and
-cell counts. It originally asked for per-arm dollar costs, which COS-25 had
-already deleted from the harness — an acceptance criterion cannot be satisfied by
-a field that no longer exists.
+**COS-19 is likely another multi-session issue.** It re-measures every judge
+cell in the four-tier `FINDINGS.md` table at the same >=146-cell floor COS-21
+used (AC #1), a table the tracker's queue notes already flag as "the largest"
+of the measurement items. Read the task's full description before planning —
+it names a **pre-3370e4d contamination** (AC #4: some published beginner and
+intermediate judge figures come from a run whose judge was told a sentence cap
+the style file never stated) that must be retired, not just re-measured over.
+Follow COS-21's per-session loop: probe 2 cells first, run one arm at a time,
+record wall-clock and non-errored cell count per arm as you go (not batched to
+the end), stop at a variant/style boundary at budget, and correct the ledger
+by counting `rows.json` on disk rather than by summing a remembered figure
+(AC #5 — same trap COS-21's AC #5 named, and COS-21's own disk count came back
+clean this session, so the running total should still be reliable going in).
 
 **Throughput depends on the style, and beginner is the cheap one.** Session 29
 measured its own on both arms rather than assuming: the Haiku arm ran 150 cells in
 15m51s (**9.5 a minute**) and the Fable arm 150 in 14m35s (**10.3 a minute**), at
-concurrency 4, with per-cell `elapsedMs` around 8 seconds. That is close to
-session 27's 31-a-minute reading and nothing like session 28's ~5 and ~0.7 on
-intermediate and advanced. **The judge call is the wall clock, and it scales with
-reply length**, so a beginner arm is minutes where an intermediate reserve arm is
-hours. Size on the style being measured, and measure early enough to abandon
-cheaply — session 29 did the arithmetic wrong from memory before it read a clock,
-and was out by a factor of six in the pessimistic direction.
+concurrency 4, with per-cell `elapsedMs` around 8 seconds. Session 32-33 measured
+advanced × Opus at **7.9 cells/min** (~19 minutes for 150 cells) — nothing like
+session 28's ~5 and ~0.7 on intermediate and advanced under different conditions.
+**The judge call is the wall clock, and it scales with reply length**, so a
+beginner arm is minutes where an intermediate/advanced reserve arm can be hours.
+Size on the style actually being measured, and measure early enough to abandon
+cheaply.
 
 **Two usage ceilings were hit in this campaign**, and they are different. Session
 27's was the 5-hour window. Session 28 hit the **monthly spend limit** — 163 of
 300 cells in one arm, taking all 150 Sonnet cells — which does not clear by
-waiting a few hours. Session 28 established it had cleared with a deliberate
-2-cell probe, and **session 29 did the same** (`2026-08-27T12-34-30`, 2 cells, 0
-errored, 15.6 seconds) before committing 300. Two cells is the whole cost of not
-assuming.
+waiting a few hours. **Always probe 2 cells before committing an arm**; it has
+now paid off across sessions 28 through 33.
 
 ## Campaign 3 (cell-free housekeeping) — COMPLETE as of session 26
 
@@ -194,7 +178,7 @@ before taking one.
 | 9 | COS-16 | styles | **Resolved, sessions 20 and 27.** The five contradictions COS-4 left, each edit measured on its own. Three shipped (E1, E2, E3); two retained with recorded reasons, one of them (E4) retained-not-shipped because the bundle carrying it showed an Opus word regression that none of its parts showed and dropping it removed. Cost 4500 cells across both sessions — the two baselines, the four-edit bundle's two arms, the interrupted ablation, the retried ablation, the first E1+E2+E3 attempt and the two clean arms that shipped it — of which 1183 were lost to the usage window (1127 in the interrupted ablation, 56 in `02-43-48`'s Sonnet half). |
 | 10 | COS-18 | styles | **Resolved, session 28.** Intermediate carries all four defects; advanced carries the router and, weakly, the contradiction. Diagnosis shipped, fix did not — its reserve validation was destroyed by the monthly spend limit and its retry stopped for slowness, so the measured edit moved to COS-33. See Resolved. |
 | 11 | COS-17 | measurement | **Resolved, session 29.** Beginner on Haiku and Fable, 150 non-errored cells a model, 0 errored on either arm. The four-tier beginner row is now current on every tier. See Resolved. |
-| 12 | COS-21 | measurement | The reinforcement ADR rests on five cells per arm. |
+| 12 | COS-21 | measurement | **Resolved, sessions 30-33.** All four ADR magnitude claims withdrawn or narrowed at 30x n; ADR and FINDINGS.md updated. See Resolved. |
 | 13 | COS-19 | measurement | The four-tier baseline at a sample size its claims need. Last of the measurement work, so it measures final text. |
 | 14 | COS-4 | styles | Beginner judge > 70% on Opus and Sonnet. Currently 73.9 / 58.1. Achievability unproven. |
 | 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
@@ -300,6 +284,7 @@ that omitted `--variants` ran five cells instead of one.
 | 9 | COS-16 | Task Done — 2026-08-19, sessions 20 and 27 | The first style-text change this project has shipped with every surviving edit measured on its own. `plain-english-beginner.md` moves from COS-4's pass-1 text (sha256 `96fdbea4`) to a three-edit candidate (`86451ddb`) removing the jargon-rule conflict (E1), the proof-number rule that demanded a number which may not exist and stated it three times (E2), and the router's missing precedence between two bullets that both match a tool-using report (E3). **AC #1**: five decisions recorded — three fixed, defect 5 retained (COS-15 made its worked gloss example score 1.0, so the stated reason no longer holds), defect 4 retained-not-shipped. **AC #2**: run `2026-08-20T03-03-26`, 150 non-errored cells a model against baseline `19-42-55` at the same size. **AC #3**: E1/E2/E3 each measured alone at 150 cells a model in session 20's retried ablation (`02-02-28`, `02-12-32`, `02-22-33`), all clean. **AC #4**: rules 99.16 / 97.38 against the shipped file's 98.95 / 97.37 and mean reply 62.87 / 58.69 words against 62.99 / 59.74 — stated at full precision because the Sonnet rules margin is a hundredth of a point, not a margin. **AC #5**: reserve arm `03-13-05` against `19-53-49`, 150 a model, 0 errored. **AC #6**: `audit` exit 0 on 12 checks, shipped file hashes to `86451ddb…`, byte-identical to what both arms measured. **The finding**: the four-edit bundle's Opus reply-length rise of +1.71 [+0.27, +3.16] disappears to -0.12 [-2.28, +2.04] when E4 is dropped — an interaction effect no single edit showed, catchable only because each was also measured alone, which is exactly what COS-4 could not do. All twenty paired intervals contain zero. Gates: 219/219 harness tests, `lore check` exit 0. Five documents plus the experiment ledger updated, because after this merge `19-42-55` no longer measures the file that ships. |
 | 10 | COS-18 | Task Done — 2026-08-26, session 28 | All 5 ACs verified; **the diagnosis shipped and the fix did not**, and no style file changed. **AC #1** read all three files against COS-4's four patterns with file and line for every instance. **AC #2/#4** rest on run `2026-08-20T12-12-10` — intermediate and advanced, Opus and Sonnet, the five shared cases, 30 repeats, **600 cells, 0 errored, 0 judge timeouts**: intermediate carries all four patterns; advanced carries the router and, weakly, the contradiction, and is **recorded clean** on the scoped budget and the unbounded requirement. Arm scores advanced 99.4 / 97.3 rules and 74.3 / 68.1 judge, intermediate 95.6 / 94.7 and 69.5 / 72.7 — 150 cells a figure against the four-tier table's ten, and the table's "clean split" survives it in both directions. **The arm overturned the reading twice, which is why AC #2 forbade settling it by reading.** Counting over-length violations makes advanced look *worse* than intermediate (23.6% vs 13.4% on Sonnet) because advanced overruns its cap while stating it correctly — symptom without defect. Three measures separate them: intermediate's non-status replies average 1.43× and 1.13× its cap against advanced's 0.95× and 0.85×; the grader attaches the cap to *updates* in **14 of 20 and 8 of 9** of intermediate's over-length violations and **0 of advanced's 43**, every one read by hand after a regex was caught undercounting (the earlier 35.0% / 44.4% figures are withdrawn); and intermediate breaks its cap ~3× as often while being flagged ~half as often. The reading also ranked the two contradiction instances backwards — advanced's is far sharper on the page and fires 2–4× *less* often. Cleanest result in the run: **all 138 shape violations across both files fall on non-status cases and not one on a status update**, against COS-4's 10 of 40 on beginner. **AC #3**: the fix for intermediate's scoped cap was authored and measured as a single edit (`bd326da7` → `8ea1c01b`), 300 cells, 0 errored — rules **+3.0 [+0.1, +5.8]** and words **−24.6 [−46.4, −2.8]**, both clear of zero, non-status replies 1.43× → 0.97× on Opus, rules 99.1 / 97.1 reaching parity with advanced. **AC #5 is vacuous and honestly so**: the reserve before arm lost 163 of 300 cells to the monthly spend limit (all 150 Sonnet), the retry was stopped at 141 when throughput fell to ~0.7 cells/min, so **E1 was reverted** and moved to **COS-33** with its recipe, sha256 and all four intervals. Unmeasured text does not ship, and the reserve split is where two earlier candidate rewrites failed after passing everything else. 1468 cells written across six runs, 900 of them load-bearing, 568 recorded and used for nothing. Gates: 219/219 harness tests, `audit` exit 0 unpiped, `lore check` exit 0 over 24 files. Ledger project total corrected 5140 → **6608** after an uncounted tally was caught in this session's own draft. Opened COS-30, COS-31, COS-32, COS-33. |
 | 11 | COS-17 | Task Done — 2026-08-27, session 29 | All 5 ACs verified. **Two clean arms, 0 errored cells in either**: `2026-08-27T12-35-06` (beginner × Haiku) and `2026-08-27T12-50-55` (beginner × Fable), the five shared cases, 30 repeats, 150 cells a model — composition read straight off the rows rather than assumed (5 cases × 30, `complete: true`, 0 errored, 0 no-reply). Arm means rules **95.8 / 99.3** and judge **48.2 / 65.2**, which with COS-16's 99.2 / 97.4 and 66.1 / 60.9 makes **the four-tier beginner row current on every tier for the first time** — it had been half history since COS-4. **The columns are comparable and that was checked, not assumed**: every input that could separate the two run days last changed before the earlier one (`checks.mjs`, `contracts.json`, `cases.json` at 2026-08-17; `judge.mjs`, `run.mjs` at 2026-08-18, all read from `git log`), so scorer, contract, judge prompt, runner, cases and style bytes are identical and the model is the only difference. **AC #4's answer is the strongest result**: the rewrite's length effect reproduces on both middle tiers, mean reply words falling from **1.406× to 0.899×** beginner's cap on Haiku and **1.648× to 0.830×** on Fable, **all ten case × model cells falling**, both tiers crossing from over the cap to under it. Read against COS-7: the per-tier fall (0.507 to 0.900) is larger than the largest adjacent-tier difference COS-7 could measure (0.339), and the after column turns in a different place than COS-7's sequence — so the ordering is not the capability ordering and does not survive a change of style text. **Length is a property of the file, not the tier**, which is COS-7's conclusion reached from the other direction. **AC #2** publishes paired intervals beside the means (COS-27's `interval`, pairing case × model): pooled over 10 pairs, judge +11.0 [+3.4, +18.7], words −53.0 [−91.4, −14.6], composite +8.7 [+1.8, +15.6], rules +6.4 [−0.7, +13.5]. **They are stated as directional, not as effect sizes**, and the reason is written down: the pre-rewrite side carries a pre-`3370e4d` contract on both its rules and its judge (re-scoring reads 91.1 / 91.6 against the published 90.9 / 91.4; the judge cannot be re-graded offline at all) and the COS-10 seam on its agentic cells. Dropping the agentic case — the project's own convention — keeps every sign and clears no interval at 8 pairs. The four arm means carry no confound between them and are the load-bearing figures. **AC #5 is satisfied vacuously and says so**: 0 aborted cells of 300, nothing to exclude; the task's expected Haiku write-then-verify aborts were out of scope because none of the five shared cases edits a file. **AC #3** removed the history from FINDINGS.md, the epic and the coverage story rather than footnoting it beside live numbers, and rewrote FINDINGS.md's judge-defect section, which described a row it no longer applies to. Gates: 219/219 harness tests, `audit` exit 0, `lore check` exit 0 over 24 files read unpiped. **Recorded and not resolved**: counting `rows.json` across `harness/results/` returns 6996 rows in 89 directories, which is 82 more than the ledger's running total plus this session's 302 — a discrepancy that predates COS-17, written into the ledger as open rather than papered over by picking a figure. |
+| 12 | COS-21 | Task Done — 2026-08-28, sessions 30-33 | All 5 ACs verified. **2250 cells across 3 legs x 5 arms, 2248 non-errored / 2 errored** (disk-counted, matches the sum of recorded per-arm figures — AC #5's ledger check found no discrepancy this time), 30x the ADR's original per-arm n, every figure carrying a paired 95% interval. **AC #1-#2**: beginner × Opus, beginner × Haiku, advanced × Opus (the ADR's own cell) — argued in the task plan from where reinforcement is most likely to help (beginner, closest to a CLAUDE.md restatement) vs the ADR's own claim (advanced × Opus). **AC #3**: every ADR claim checked against a leg-3 interval. The 9.4-point `claude-md` gap comes back **−0.9 [−3.6, +1.9]**, a null at a tenth the size. The 4.5-point `long-prompt` gap comes back **−0.7 [−2.6, +1.1]** on advanced × Opus and **reverses sign** on beginner × Haiku (**+5.2 [+2.1, +8.2]**, clearing zero upward). "Every layer measured worse" is withdrawn as a general claim — 3 of 4 layers cleared zero upward on Haiku. Only the tail-reminder "inside the noise band" claim is confirmed (−0.7 [−3.1, +1.7], near-exact match). The two-model Sonnet replication claim is out of scope — COS-21 ran no Sonnet leg. **AC #4**: `docs/adr/reject-harness-level-reinforcement-of-style-rules.md` updated in place (status: "Accepted, narrowed by re-test"), new evidence section and per-claim verdicts added, Decision narrowed to scope the no-reinforcement default to models already complying with the style rather than a blanket rule, Consequences rewritten to withdraw the "CLAUDE.md restatement is a liability, deleting is an improvement" claim. `FINDINGS.md`'s recommendation re-stated to match. Gates: 219/219 harness tests, `lore check` exit 0 over 24 files. |
 
 **Campaign 3.**
 
@@ -1701,3 +1686,28 @@ Both remaining issues carry known risk against that policy:
   −0.7 composite each, intervals spanning zero. Nothing in the ADR or FINDINGS.md
   was touched, deliberately: `claude-md` carries the ADR's largest number and has
   not run. Cursor stays on **COS-21**.
+
+- 2026-08-28 — session 33: **COS-21 finished: leg 3's last two arms, then the
+  analysis.** Branch `feature/COS-21` off `dev` @ `db8605e`. Probed 2 cells
+  (13s) before committing. `claude-md` (`2026-08-28T02-02-08-988Z`, 150/0,
+  ~14-19 min) came back **−0.9 [−3.6, +1.9] composite, −2.8 [−10.2, +4.6]
+  judge — the ADR's headline 9.4-point claim, a tenth the size and a null.**
+  `all-fixes` (`2026-08-28T02-20-08-256Z`, 150/0, 18m36s) came back **−1.7
+  [−4.1, +0.8] composite, −3.8 [−10.1, +2.5] judge — also a null**, unlike
+  leg 1 where `all-fixes` was the one arm that cleared zero. **Leg 3 final:
+  all four reinforcement variants are nulls on the ADR's own cell.** Grid
+  complete: 2250 attempted, 2248 non-errored, 2 errored (both leg 2). AC #5's
+  ledger check counted `rows.json` on disk across all 15 arms rather than
+  summing from memory — the disk count matched the recorded per-arm sum
+  exactly, no correction needed this time. **Analysis**: every ADR claim
+  checked against the leg-3 interval — 9.4-point and 4.5-point gaps withdrawn,
+  "every layer worse" withdrawn as a general claim (3 of 4 layers cleared
+  zero upward on Haiku), tail-reminder's noise-band claim confirmed, the
+  Sonnet replication claim out of scope. Updated
+  `docs/adr/reject-harness-level-reinforcement-of-style-rules.md` in place
+  (status: "narrowed by re-test") — decision scoped to models already
+  complying with the style rather than a blanket rule — and re-stated
+  `FINDINGS.md`'s recommendation, withdrawing the "delete CLAUDE.md tone
+  rules" advice as unproven. Gates: 219/219 harness tests, `lore check` exit
+  0 over 24 files. All 5 ACs verified and checked; task marked Done. Cursor
+  advances to **COS-19**.
