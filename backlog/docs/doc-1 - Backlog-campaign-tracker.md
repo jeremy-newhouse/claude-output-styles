@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-28 16:06'
+updated_date: '2026-08-28 20:04'
 ---
 # Backlog campaign tracker
 
@@ -15,16 +15,28 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-1 — NOT YET STARTED.** Campaign 2 item 15. Queue order was
+**Next issue: COS-28 — NOT YET STARTED.** Campaign 2 item 21. Queue order was
 confirmed by the user on 2026-08-17 (see the Campaign 2 section below). Do not
 re-ask before taking it.
+
+**COS-1 was retaken this session and parked again, half-resolved.** COS-10's
+scoring-seam fix (final message only, not the whole turn) had never been
+re-checked against AC #4's own two cases. It turned out to resolve
+`agentic-fix-verify` outright — 86.5 opus / 92.7 sonnet at n=6, both well clear
+of the 65 bar, up from session 6's contaminated 46.2/42.0 — with zero style-file
+authoring. `conv-decision-holdout` remains below bar on both models (54.5
+opus / 47.0 sonnet), a third independent measurement agreeing with session 6.
+No new authoring was attempted: session 6 already tested two passes against
+this exact failure mode (length, missing numbers, conditional
+recommendations), and the second made both cases worse. See queue item 15's
+row and the task's own notes/final-summary for the full diagnosis and the one
+untried lever (a worked example for a genuinely numberless decision, the
+pattern that worked for COS-4 pass 1 and COS-16, not yet tried here).
 
 **COS-4 was retaken in session 35 and parked again, per the risk policy
 below.** A genuinely new lever was tried — not a repeat of E1-E4 — and it read
 null at full precision after a promising small-sample signal collapsed under
-more data. See queue item 14's row and the session log for the numbers. COS-1
-(item 15) is next and has no known blocker: its dependencies (COS-10, COS-11,
-COS-13, COS-16) are all Done.
+more data. See queue item 14's row and the session log for the numbers.
 
 **COS-19 resolved in session 34, faster than expected — one session, not
 several.** Raised advanced x haiku and intermediate x haiku to n=150 (joining
@@ -181,7 +193,7 @@ before taking one.
 | 12 | COS-21 | measurement | **Resolved, sessions 30-33.** All four ADR magnitude claims withdrawn or narrowed at 30x n; ADR and FINDINGS.md updated. See Resolved. |
 | 13 | COS-19 | measurement | **Resolved, session 34.** Raised 10 of 12 four-tier cells to n=150; advanced/intermediate x Fable stayed at n=10 after repeated Fable session-limit errors, moved to COS-34 with user approval. AC #2's single-sample interval tool (review caught and fixed a pseudo-replication bug pre-merge), AC #3's bigger-than-expected finding — a proper paired-by-case re-test finds the published "clean split" holds on **no** model, including the two (Sonnet, Opus) this project had called confirmed — plus the beginner-vs-advanced rules parity withdrawal, AC #4 confirmed already-clean. See Resolved. |
 | 14 | COS-4 | styles | **Attempted again, session 35 — AC #1 missed a second time, parked per the risk policy.** Baseline (shipped text `86451ddb`, n=150/model): judge 66.1 / 60.9. Candidate (a worked "explaining a mechanism" example, added under Beginner level, targeting the term-consistency and mechanism-narration violations that dominate the three weak cases) measured at n=150/model, paired against the baseline: judge Opus +0.7 [−4.8, +6.2], Sonnet +0.5 [−5.0, +6.0], rules/words/composite all null too. A 10-repeat diagnostic (n=50/model) read Sonnet +3.6 with the same sign on all 5 cases — a genuinely unusual small-sample signal for this project — and it dissolved to null once pooled to full precision, the same noise-collapsing pattern COS-19 found on Haiku's intermediate/advanced gap. Candidate not shipped; file reverted, sha256 verified back at `86451ddb`. See the task's own notes for the violation-pattern count behind the candidate and both run stamps (`2026-08-28T15-40-33`, `2026-08-28T15-48-20`). |
-| 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
+| 15 | COS-1 | styles | **Retaken this session, half-resolved, parked again.** `agentic-fix-verify` now clears 65% on both models post-COS-10 (86.5 opus / 92.7 sonnet, n=6) with no authoring — the seam fix alone did it. `conv-decision-holdout` remains below bar on both models (54.5 / 47.0), a third measurement agreeing with session 6. No new lever tried; two prior passes already targeted this exact failure mode and one made it worse. AC #4 still unmet as a whole (both cases required). See the task's notes. |
 | 16 | COS-22 | harness | **Moved to Campaign 3, item 3, 2026-08-18; resolved session 24.** Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
 | 17 | COS-23 | protocol | **Moved to Campaign 3 item 1, 2026-08-18; resolved session 22.** `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
 | — | COS-25 | harness | **Resolved out of band, sessions 15 and 16.** Not a queue item: taken at the user's direction ahead of the cursor. Removed cost and budget tracking from the harness, the published record and this tracker, and replaced `maxBudgetUsd` with a wall-clock runaway guard. Session 15 implemented and reviewed it; session 16 fixed the review's findings and merged. Runs no cells. |
@@ -1799,3 +1811,32 @@ Both remaining issues carry known risk against that policy:
   COS-4` is the tracker's two edits and COS-4's task-file update, so this
   branch is tracker-and-record-only — reviewed inline, no `/code-review` run,
   same as any parked-issue session that ships no working code.
+- 2026-08-28 — session 36 (note: a concurrent session, name unknown, raced
+  this same restore in the same working directory during this session's
+  ground-truth check and finished the COS-4 park above — `dev`/`main` were
+  already at `2f7810a` with a fresh handover by the time this session
+  re-verified state; no data was lost, this session restarted cleanly against
+  the new cursor). **Took COS-1, item 15.** AC #4 was the only open
+  criterion; AC #1-3 were already shipped (session 6). Before authoring
+  anything, checked whether COS-10's scoring-seam fix (the judge now reads
+  the `final` message only, not the whole turn — landed after session 6's
+  attempts) had ever been re-measured against AC #4's own two cases. It had
+  not. Probe run `2026-08-28T19-56-51`, 24 cells (both cases x 3 styles x
+  opus+sonnet x repeats=2), 0 errored: `agentic-fix-verify` reads 86.5 opus /
+  92.7 sonnet, n=6, 95% CI excluding 65 from above on both — up from session
+  6's contaminated 46.2/42.0, with zero style-file changes. `conv-decision-
+  holdout` reads 54.5 opus / 47.0 sonnet, still below bar, sonnet's interval
+  excluding 65 from below — a third independent measurement agreeing with
+  session 6. No further arm was run for either case: `agentic-fix-verify`'s
+  effect size (20-30 points clear of bar) is far past what more cells could
+  overturn, and `conv-decision-holdout` already has three consistent
+  below-bar readings including two dedicated authoring passes in session 6
+  (one of which made it worse) — a fourth blind pass without a new lever
+  was not attempted. Recorded the full diagnosis and the one untried lever
+  (a numberless-decision worked example) in COS-1's notes and final summary;
+  task left at To Do (AC #4 still requires both cases on both models). Gates:
+  `npm --prefix harness test` 225/225 (`FORCE_COLOR=0`); `audit` exit 0. No
+  style file or harness code changed. Cursor advances to **COS-28**, item 21.
+  `git diff dev...feature/COS-1` is the tracker's edits and COS-1's task-file
+  update only — tracker-and-record-only, reviewed inline, no `/code-review`
+  run, same precedent as the COS-4 park sessions.
