@@ -95,6 +95,7 @@
 - 2026-08-27T20:46:08-05:00 2ec935c4cf352880434e7f12325925be989ec6b0 Re-sync docs/log.md after COS-21 session 32's rebase-merge
 - 2026-08-27T21:46:13-05:00 af27ed1f5d70b914897eae230849ca6a2b7ec876 Finish COS-21: leg 3's last two arms, narrow the reinforcement ADR
 - 2026-08-27T21:46:38-05:00 77cc9eee91561b72b83fd50dd6f60adf33ec5658 Re-sync docs/log.md after COS-21's rebase-merge
+- 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
 
 ## docs/adr
 
@@ -123,6 +124,7 @@
 - 2026-08-19T22:42:19-05:00 3813595074903fddb2ce30ce09005df94dee2694 Ship beginner's three-edit rewrite, each edit measured on its own
 - 2026-08-27T08:19:06-05:00 c2f6f8b10502b4e65e83f13081b252dda6792eea Complete the four-tier beginner row on Haiku and Fable
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
+- 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
 
 ## docs/reference
 
@@ -172,6 +174,8 @@
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
 - 2026-08-27T17:00:16-05:00 9dbbf18cdf91f3a5509cfef2569bfb7ae1ad1afc Correct session 30's non-errored cell count
 - 2026-08-27T17:00:16-05:00 eb0da72846fb9f2bfe10cb656db3fe295f9fe350 Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
+- 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
+- 2026-08-28T09:24:00-05:00 bb826095416b6418e2a4861a94733f50d5bdda4b Fix pseudo-replication in singleSampleInterval, redo the clean-split re-check
 
 ## docs/runbooks
 
@@ -263,3 +267,5 @@
 - 2026-08-27T08:19:06-05:00 f0c24759ae21f5cbc11e878968e6e79827dbe52e Fix three defects the branch review found
 - 2026-08-27T17:00:16-05:00 eb0da72846fb9f2bfe10cb656db3fe295f9fe350 Measure COS-21's first leg: beginner x Opus, five variants, 750 cells
 - 2026-08-27T21:46:38-05:00 77cc9eee91561b72b83fd50dd6f60adf33ec5658 Re-sync docs/log.md after COS-21's rebase-merge
+- 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
+- 2026-08-28T09:24:00-05:00 bb826095416b6418e2a4861a94733f50d5bdda4b Fix pseudo-replication in singleSampleInterval, redo the clean-split re-check
