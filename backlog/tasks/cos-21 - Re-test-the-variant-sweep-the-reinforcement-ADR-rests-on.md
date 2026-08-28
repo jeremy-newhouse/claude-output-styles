@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-28 02:43'
+updated_date: '2026-08-28 02:45'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -435,6 +435,8 @@ Ready for the analysis: confirm/narrow/withdraw each ADR claim against leg 3 (AC
 **Gates**: `npm --prefix harness test` 219/219 pass. `lore sync` ran clean (updated docs/log.md), `lore check` exit 0, 24 files, 0 errors, 0 warnings.
 
 **COS-21 grid final: 3 legs, 15 arms, 2250 non-errored-target cells, 2248 non-errored / 2 errored, 0 orphaned in the load-bearing set** (one earlier leg-1 arm was lost to a usage ceiling and retried clean, per session 30s notes — not counted here since it was superseded).
+
+Session 33 review correction: arm 4 (claude-md) note above cited its mean per-cell time (14.6s) instead of the arm actual wall clock. Run directory 2026-08-28T02-02-08-988Z mtime is 2026-08-27 21:19:39 local = 02:19:39Z, so elapsed is 17m31s, not the per-cell figure. No score, interval or AC evidence changes. Session cell-running total for AC 5: 2-cell probe 13s + claude-md 17m31s + all-fixes 18m36s = 36m20s, inside the 75-minute pacing budget.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
