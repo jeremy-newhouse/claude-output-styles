@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-28 16:06'
+updated_date: '2026-08-28 16:09'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -267,7 +267,7 @@ Dependencies added: COS-16, COS-20.
 
 SESSION 35 (against the shipped file, 86451ddb, post COS-16/COS-20). Re-derived the plan rather than trusting the session-9 notes above, which describe a file COS-16 has since replaced.
 
-DIAGNOSIS FROM THE CURRENT BASELINE'S OWN SAVED ROWS. Run `2026-08-20T03-03-26` (five shared cases, 150 cells/model, 0 errors) is the arm the shipped file is scored against: judge Opus 66.1, Sonnet 60.9. Per-case judge means: conv-status-auth 73.1, conv-status-holdout 85.9 (both already over 70); conv-explain-cache 49.3, agentic-read-report 51.3, conv-followup-drift 58.2 (still weak). Pulled and hand-categorized all 501 judgeViolations on the three weak cases: word/consistency complaints 181 (many are jargon-switching mislabeled by my own keyword regex, not literal length), structure/beats 83, jargon/explain 45, number/proof 35, narration 28, other 117 (mostly padding/extra-detail complaints), tone 8, analogy 1.
+DIAGNOSIS FROM THE CURRENT BASELINE'S OWN SAVED ROWS. Run `2026-08-20T03-03-26` (five shared cases, 150 cells/model, 0 errors) is the arm the shipped file is scored against: judge Opus 66.1, Sonnet 60.9. Per-case judge means: conv-status-auth 73.1, conv-status-holdout 85.9 (both already over 70); conv-explain-cache 49.3, agentic-read-report 51.3, conv-followup-drift 58.2 (still weak). Pulled and hand-categorized all 501 judgeViolations on the three weak cases: word/consistency complaints 181 (many are jargon-switching mislabeled by my own keyword regex, not literal length), structure/beats 83, jargon/explain 45, number/proof 35, narration 28, other 117 (mostly padding/extra-detail complaints), tone 8, vague/generic 3, analogy 1 (181+83+45+35+28+117+8+3+1 = 501, checked).
 
 THE PATTERN, read from the violation text itself, not from the category counts: term-consistency drift. The model picks a plain word once ("saved copy") then reverts mid-reply to "cache", "database", "store", "the copy" interchangeably — heavily on conv-explain-cache and agentic-read-report, both of which require explaining a mechanism. Separately, a cluster of violations fault mechanism-level narration ("checks the copy, misses, then goes to the real source") where the file asks for outcome-level translation. Both are behaviors the file's rules already forbid (one-word-one-meaning; skip internal details) — the rules were not contradictory here (E1-E3 already fixed the contradictions), the file just has no worked example demonstrating either rule under the pressure of actually explaining something. The file's only example (the API gloss) is a one-line status update, not an explanation.
 
@@ -281,7 +281,7 @@ Good: \"**Most likely:** too many jobs are using the same account at once, so th
 
 Notice the good version never switches names for the thing that is holding requests back — no \"rate limiter,\" \"queue,\" and \"throttle\" for one idea. It names what happens to the reader (\"wait their turn,\" \"give up\") instead of the machinery."
 
-Candidate sha256 was `60c5a51c141cc0aa6b92c6458a65e6281ab54554b42de363dd2370c3ecdaaf7`. `node src/cli.mjs audit` exit 0 on the candidate (caps unchanged, only prose added).
+Candidate sha256 was `60c5a51c141cc0aa6b92c6458a65e6281ab54554b42de363dd2370c3ecdaaf73` (re-verified by reconstructing the candidate from the shipped text plus the literal insertion above and hashing it — a prior draft of this note recorded a 63-character, one-digit-short truncation of the same value; corrected). `node src/cli.mjs audit` exit 0 on the candidate (caps unchanged, only prose added).
 
 PRE-EXISTING, UNRELATED HARNESS ISSUE FOUND AND WORKED AROUND, NOT FIXED. `npm --prefix harness test` read 222/225 on this host before any edit. Root cause: this shell exports `FORCE_COLOR=3`; `test/fixture.test.mjs`'s `cleanEnv()` copies `process.env` and strips only `NODE_TEST_CONTEXT`/`NODE_OPTIONS`, not color vars, so the spawned `node --test --test-reporter=spec` child (Node v26.7.0) wraps its `ℹ pass/fail/skipped/todo` summary lines in ANSI escapes. The fixture's `summaryField()` regex is anchored `^ℹ ` and cannot match a line starting with an escape code, so it reads `NaN` and three assertions fail. Reproduced identically on unmodified `dev` at `f25d755` — this predates the session and is not a regression from this task's work. Every gate in this session was run with `FORCE_COLOR=0` (225/225 clean) rather than touched in the harness, since a fixture-parser fix is out of scope for a prose task. Worth a follow-up backlog issue against `cleanEnv()` in `harness/test/fixture.test.mjs`.
 
@@ -300,7 +300,7 @@ Pooled: judge +0.6 [-2.4, +3.6], rules -0.1 [-0.2, +0.1], words -0.3 [-2.3, +1.8
 
 VERDICT: candidate is a clean null, neither harmful nor beneficial on any of the four metrics, at adequate n on both models. Per COS-1's precedent (unmeasured or non-beneficial text does not ship) and COS-16's E4 precedent (a null single-lever addition is retained-not-shipped, not forced in), the style file was reverted to the shipped bytes. sha256 re-verified as `86451ddb16b273426eca5318d20169b6bfa1b0f6dd304872c3b9625da7a167c3`. `node src/cli.mjs audit` exit 0 and `FORCE_COLOR=0 npm --prefix harness test` 225/225 clean on the reverted file.
 
-AC #1 — NOT MET, second attempt. Judge on the shipped text remains Opus 66.1, Sonnet 60.9 at n=150 each (unchanged — this session ran no new baseline, the existing one from session 27/COS-16 stands and the candidate that was tested against it is not shipped). Bar is 70 on both. Gap: Opus 3.9, Sonnet 8.6 (using this session's freshly-measured 61.4 read is not applicable since that text is not shipped; the shipped-text gap is unchanged at Opus 3.9, Sonnet 9.1).
+AC #1 — NOT MET, second attempt. Judge on the shipped text remains Opus 66.1, Sonnet 60.9 at n=150 each (unchanged — this session ran no new baseline, the existing one from session 27/COS-16 stands and the candidate that was tested against it is not shipped). Bar is 70 on both. Gap: Opus 3.9, Sonnet 9.1 (70 − 60.9; this session's freshly-measured 61.4 read on the tested candidate is not applicable here since that text is not shipped).
 
 Task returned to To Do per the campaign's record-and-park risk policy (tracker doc-1, "Risk policy" section) — the same disposition COS-1 and COS-4's first attempt both received. Nothing is marked Done that was not done. This was a genuinely new, well-motivated lever (a worked example targeting a diagnosed behavioral gap, not a repeat of E1-E4's contradiction/router-structure edits), tested at full statistical precision on both models, and it came back null. That is a legitimate, informative result, not an incomplete attempt.
 <!-- SECTION:NOTES:END -->
