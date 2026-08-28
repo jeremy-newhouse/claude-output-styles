@@ -263,10 +263,26 @@ table). Advanced x Fable and intermediate x Fable are the exception: repeated
 session-limit errors on `claude-fable-5[1m]` stopped COS-19 from raising them
 past their original ten cells, so this story's own bar — "every conclusion... is
 confirmed, narrowed, or withdrawn against those intervals" — is met for ten
-cells and open for two, tracked in COS-34. **One conclusion moved on
-re-check**: the "clean split" (which models rank intermediate above advanced on
-the judge, and which rank the reverse) held on Sonnet and Opus at 150 cells but
-collapsed on Haiku, where the 9.3-point gap the ten-cell arm showed narrowed to
-1.6 points with heavily overlapping intervals — withdrawn as a Haiku finding.
-Beginner's "beats advanced on three tiers of four" rules claim also did not
-survive advanced's own 150-cell figures and is restated as parity.
+cells and open for two, tracked in COS-34.
+
+**The single-sample interval tool this AC needed found its own bug first.**
+Treating 150 rows (5 cases x 30 repeats) as 150 independent observations
+understated every interval by roughly 5x — code review caught it before
+merge. Fixed to group by case first (`interval.mjs`'s `singleSampleInterval`),
+the honest bands are wide on every cell, old and new: n=5 (case count)
+regardless of repeat count, because more repeats of the same 5 cases narrows
+noise in each case's own mean but buys nothing against case-to-case spread.
+
+**That fix changed what AC #3's re-check could actually show, and the result
+is bigger than one withdrawn conclusion.** The "clean split" (which models
+rank intermediate above advanced on the judge, and which rank the reverse)
+had only ever been checked by subtracting arm means — never with this
+project's own paired-interval method, which pairs by case and is exactly the
+tool for this question. Run properly across all four models, **every
+interval contains zero**, including Sonnet and Opus, which this project's own
+text had called "confirmed." Haiku is the one instructive case: its point
+estimate itself fell from +9.3 (n=10) to +1.6 (n=150) as the paired SE
+dropped from 7.4 to 1.2 — real precision gain from more repeats, on the
+paired comparison, not on the single-sample table. Beginner's "beats advanced
+on three tiers of four" rules claim also did not survive advanced's own
+150-cell figures and is restated as parity.

@@ -32,8 +32,11 @@ output-style harness
   interval a paired 95% Student-t interval between two saved runs on the same cases —
            pairs rows by case + model, averaging repeats within a pair. --before/--after
            each take a comma-separated list of rows.json paths, pooled before pairing.
-           --rows alone gives a single-sample 95% interval on one run's own mean instead
-           of a before/after comparison. Runs no cell — reads saved rows only
+           --rows alone (also comma-separable, unlike score/judge's single-path --rows)
+           gives a single-sample 95% interval over one run's per-case means instead of
+           a before/after comparison — n is the case count, not the row count, so more
+           repeats per case narrows this only a little; it narrows a paired comparison
+           a lot. Runs no cell — reads saved rows only
 
   --help   print this and exit, on any subcommand
 `
