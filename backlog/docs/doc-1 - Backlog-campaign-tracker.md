@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-27 23:34'
+updated_date: '2026-08-28 01:44'
 ---
 # Backlog campaign tracker
 
@@ -28,14 +28,21 @@ of them. **The cursor stays on COS-21 until its ADR is updated** — session 30
 resolved leg 1 and session 31 ran four of leg 2's five arms; neither advanced
 the cursor, because the issue is not done.
 
-**Where COS-21 stands after session 31:** leg 1 complete (5 arms), leg 2 at 4 of 5
-arms — `all-fixes` still to run, ~16 minutes — leg 3 (advanced × Opus) not started
-and budgeted at two sessions. Then one analysis session for the ADR and FINDINGS.md.
-**Leg 2 put reinforcement on the positive side of zero on Haiku**, where on Opus it
-was neutral-to-negative — every leg 1 variant scored below baseline, but only
-`all-fixes` cleared zero. That is a hypothesis about tier-dependence, not a finding — leg 3 is
-the ADR's own cell (advanced × Opus) and nothing is confirmed, narrowed or withdrawn
-before it runs.
+**Where COS-21 stands after session 32:** leg 1 complete (5 arms), **leg 2 complete
+(5 arms)**, leg 3 (advanced × Opus) at **3 of 5 arms** — `claude-md` and `all-fixes`
+remain, ~19 minutes each. Then one analysis session for the ADR and FINDINGS.md.
+**Leg 3 is now producing nulls in the ADR's own cell.** `long-prompt` is
+−0.7 [−2.6, +1.1] composite and `tail-reminder` −0.7 [−3.1, +1.7], both against an
+88.40 baseline, both with judge intervals about 10 points wide. The ADR quotes a
+4.5-point long-prompt gap off five cells; at 150 cells that size is not supported,
+though the direction is still faintly negative. **This does not settle the ADR** —
+its headline claim is the 9.4-point `claude-md` restatement gap, and that arm has
+not run.
+
+**Rate correction.** The plan sized advanced at ~5 cells/min. Session 32 measured
+**7.9 cells/min** across three arms (19m02s, 18m25s, 16m07s). An advanced arm is
+~19 minutes, so leg 3 is ~95 minutes total and the two remaining arms fit one
+session with room for the analysis to start.
 
 Grid, argued in the task's plan and settled: **beginner × Opus** (leg 1, done),
 **beginner × Haiku** (leg 2, 4 of 5 arms), **advanced × Opus** (leg 3 — the ADR's own cell,
@@ -1678,3 +1685,19 @@ Both remaining issues carry known risk against that policy:
   A tail-reminder arm was also launched from the repo root instead of `harness/`
   and died on `MODULE_NOT_FOUND` in under a second — no results directory, no
   cells spent, re-run clean.
+
+- 2026-08-28 — session 32: **COS-21 leg 2 finished and leg 3 opened.** Branch
+  `feature/COS-21` off `dev` @ `b87dfc5`. Four arms, **600 cells attempted, 600
+  non-errored, 0 errored** — the campaign's cleanest session — in **68m47s** of
+  cell running against the ~75-minute pacing budget, stopped at a variant
+  boundary. Leg 2 arm 5 `all-fixes` (`2026-08-28T00-33-04-943Z`, 15m13s) came in
+  at composite 72.77 vs the 68.69 baseline: **+4.1 [+1.9, +6.3]** composite,
+  **+6.9 [+2.6, +11.2]** judge, words **−10.6 [−18.4, −2.9]**. That makes **three
+  of leg 2's four reinforcement variants clear zero upward on Haiku**, with
+  `claude-md` a score null that still shortens replies. Leg 3 then began on the
+  ADR's own cell: baseline `2026-08-28T00-49-16-410Z` at composite 88.40 (rules
+  98.34, judge 65.22, 109.7 words), `long-prompt` `01-08-39` at 87.67, and
+  `tail-reminder` `01-27-19` at 87.69. **Both reinforcement arms are nulls** —
+  −0.7 composite each, intervals spanning zero. Nothing in the ADR or FINDINGS.md
+  was touched, deliberately: `claude-md` carries the ADR's largest number and has
+  not run. Cursor stays on **COS-21**.
