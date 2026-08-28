@@ -93,6 +93,7 @@
 - 2026-08-27T17:00:39-05:00 6f7018371e9a2f6dee12e43ffb0917e98198dc43 Re-sync docs/log.md after COS-21's rebase-merge
 - 2026-08-27T18:35:32-05:00 8c7283806608a7e5849823e5274e7b540ee1343c Re-sync docs/log.md after COS-21 leg 2's rebase-merge
 - 2026-08-27T20:46:08-05:00 2ec935c4cf352880434e7f12325925be989ec6b0 Re-sync docs/log.md after COS-21 session 32's rebase-merge
+- 2026-08-27T21:46:13-05:00 af27ed1f5d70b914897eae230849ca6a2b7ec876 Finish COS-21: leg 3's last two arms, narrow the reinforcement ADR
 
 ## docs/adr
 
@@ -103,6 +104,7 @@
 - 2026-08-16T19:26:40-05:00 946c630b7e6192a89e7b3e4b4a63bebfbc52abcb Measure all three styles on Fable, and settle whether verbosity tracks tier
 - 2026-08-16T19:26:40-05:00 e13835266201d02fce61c139482100af7e1ba80e Correct four figures found by re-deriving them from the saved rows
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
+- 2026-08-27T21:46:13-05:00 af27ed1f5d70b914897eae230849ca6a2b7ec876 Finish COS-21: leg 3's last two arms, narrow the reinforcement ADR
 
 ## docs/epics
 
