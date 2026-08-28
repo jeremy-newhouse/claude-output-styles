@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-08-17 03:48'
-updated_date: '2026-08-27 23:34'
+updated_date: '2026-08-28 01:43'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies:
@@ -285,4 +285,81 @@ Reinforcement appears to help a model that is failing the style more often to be
 That is a hypothesis this leg supports, not a finding COS-21 can act on. **Two of its three legs are now in and the ADR is still untouched, deliberately** — the ADR was measured on advanced x Opus, and leg 3 is that exact cell. Nothing is confirmed, narrowed or withdrawn until leg 3 runs.
 
 **Remaining work:** leg 2 arm 5 (`all-fixes`, ~16 min), then leg 3 (advanced x Opus, 5 arms at the slower advanced rate — the plan budgets two sessions for it), then the analysis session that updates the ADR and FINDINGS.md.
+
+## Session 32 — leg 2 completed (beginner x Haiku, arm 5 of 5)
+
+Probe `2026-08-28T00-32-43-976Z` (2 cells, baseline) cleared before committing the arm.
+
+**Arm 5 — `all-fixes`, run `2026-08-28T00-33-04-943Z`**: 150 rows / **150 non-errored / 0 errored**. Wall clock **15m13s** (00:33:04Z -> 00:48:17Z), mean 16.3 s/cell at concurrency 4.
+rules 94.55, judge 50.99, **composite 72.77**, mean 76.4 words.
+
+**Paired 95% intervals vs leg 2 baseline `2026-08-27T22-24-10-642Z`** (15 pairs, df=14):
+
+| metric | delta | 95% CI | clears zero |
+|---|---|---|---|
+| composite | +4.1 | [+1.9, +6.3] | yes, upward |
+| judge | +6.9 | [+2.6, +11.2] | yes, upward |
+| rules | +1.2 | [-0.1, +2.5] | no |
+| words | -10.6 | [-18.4, -2.9] | yes, downward |
+
+**Leg 2 is now complete: 5 arms, 750 attempted / 748 non-errored / 2 errored.** Composite by arm against baseline 68.69: long-prompt 73.73, all-fixes 72.77, tail-reminder 71.83, claude-md 70.70.
+
+Three of the four reinforcement variants clear zero **upward** on composite (long-prompt +5.2, all-fixes +4.1, tail-reminder +3.3); claude-md is a score null (+2.0 [-1.6, +5.6]) that still cuts words -15.9 [-22.4, -9.3].
+
+This is the opposite direction from leg 1 (beginner x Opus), where only all-fixes cleared zero and it cleared **downward** (-2.8 [-5.2, -0.5]) and the other three were nulls. **Nothing is concluded from this** — neither leg is the ADR's cell. Leg 3 (advanced x Opus) is.
+
+## Session 32 — leg 3 (advanced x Opus), arm 1 of 5
+
+This is the ADR's own cell — advanced style, Opus — at 30x the n of run `20-12-55`, on style text rewritten since.
+
+Probe `2026-08-28T00-49-05-794Z` (2 cells) cleared first.
+
+**Arm 1 — `baseline`, run `2026-08-28T00-49-16-410Z`**: 150 rows / **150 non-errored / 0 errored**. Wall clock **19m02s** (00:49:16Z -> 01:08:18Z), mean 14.4 s/cell at concurrency 4.
+rules 98.34, judge 65.22, **composite 88.40**, mean 109.7 words.
+
+**Rate correction for planning.** The plan sized advanced at ~5 cells/min from session 29. Measured here at **7.9 cells/min** — an advanced arm is ~19 minutes, not ~30. Leg 3 therefore fits in about 95 minutes of cell running, so roughly two sessions at the 75-minute pacing budget rather than the two-plus the plan assumed.
+
+## Session 32 — leg 3 arm 2 of 5
+
+**Arm 2 — `long-prompt`, run `2026-08-28T01-08-39-105Z`**: 150 rows / **150 non-errored / 0 errored**. Wall clock **18m25s** (01:08:39Z -> 01:27:04Z), mean 14.9 s/cell at concurrency 4.
+rules 98.23, judge 63.03, **composite 87.67**, mean 108.5 words.
+
+**Paired 95% intervals vs leg 3 baseline `2026-08-28T00-49-16-410Z`** (15 pairs, df=14):
+
+| metric | delta | 95% CI | clears zero |
+|---|---|---|---|
+| composite | -0.7 | [-2.6, +1.1] | no |
+| judge | -2.2 | [-7.3, +2.9] | no |
+| rules | -0.1 | [-0.7, +0.5] | no |
+| words | -1.0 | [-7.0, +5.0] | no |
+
+**This is a null on every metric, in the ADR's own cell.** The ADR quotes a 4.5-point gap for the forced long prompt off five cells; at 150 cells per arm the effect is -0.7 with an interval spanning zero, and the judge interval is 10 points wide. The direction is still negative, but the size the ADR asserts is not supported.
+
+Do not generalise this to the other variants yet — three arms of leg 3 remain (`claude-md`, `all-fixes`, and `tail-reminder` which is running as this note is written). The ADR's largest claim is the 9.4-point CLAUDE.md restatement gap, and that arm has not run.
+
+## Session 32 — leg 3 arm 3 of 5, and stop at budget
+
+**Arm 3 — `tail-reminder`, run `2026-08-28T01-27-19-042Z`**: 150 rows / **150 non-errored / 0 errored**. Wall clock **16m07s** (01:27:19Z -> 01:43:26Z), mean 13.6 s/cell at concurrency 4.
+rules 98.31, judge 62.93, **composite 87.69**, mean 109.5 words.
+
+**Paired 95% intervals vs leg 3 baseline** (15 pairs, df=14):
+
+| metric | delta | 95% CI | clears zero |
+|---|---|---|---|
+| composite | -0.7 | [-3.1, +1.7] | no |
+| judge | -2.3 | [-9.2, +4.6] | no |
+| rules | -0.0 | [-0.7, +0.7] | no |
+| words | +0.1 | [-6.3, +6.4] | no |
+
+**Session 32 stop.** Cell running this session: 15m13s + 19m02s + 18m25s + 16m07s = **68m47s across four arms**, plus two 2-cell probes, against the user's ~75-minute pacing budget. Stopped at a variant boundary as the plan requires. **600 cells attempted, 600 non-errored, 0 errored** — the cleanest session of the campaign.
+
+**Leg 3 so far (advanced x Opus, the ADR's own cell), 3 of 5 arms:**
+
+| arm | composite | vs baseline | judge CI |
+|---|---|---|---|
+| baseline | 88.40 | — | — |
+| long-prompt | 87.67 | -0.7 [-2.6, +1.1] | -2.2 [-7.3, +2.9] |
+| tail-reminder | 87.69 | -0.7 [-3.1, +1.7] | -2.3 [-9.2, +4.6] |
+
+Both measured reinforcement variants are **nulls**, consistently ~0.7 below baseline but with intervals spanning zero. **`claude-md` and `all-fixes` remain, and `claude-md` carries the ADR's largest claim (a 9.4-point restatement gap).** Nothing is confirmed, narrowed or withdrawn until both run: two nulls do not settle an ADR whose headline number comes from the arm not yet measured.
 <!-- SECTION:NOTES:END -->
