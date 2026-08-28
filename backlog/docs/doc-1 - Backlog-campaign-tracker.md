@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-28 14:19'
+updated_date: '2026-08-28 16:06'
 ---
 # Backlog campaign tracker
 
@@ -15,9 +15,16 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-4 — NOT YET STARTED.** Campaign 2 item 14. Queue order was
+**Next issue: COS-1 — NOT YET STARTED.** Campaign 2 item 15. Queue order was
 confirmed by the user on 2026-08-17 (see the Campaign 2 section below). Do not
 re-ask before taking it.
+
+**COS-4 was retaken in session 35 and parked again, per the risk policy
+below.** A genuinely new lever was tried — not a repeat of E1-E4 — and it read
+null at full precision after a promising small-sample signal collapsed under
+more data. See queue item 14's row and the session log for the numbers. COS-1
+(item 15) is next and has no known blocker: its dependencies (COS-10, COS-11,
+COS-13, COS-16) are all Done.
 
 **COS-19 resolved in session 34, faster than expected — one session, not
 several.** Raised advanced x haiku and intermediate x haiku to n=150 (joining
@@ -173,7 +180,7 @@ before taking one.
 | 11 | COS-17 | measurement | **Resolved, session 29.** Beginner on Haiku and Fable, 150 non-errored cells a model, 0 errored on either arm. The four-tier beginner row is now current on every tier. See Resolved. |
 | 12 | COS-21 | measurement | **Resolved, sessions 30-33.** All four ADR magnitude claims withdrawn or narrowed at 30x n; ADR and FINDINGS.md updated. See Resolved. |
 | 13 | COS-19 | measurement | **Resolved, session 34.** Raised 10 of 12 four-tier cells to n=150; advanced/intermediate x Fable stayed at n=10 after repeated Fable session-limit errors, moved to COS-34 with user approval. AC #2's single-sample interval tool (review caught and fixed a pseudo-replication bug pre-merge), AC #3's bigger-than-expected finding — a proper paired-by-case re-test finds the published "clean split" holds on **no** model, including the two (Sonnet, Opus) this project had called confirmed — plus the beginner-vs-advanced rules parity withdrawal, AC #4 confirmed already-clean. See Resolved. |
-| 14 | COS-4 | styles | Beginner judge > 70% on Opus and Sonnet. Currently 73.9 / 58.1. Achievability unproven. |
+| 14 | COS-4 | styles | **Attempted again, session 35 — AC #1 missed a second time, parked per the risk policy.** Baseline (shipped text `86451ddb`, n=150/model): judge 66.1 / 60.9. Candidate (a worked "explaining a mechanism" example, added under Beginner level, targeting the term-consistency and mechanism-narration violations that dominate the three weak cases) measured at n=150/model, paired against the baseline: judge Opus +0.7 [−4.8, +6.2], Sonnet +0.5 [−5.0, +6.0], rules/words/composite all null too. A 10-repeat diagnostic (n=50/model) read Sonnet +3.6 with the same sign on all 5 cases — a genuinely unusual small-sample signal for this project — and it dissolved to null once pooled to full precision, the same noise-collapsing pattern COS-19 found on Haiku's intermediate/advanced gap. Candidate not shipped; file reverted, sha256 verified back at `86451ddb`. See the task's own notes for the violation-pattern count behind the candidate and both run stamps (`2026-08-28T15-40-33`, `2026-08-28T15-48-20`). |
 | 15 | COS-1 | styles | Judge > 65% on the two weak cases. Achievability unproven, and its arms were never sized. |
 | 16 | COS-22 | harness | **Moved to Campaign 3, item 3, 2026-08-18; resolved session 24.** Harden the fixture guard COS-13 added. Four gaps, one of which already fired unnoticed on the branch that introduced the guard. Runs no cells. |
 | 17 | COS-23 | protocol | **Moved to Campaign 3 item 1, 2026-08-18; resolved session 22.** `docs/log.md` cites SHAs that `gh pr merge --rebase` destroys. Systemic across the campaign, not a COS-13 defect. Runs no cells. |
@@ -1744,3 +1751,51 @@ Both remaining issues carry known risk against that policy:
   COS-19 marked Done with AC #1 unchecked and the caveat recorded. Cursor
   advances to **COS-4**, item 14 — COS-34 stays appended behind items 14-26,
   not next.
+
+- 2026-08-28 — session 35: restored, verified no drift (`dev`/`main` both at
+  `f25d755`, clean apart from an untracked `system-prompt.md` predating the
+  campaign, no leftover branches, no open PRs, COS-4 To Do with COS-16/COS-20
+  both Done, tracker cursor agreed), branched `feature/COS-4` off `dev`. Read
+  COS-4's full task record rather than trusting the session-9 plan, which
+  described a file COS-16 has since replaced. **Diagnosed from the current
+  baseline's own saved rows** (`2026-08-20T03-03-26`, the arm the shipped file
+  `86451ddb` is scored against) rather than from memory: pulled all 501
+  `judgeViolations` on the three weak cases and hand-categorized them. The
+  dominant pattern was term-consistency drift — the model picks a plain word
+  once ("saved copy") then reverts to "cache"/"database"/"store" mid-reply on
+  the two cases that require explaining a mechanism — plus mechanism-level
+  narration where the rules ask for outcome-level translation. This is a
+  behavioral gap the rules already forbid but never illustrate; COS-16's E1-E4
+  all touched contradictions or router structure, none added a worked example.
+  **Authored one candidate**: a worked "explaining a mechanism" example under
+  Beginner level, on a concept (rate limiting) absent from all 15 harness
+  cases to avoid overfitting either split. `audit` exit 0 after the edit.
+  Found `npm --prefix harness test` failing 3/225 on this host — root-caused
+  to `FORCE_COLOR=3` in the shell leaking into the fixture's spawned child,
+  which `cleanEnv()` does not strip, so Node 26's spec reporter wraps its
+  summary lines in ANSI codes the fixture's regex parser can't read. Confirmed
+  identical on unmodified `dev`, so it predates this session and is not this
+  task's to fix; worked around locally with `FORCE_COLOR=0` (225/225 clean),
+  worth a follow-up issue against `harness/test/fixture.test.mjs`. Probed 2
+  cells (clean), then a 10-repeat diagnostic (100 cells, 0 errored) before
+  paying for a full arm: judge +1.5 [−4.3, +7.3] pooled, and per-model Sonnet
+  read +3.6 with the same sign on all 5 cases — an unusually consistent
+  small-sample read for this project. Scaled to n=150/model (200 more cells,
+  0 errored, pooled with the diagnostic per COS-17's identical-text/cases/
+  models/variant pooling rule). **The signal did not survive**: pooled judge
+  +0.6 [−2.4, +3.6], Opus +0.7 [−4.8, +6.2], Sonnet +0.5 [−5.0, +6.0], rules
+  −0.1 [−0.2, +0.1], words −0.3 [−2.3, +1.8], composite +0.3 [−1.3, +1.8] —
+  every interval contains zero, and the per-case Sonnet deltas that had all
+  been positive at n=10 (`agentic-read-report` most of all) flipped sign at
+  n=30. Reverted the style file to the shipped bytes, sha256 re-verified as
+  `86451ddb`; `audit` and `npm --prefix harness test` (`FORCE_COLOR=0`) both
+  clean after the revert. **AC #1 missed a second time — record and park, per
+  the risk policy.** Recorded the full diagnosis, the candidate's edit recipe,
+  both run stamps, and the corrected arm means in COS-4's task notes; task
+  left at To Do (not Done), same status COS-1 already carries. No docs/ files
+  needed a change (FINDINGS.md's beginner section already states the current
+  bar and gap; this session added no new published figure). Cursor advances to
+  **COS-1**, item 15, which has no known blocker. `git diff dev...feature/
+  COS-4` is the tracker's two edits and COS-4's task-file update, so this
+  branch is tracker-and-record-only — reviewed inline, no `/code-review` run,
+  same as any parked-issue session that ships no working code.

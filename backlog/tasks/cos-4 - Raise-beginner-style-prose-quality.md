@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-08-16 12:44'
-updated_date: '2026-08-17 03:48'
+updated_date: '2026-08-28 16:06'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -37,25 +37,18 @@ The gap is in what the style asks for, not how well it is followed. Judge compla
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. RE-MEASURE THE BEFORE. The 45.9/48.4 in the description is not a usable baseline for two independent reasons. (a) It comes from run 12-44-03, which predates COS-1's +26 lines to the beginner file. (b) That run's contracts graded beginner at maxSentenceWords=15, a number no style file states; commit 3370e4d corrected it to 20 and re-graded the RULES offline, but the JUDGE cannot be re-graded for free and was left as measured. 13 of the 64 beginner judge violations in that run cite 'the 15-word hard limit' explicitly. The headline judge figure for this task was measured against a rule nobody wrote.
-
-2. DIAGNOSIS from run 12-44-03's beginner rows, per case (judge / rules): conv-status-holdout 77.8/99.5, conv-status-auth 61.0/98.6, conv-followup-drift 41.3/97.7, agentic-read-report 37.0/80.8, conv-explain-cache 18.8/78.2. The two status-update cases already sit at or near the 70 bar. The mean is dragged down by three cases, and the file has no section for two of the three shapes.
-
-3. THE STRUCTURAL DEFECT, which is not a wording gap and not the missing-content gap COS-1 chased. Beginner's file demands content its own budget cannot fit, and the judge enforces both sides. 'Use everyday analogies' and 'Explain what a thing IS before you say what happened to it' are unbounded requirements that cost 15-25 words each; 'Keep the whole update under about 80 words' is scoped to status updates only, while the harness applies 80 to every reply and tells the judge it is a hard limit. Measured both directions in the same run: a 222-word explain-cache reply is failed for being 'several times over the ~80-word hard limit', and a 60-word status reply is failed because it 'never establishes what a database is'. Separately, 'Skip all internal details ... Translate outcomes, not mechanics' is read by the judge as forbidding the very evidence beat 2 requires: 'All 14 checks pass' and '1.8s to 0.34s' are both cited as violations. The style contradicts itself.
-
-4. THE AUTHORING THESIS, taken from what the best-scoring file already does. Advanced (73.9/66.0) states its budget as universal, prints a worked example labelled with its word count, says which content to cut first when over, and explicitly permits numbers ('Numbers when they change the decision: ... test counts'). Beginner does none of the four. This is porting proven mechanisms into the weakest file and removing a contradiction, not adding prohibitions. It is deliberately the opposite of COS-1's rejected pass 2, which restated caps and added bans and scored below the original text.
-
-5. CHANGES TO plain-english-beginner.md, all in one pass: (a) generalise the 80-word budget from 'update' to any reply, and say what to cut first; (b) add a word-counted target example, as advanced has; (c) ration the analogy to at most one per reply, and bound 'explain what a thing IS' to a short phrase, only for a thing the outcome depends on, never for a word the reader used first; (d) state that one number that proves the outcome is not an internal detail, resolving the contradiction with beat 2; (e) add a section for explaining why something happens - the worst case in the set has no template at all, which is why the model defaults to a five-cause essay; (f) add a section for follow-up turns, where the file currently says nothing and the model goes chatty and drops the three beats; (g) rule out announcing an action before taking it, which is what agentic-read-report's process-narration violations actually quote.
-
-6. AUDIT CONSTRAINT: contract-audit parses stated caps out of the prose. Every restatement of the reply cap must say 80 and nothing else, or statedValues returns two numbers and the field goes 'ambiguous'. Do not add any 'code under N lines' phrasing - 'Never show code' is what sets beginner's maxCodeLines to 0.
-
-7. MEASUREMENT, all beginner-only, variants=baseline, models=opus,sonnet. BEFORE shared: the five shared cases (conv-status-auth, conv-explain-cache, agentic-read-report, conv-status-holdout, conv-followup-drift), repeats=2, 20 cells, ~2.50 USD at run 12-44-03's measured per-cell costs. BEFORE reserve: the six reserve cases, repeats=1, 12 cells. Then author, then the same two arms again. AC #1 is scored on the five shared cases, the unit the story's four-tier table and the 45.9/48.4 figure both use; AC #3 on reserve.
-
-8. BUDGET ~20 USD. Planned: 4 arms at ~2.50-3.00 plus headroom for one further authoring pass. Budget off the worst cell, not the mean: agentic-read-report opus ran 0.2578 mean.
-
-9. GATES: npm --prefix harness test 64/64; node src/cli.mjs audit exit 0; lore sync then lore check exit 0; every run appended to the experiment ledger; filter !row.error before quoting any mean, because an errored cell scores 0 on rules and 1.0 on the judge.
-
-10. DO NOT run improve. Six optimizer rewrites have failed on this file, the loop optimises rules, and beginner's rules already pass at over 90% while its prose does not. The optimizer cannot see the thing that is wrong.
+1. RE-DERIVE FROM CURRENT STATE, not the 2026-08-17 session-9 plan. Read the current shipped plain-english-beginner.md (sha256 86451ddb). Of COS-4's own five originally-diagnosed defects, four are already fixed: (a) the jargon rule's product-name conflict — COS-16, style text; (b) the 'one number' rule demanding a number that may not exist — COS-16, style text; (c) the router's missing precedence between two matching bullets — COS-16, style text; (d) the worked example using a banned term (API) — COS-15, fixed in checks.mjs's no_jargon via firstUseIsUnglossed, not in the style file. One remains, confirmed by reading the current file: the router (lines 27-36) lists only 4 of the file's 6 defined shapes, omitting "Reporting a long session" (line 54) and "Answering a follow-up" (line 101).
+2. BASELINE, reused not re-measured. Verified via git log that plain-english-beginner.md has not changed since COS-16's last edit (3813595, 2026-08-19 22:29:46), which predates both of COS-16's n=150 measurement runs. So those runs are the current file's own before-state: shared five cases (2026-08-20T03-03-26, 300 cells) rules 99.2/97.4, judge 66.1/60.9 opus/sonnet; reserve six cases (2026-08-20T03-13-05, 300 cells) rules 97.0/95.2, judge 65.4/58.1. Reusing these instead of re-running a before arm.
+3. WHY THIS BAR MAY NOT BE REACHABLE, stated before spending. COS-16's own ablation found removing 3 of these same 5 contradictions moved the judge +1.3 [-15.0,+17.6] on shared and +7.1 [-7.0,+21.2] on reserve at n=150 per model — neither significant, both contain zero. This edit is a single previously-untested lever (the remaining router gap), not a re-run of something already shown null. If it also moves nothing, the honest conclusion is that this instrument cannot resolve further gains on this file, and the task returns to To Do again with that stated plainly.
+4. THE EDIT, in plain-english-beginner.md only, no other file. Add to the router (lines 27-36): a clause on the job-finished bullet routing multi-step work to the long-session shape (it's a reporting cadence for the same underlying shape, not a competing one), and a new bullet routing a later turn about already-reported work to the follow-up shape (a distinct trigger). No change to any stated cap, no new banned-word phrasing — audit-safe by construction.
+5. GATES before any measurement: node src/cli.mjs audit exit 0; npm --prefix harness test green.
+6. PROBE 2 cells (opus+sonnet x 1 shared case, repeats=1) before committing a full arm, per campaign convention.
+7. MEASURE, sized to match COS-16's before arms for a clean paired comparison: shared five cases, opus+sonnet, repeats=30 (150 cells/model); reserve six cases, opus+sonnet, repeats=25 (150 cells/model). ~600 cells total, ~60-70 min at beginner's measured throughput.
+8. PAIRED ANALYSIS via interval --before=<COS-16 rows.json> --after=<new rows.json> --metric=judge|rules|words|composite, on both splits separately. Read AC #1 against the literal >70% bar on each model's point estimate, and report the paired delta's significance honestly alongside it, whichever way it lands.
+9. AC #2/#3 re-verification on the AFTER arm's own numbers (rules floor, reserve validation), since this is a new text version, not a rubber-stamp of the prior checked boxes.
+10. IF AC #1 STILL NOT MET: do not force Done. Follow the record-and-park pattern this task and COS-1 already established — leave AC #1 unchecked, write an honest final summary with the new evidence, return task to To Do, advance the tracker cursor to the next queue item, and merge only the review-clean edit and measurement record (the style-file edit itself is legitimately mergeable partial work even though the task isn't Done, matching COS-16/COS-19's precedent of shipping edits that don't move the bar they were tested against, when nothing they measured moved the wrong way).
+11. IF AC #1 IS MET: check all three ACs, write final summary, mark Done, proceed through the normal review/PR/merge lifecycle.
+12. Either way: /code-review high on the branch diff before opening a PR; update the tracker doc (cursor, resolved/queue tables, session log) on the branch per lifecycle step 4.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -271,6 +264,45 @@ And a correction to weakness (2) as I recorded it: the 'always give a proof numb
 Two further results bear on whether the bar is the right one. **COS-17** measures whether the rewrite's length effect reproduces on Haiku and Fable, and **COS-18** asks whether intermediate and advanced carry the same defects — if they do, beginner being last may be less about beginner than the four-tier table implies.
 
 Dependencies added: COS-16, COS-20.
+
+SESSION 35 (against the shipped file, 86451ddb, post COS-16/COS-20). Re-derived the plan rather than trusting the session-9 notes above, which describe a file COS-16 has since replaced.
+
+DIAGNOSIS FROM THE CURRENT BASELINE'S OWN SAVED ROWS. Run `2026-08-20T03-03-26` (five shared cases, 150 cells/model, 0 errors) is the arm the shipped file is scored against: judge Opus 66.1, Sonnet 60.9. Per-case judge means: conv-status-auth 73.1, conv-status-holdout 85.9 (both already over 70); conv-explain-cache 49.3, agentic-read-report 51.3, conv-followup-drift 58.2 (still weak). Pulled and hand-categorized all 501 judgeViolations on the three weak cases: word/consistency complaints 181 (many are jargon-switching mislabeled by my own keyword regex, not literal length), structure/beats 83, jargon/explain 45, number/proof 35, narration 28, other 117 (mostly padding/extra-detail complaints), tone 8, analogy 1.
+
+THE PATTERN, read from the violation text itself, not from the category counts: term-consistency drift. The model picks a plain word once ("saved copy") then reverts mid-reply to "cache", "database", "store", "the copy" interchangeably — heavily on conv-explain-cache and agentic-read-report, both of which require explaining a mechanism. Separately, a cluster of violations fault mechanism-level narration ("checks the copy, misses, then goes to the real source") where the file asks for outcome-level translation. Both are behaviors the file's rules already forbid (one-word-one-meaning; skip internal details) — the rules were not contradictory here (E1-E3 already fixed the contradictions), the file just has no worked example demonstrating either rule under the pressure of actually explaining something. The file's only example (the API gloss) is a one-line status update, not an explanation.
+
+CANDIDATE: added one worked "explaining a mechanism" example under Beginner level (after the proof-number bullet, before the status-update section). Modeled (a) one plain term repeated throughout, never swapped for a synonym, and (b) outcome-level translation instead of step narration. Deliberately used a concept absent from all 15 harness cases (rate limiting, not cache/database) so neither the shared five nor the reserve six could be answering the literal example. Text and exact insertion point are in this session's branch diff (reverted, see below) — reconstructible by re-adding, after the "Never invent a number." sentence:
+
+"**Example — explaining a mechanism.** Pick one plain word for the thing, then use that exact word every time you mean it. Say what changed for the reader, not the steps a machine took.
+
+Bad: \"The requests get rate-limited because too many jobs share one account key, so extra calls queue behind the throttle and some hit the timeout before the limiter lets them through.\"
+
+Good: \"**Most likely:** too many jobs are using the same account at once, so the system makes the extra ones wait their turn. **Also possible:** a few of those waits run long enough to give up before their turn comes. **To tell them apart:** count how many jobs are running at the same moment when it happens.\"
+
+Notice the good version never switches names for the thing that is holding requests back — no \"rate limiter,\" \"queue,\" and \"throttle\" for one idea. It names what happens to the reader (\"wait their turn,\" \"give up\") instead of the machinery."
+
+Candidate sha256 was `60c5a51c141cc0aa6b92c6458a65e6281ab54554b42de363dd2370c3ecdaaf7`. `node src/cli.mjs audit` exit 0 on the candidate (caps unchanged, only prose added).
+
+PRE-EXISTING, UNRELATED HARNESS ISSUE FOUND AND WORKED AROUND, NOT FIXED. `npm --prefix harness test` read 222/225 on this host before any edit. Root cause: this shell exports `FORCE_COLOR=3`; `test/fixture.test.mjs`'s `cleanEnv()` copies `process.env` and strips only `NODE_TEST_CONTEXT`/`NODE_OPTIONS`, not color vars, so the spawned `node --test --test-reporter=spec` child (Node v26.7.0) wraps its `ℹ pass/fail/skipped/todo` summary lines in ANSI escapes. The fixture's `summaryField()` regex is anchored `^ℹ ` and cannot match a line starting with an escape code, so it reads `NaN` and three assertions fail. Reproduced identically on unmodified `dev` at `f25d755` — this predates the session and is not a regression from this task's work. Every gate in this session was run with `FORCE_COLOR=0` (225/225 clean) rather than touched in the harness, since a fixture-parser fix is out of scope for a prose task. Worth a follow-up backlog issue against `cleanEnv()` in `harness/test/fixture.test.mjs`.
+
+PROBE: 2 cells (opus, sonnet x conv-status-auth), clean, no session-limit or spend-limit signal.
+
+DIAGNOSTIC ARM (before committing a full arm): `2026-08-28T15-40-33-968Z`, five shared cases, both models, 10 repeats, 100 cells, 0 errored. Pooled paired interval against `2026-08-20T03-03-26`: judge +1.5 [-4.3, +7.3], rules -0.2 [-0.5, +0.2], words -1.0 [-3.7, +1.6], composite +0.7 [-2.2, +3.6]. Per-model judge: Opus -0.5 (se 5.0, flat/noise), Sonnet +3.6 (se 1.4) with the SAME SIGN on all five individual cases (conv-status-auth +0.1, conv-explain-cache +7.1, agentic-read-report +1.4, conv-status-holdout +3.6, conv-followup-drift +6.1, all x100) — a same-direction-on-every-case read this project has rarely seen at any sample size, worth resolving rather than discarding.
+
+SCALE-UP ARM: `2026-08-28T15-48-20-469Z`, same cases/models/variant, 20 more repeats, 200 cells, 0 errored. Pooled with the diagnostic (identical text, cases, models, variant, scorer — differing only in repeat count, the same pooling COS-17 used) for n=150/model:
+
+| model | before (n=150) | after (n=150) | paired delta | 95% CI |
+|---|---|---|---|---|
+| opus | 66.1 | 66.8 | +0.70 | [-4.8, +6.2] |
+| sonnet | 60.9 | 61.4 | +0.48 | [-5.0, +6.0] |
+
+Pooled: judge +0.6 [-2.4, +3.6], rules -0.1 [-0.2, +0.1], words -0.3 [-2.3, +1.8], composite +0.3 [-1.3, +1.8]. **Every interval contains zero.** The per-case Sonnet pattern that had been positive on all five cases at n=10 flipped sign at n=30 (agentic-read-report went to -6.6, the largest single swing) — the diagnostic's consistency was itself noise, not signal, the same "small sample optimism collapsing under more data" this project documented on COS-19's Haiku intermediate/advanced pairing.
+
+VERDICT: candidate is a clean null, neither harmful nor beneficial on any of the four metrics, at adequate n on both models. Per COS-1's precedent (unmeasured or non-beneficial text does not ship) and COS-16's E4 precedent (a null single-lever addition is retained-not-shipped, not forced in), the style file was reverted to the shipped bytes. sha256 re-verified as `86451ddb16b273426eca5318d20169b6bfa1b0f6dd304872c3b9625da7a167c3`. `node src/cli.mjs audit` exit 0 and `FORCE_COLOR=0 npm --prefix harness test` 225/225 clean on the reverted file.
+
+AC #1 — NOT MET, second attempt. Judge on the shipped text remains Opus 66.1, Sonnet 60.9 at n=150 each (unchanged — this session ran no new baseline, the existing one from session 27/COS-16 stands and the candidate that was tested against it is not shipped). Bar is 70 on both. Gap: Opus 3.9, Sonnet 8.6 (using this session's freshly-measured 61.4 read is not applicable since that text is not shipped; the shipped-text gap is unchanged at Opus 3.9, Sonnet 9.1).
+
+Task returned to To Do per the campaign's record-and-park risk policy (tracker doc-1, "Risk policy" section) — the same disposition COS-1 and COS-4's first attempt both received. Nothing is marked Done that was not done. This was a genuinely new, well-motivated lever (a worked example targeting a diagnosed behavioral gap, not a repeat of E1-E4's contradiction/router-structure edits), tested at full statistical precision on both models, and it came back null. That is a legitimate, informative result, not an incomplete attempt.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
@@ -304,4 +336,6 @@ AC #1 (judge > 70% on Opus and Sonnet): **not met.** 73.9 [66.0, 81.9] and 58.1 
 The change ships because every established measurement moves the right way and none moves the wrong way. It is the first change in the project to move reply length at all: mean 103 -> 61 words, over-cap share 40.0% -> 14.3%, `total_length` 66.9 -> 99.0, where COS-8's cap tightening moved it +0.26 words and COS-1's two passes left the over-cap share at 70.8-82.6% in every arm.
 
 Gates: `npm --prefix harness test` 64/64; `node src/cli.mjs audit` exit 0 after every edit; `lore check` exit 0 after `lore sync`. No harness code changed.
+
+SESSION 35 UPDATE. Retook the parked task, diagnosed a new candidate lever from the current shipped file's (86451ddb) own judge violations — term-consistency drift and mechanism-level narration on the two hardest cases — and tested a worked example addressing both. A 10-repeat diagnostic showed a same-sign-on-every-case Sonnet signal (+3.6); scaled to n=150/model and it dissolved to null: judge Opus +0.7 [-4.8, +6.2], Sonnet +0.5 [-5.0, +6.0], rules/words/composite all null too, 0 errored cells across 300. Candidate not shipped; file reverted and sha256-verified back to 86451ddb. AC #1 still NOT MET (Opus 66.1, Sonnet 60.9, bar 70 on both) — task returned to To Do, record-and-park per the tracker's risk policy, same disposition as the first attempt and as COS-1. Also found and worked around (not fixed, out of scope) a pre-existing, host-specific harness test-fixture bug: FORCE_COLOR leaking into a spawned child breaks the fixture's summary-line parser (reproduces on unmodified dev too).
 <!-- SECTION:FINAL_SUMMARY:END -->
