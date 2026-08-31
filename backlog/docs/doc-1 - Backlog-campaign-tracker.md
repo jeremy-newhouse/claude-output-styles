@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-31 20:01'
+updated_date: '2026-08-31 20:05'
 ---
 # Backlog campaign tracker
 
@@ -227,6 +227,7 @@ before taking one.
 | 25 | COS-32 | styles | **Opened by session 28**, and **appended**. Intermediate's unrationed comparison rule (`:28`) and its skip-the-internals contradiction (`:27` against `:33`). Two edits, measured separately. Also carries the decision on advanced's own weak contradiction (`:23` against `:43`). |
 | 26 | COS-33 | styles | **Opened by session 28**, and **appended**. Ship COS-18's measured E1 — the re-scoped intermediate cap. **Its shared-five arm is complete and must not be re-run**: rules +3.0 [+0.1, +5.8], words −24.6 [−46.4, −2.8], 300 cells, 0 errored. Only the reserve pair is outstanding, and that is roughly four hours a side at session 28's measured throughput. |
 | 27 | COS-34 | measurement | **Opened by session 34**, and **appended**. Advanced x Fable and intermediate x Fable are the two four-tier cells COS-19 could not raise to n>=146 — repeated session-limit errors on `claude-fable-5[1m]` stopped it twice, the second attempt landing 105 of 150. Re-attempt when Fable's session-limit behavior allows a full arm, or size to whatever it can sustain and say so. |
+| 28 | COS-35 | harness | **Opened by session 39** from COS-30's own branch review, and **appended**. Two more reachable gaps in the same multi-style-pooling failure class COS-30 fixed: `pairedInterval` never checks the two sides' styles *match each other* (only that each side is internally single-style), and `singleSampleInterval` has the identical unguarded pooling defect, untouched by COS-30's scope. Runs no cells. |
 
 The order is a valid topological sort of the recorded dependencies, and every
 phase boundary is a real constraint rather than a preference:
@@ -1935,4 +1936,11 @@ Both remaining issues carry known risk against that policy:
   235/235 pass; `audit` exit 0; `lore check` 24 files 0 errors/warnings.
   `git diff dev...feature/COS-30` touches `harness/src/interval.mjs`,
   `harness/test/interval.test.mjs`, this tracker and COS-30's task file.
-  Cursor advances to **COS-31**, item 24.
+  `/code-review high` found two more reachable gaps in the same
+  multi-style-pooling failure class, both outside COS-30's own ACs:
+  `pairedInterval` doesn't check the two sides' styles match each other
+  (only that each side is internally single-style), and
+  `singleSampleInterval` has the identical unguarded defect untouched by
+  this task. Not folded into COS-30's scope — opened as **COS-35**, item
+  28, appended to the queue, per the same not-silently-expanded-scope
+  precedent COS-13's review set. Cursor advances to **COS-31**, item 24.
