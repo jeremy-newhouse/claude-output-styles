@@ -33,6 +33,20 @@ export function tCritical95 (df) {
 const defaultKey = r => `${r.caseId}|${r.model}`
 const mean = xs => xs.reduce((s, x) => s + x, 0) / xs.length
 
+/**
+ * A rows.json holding more than one style is a normal artefact (`run
+ * --styles=a,b` writes exactly that), but pairedInterval's key is
+ * case+model only — pooling two styles' rows into one pair silently
+ * averages them together instead of raising an error. Reject it up front
+ * rather than let it produce an interval that looks ordinary.
+ */
+function assertSingleStyle (rows, side) {
+  const styles = new Set(rows.map(r => r.styleId))
+  if (styles.size > 1) {
+    throw new Error(`pairedInterval: ${side}Rows span multiple styles (${[...styles].sort().join(', ')}) — filter to a single style before comparing`)
+  }
+}
+
 function groupByKey (rows, keyOf, getValue) {
   const m = new Map()
   for (const r of rows) {
@@ -76,6 +90,8 @@ function studentTInterval (values, fnName, unit) {
  */
 export function pairedInterval (beforeRows, afterRows, { getValue, keyOf = defaultKey } = {}) {
   if (typeof getValue !== 'function') throw new Error('pairedInterval: getValue is required')
+  assertSingleStyle(beforeRows, 'before')
+  assertSingleStyle(afterRows, 'after')
   const beforeGroups = groupByKey(beforeRows, keyOf, getValue)
   const afterGroups = groupByKey(afterRows, keyOf, getValue)
   const missing = [...beforeGroups.keys()].filter(k => !afterGroups.has(k))
