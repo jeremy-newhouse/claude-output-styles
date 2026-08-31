@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@jeremy'
 created_date: '2026-08-17 18:58'
-updated_date: '2026-08-31 19:01'
+updated_date: '2026-08-31 19:13'
 labels: []
 dependencies: []
 ordinal: 28000
@@ -52,6 +52,8 @@ AC3: extended harness/src/contract-audit.mjs with statedBasis()/BASIS_FIELDS/COD
 AC2: paired confirmatory arm, 11 conversational cases x opus/sonnet x 1 repeat = 22 cells each side, old prose (stashed edit) vs new prose, same day/session to avoid confounds from other campaign changes. Stamps: before=results/2026-08-31T18-56-26-946Z (87.6% overall), after=results/2026-08-31T18-52-49-055Z (85.4% overall). Paired interval (node src/cli.mjs interval --before=... --after=...): composite -2.2 [-5.5,+1.1], judge -6.1 [-15.8,+3.5], rules -0.5 [-2.1,+1.0], words +4.3 [-10.3,+19.0] — every interval crosses zero, no measured regression at this power. Not a full 207-cell precision arm; task's own notes say a smaller confirmatory arm suffices for a wording-only fix that does not change enforcement.
 
 docs/specs/style-contracts-by-audience-level.md's existing 'filed rather than fixed' note updated to record the resolution and the arm's numbers; lore sync ran (docs/log.md updated, backlog/ auto-committed by lore as a separate commit) and lore check: 24 files, 0 errors, 0 warnings.
+
+/code-review high on the branch (post-Done) found two real gaps in the basis check: CODE_COUNTED matched only the exact shipped phrasing, silently passing 'code is also included' / 'code counts toward it' / 'including both headers and code' / 'code and headers are included'; and statedCondition/statedBasis duplicated the same segment-matching loop. Fixed: broadened to BASIS_CLAIMS (4 patterns), extracted firstSegmentMatch, renamed BASIS_FIELDS->BASIS_CLAIMS to hold real patterns like CONDITION_FIELDS does. Verified the broadening doesn't false-positive on the shipped fixed sentence (new test). Not fixed, noted as a raised observation in the tracker: capSegments splits on a bare newline, so a style file that hard-wraps mid-sentence inside its cap statement would defeat this check and the pre-existing ON_REQUEST condition check it shares the mechanism with — pre-existing, not introduced by COS-28, no shipped file wraps that way today. FORCE_COLOR=0 npm --prefix harness test: 231/231. audit: 12/12 agree.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
