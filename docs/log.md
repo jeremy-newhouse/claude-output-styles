@@ -100,6 +100,7 @@
 - 2026-08-28T15:05:44-05:00 d8281297e9e954edb7112d75c93ecabf679d43e6 Re-sync docs/log.md after COS-1's rebase-merge
 - 2026-08-31T14:14:05-05:00 7f22c2846a13463a82075473b84168547244e716 Record COS-28's resolution in the style-contracts spec
 - 2026-08-31T14:14:35-05:00 c27bbfa2f6ed7b433103040ed18235c81d6bba67 Re-sync docs/log.md after COS-28's rebase-merge
+- 2026-08-31T14:43:25-05:00 c17d33784f121530e257255c0c78c1d0ec9143e5 Re-sync docs/log.md after COS-29's rebase-merge
 
 ## docs/adr
 
