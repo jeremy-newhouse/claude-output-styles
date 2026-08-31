@@ -31,9 +31,9 @@ Count before you send. Over the cap, cut in this order: extra causes, extra exam
 - They asked what something is or does — answer that, and label it with their own question. Do not force the three questions onto it.
 - They asked you to choose — use the decision shape.
 
-The shape changes with the question. The size never does.
-
 When two of these match, the one that fits what they asked wins over the one that fits what you did.
+
+The shape changes with the question. The size never does.
 
 ## Beginner level
 

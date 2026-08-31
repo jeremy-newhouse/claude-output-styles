@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-31 19:13'
+updated_date: '2026-08-31 19:37'
 ---
 # Backlog campaign tracker
 
@@ -15,11 +15,17 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-29 — NOT YET STARTED.** Campaign 2 item 22. Queue order was
+**Next issue: COS-30 — NOT YET STARTED.** Campaign 2 item 23. Queue order was
 confirmed by the user on 2026-08-17 (see the Campaign 2 section below). Do not
 re-ask before taking it.
 
-**COS-28 resolved this session (37).** Advanced's prose claimed the 120-word
+**COS-29 resolved this session (38).** Moved E3's precedence sentence directly
+under the router's four bullets — a pure reorder, zero words changed — so its
+nearest antecedent is unambiguous. Measured on a 300-cell arm against baseline
+`2026-08-20T03-03-26`: paired interval showed no significant rules or
+word-length regression. See Queue row 22 and the session log below.
+
+**COS-28 resolved in session 37.** Advanced's prose claimed the 120-word
 cap counted code; `total_length` excludes it. Fixed the prose, not the
 checker (the checker change would move every published `total_length` figure
 on all three styles), and extended `contract-audit.mjs` with a basis check so
@@ -207,7 +213,7 @@ before taking one.
 | 18 | COS-24 | harness | **Moved to Campaign 3, item 4, 2026-08-18.** The CLI silently substitutes defaults for malformed flags: an unknown flag (`--modles=haiku`) runs the full default matrix, `--concurrency=abc` measures nothing, `--no-judge=false` turns the judge off. Opened by session 14; COS-14 fixed one flag on one subcommand and this is the widening. Runs no cells. |
 | 19 | COS-26 | harness | **Moved to Campaign 3, item 5, 2026-08-18.** The judge call in `judge.mjs` and the optimizer's `rewrite()` in `improve.mjs` take no `abortController` and no timeout, so either stalling hangs a run that has already bought hours of cells. `maxCellSeconds` bounds a cell, not a run, and `maxBudgetUsd` never covered these two either — the gap predates both guards. Opened by session 16 from COS-25's review; **appended after item 18 rather than slotted into the order the user confirmed.** Runs no cells. |
 | 20 | COS-27 | measurement | **Moved to Campaign 3 item 2, 2026-08-18; resolved session 23.** The paired confidence intervals in `FINDINGS.md` have no recorded computation and cannot be reproduced to the last digit, so a scoring change cannot update them. Opened by session 19; **appended**. Runs no cells. |
-| 22 | COS-29 | styles | **Opened by session 27** from COS-16's branch review, and **appended** rather than slotted in. E3's precedence sentence sits after the router section's closing line, so 'When two of these match' has that line as its nearest plural antecedent instead of the four bullets — an ambiguity introduced by the one edit whose job was to remove one. COS-16 could not fix it: the shipped bytes are the measured bytes, so rewording breaks its AC #6 and ships unmeasured style text. Costs one 300-cell arm against `2026-08-20T03-03-26`. |
+| 22 | COS-29 | styles | **Resolved, session 38.** Moved the precedence sentence directly under the router's four bullets (pure reorder, no word change) instead of rewording it, so the antecedent reads unambiguous without touching COS-16's measured bytes' word count. 300-cell arm (150/model) against `2026-08-20T03-03-26`: paired interval rules -0.4pp [-0.8,+0.0] t=-2.24 df=9 (not significant, critical t=2.262), words +0.6 [-0.6,+1.8] t=1.18 (not significant); per-case/model deltas scattered both directions with no pattern tied to the edit. `audit` exit 0, 231/231 harness tests, `lore check` clean, file checksummed post-arm and not touched again. |
 | 21 | COS-28 | styles | **Resolved, session 37.** Advanced's prose ("headers and code included") was wrong, not `total_length`; fixed to "headers included and code excluded". Paired 22-cell confirmatory arm found no regression (composite/judge/rules/words all cross zero); `contract-audit.mjs` now catches this basis-vs-number drift automatically. |
 | 23 | COS-30 | harness | **Opened by session 28**, and **appended**. `interval` keys pairs on `caseId|model` and ignores the style, so a two-style before file silently averages both styles into each pair and raises no error. It reported rules +1.4 [−0.3, +3.0] and words −14.8 [−30.9, +1.3] on COS-18's own comparison — "the edit did nothing" — where the filtered figures are +3.0 [+0.1, +5.8] and −24.6 [−46.4, −2.8]. Runs no cells. |
 | 24 | COS-31 | styles | **Opened by session 28**, and **appended**. Both intermediate and advanced lack a reply-shape router. All 138 shape violations in COS-18's arm fall on non-status cases and none on a status update. Costs one 300-cell arm per style plus reserve. Read COS-29 first — copying beginner's router copies its dangling antecedent. |
@@ -1876,3 +1882,25 @@ Both remaining issues carry known risk against that policy:
   `harness/test/contract-audit.test.mjs`, `docs/specs/style-contracts-by-
   audience-level.md`, this tracker and COS-28's task file. Cursor advances to
   **COS-29**, item 22.
+- 2026-08-31 — session 38: restored, verified no drift (`dev`/`main` both at
+  `fe88e73`, pushed, level; no leftover branches or PRs; cursor and task
+  status agreed). One preflight blocker: an untracked `system-prompt.md` at
+  the repo root, unrelated to the campaign — the user chose to move it aside
+  rather than have it silently ignored or committed. **Resolved COS-29, item
+  22.** Moved E3's precedence sentence directly under the router's four
+  bullets, above "The shape changes with the question. The size never does.",
+  instead of rewording it — a pure reorder that changes zero words, so
+  `total_length` and COS-16's measured word counts are untouched by
+  construction. Probed 2 cells, then ran the full 300-cell arm (150/model, 5
+  shared cases) against baseline `2026-08-20T03-03-26`. Raw means dipped just
+  under the AC #3 bar on both models (rules 99.16→98.68 opus, 97.38→97.03
+  sonnet), so ran the project's paired-interval regression gate rather than
+  trusting single-arm raw means: rules -0.4pp [-0.8, +0.0] t=-2.24 df=9 (not
+  significant, critical t=2.262), words +0.6 [-0.6, +1.8] t=1.18 (not
+  significant). Per-case/model breakdown (10 pairs) showed small deltas
+  scattered in both directions with no pattern tied to the router-precedence
+  sentence — read as sampling noise, not a real regression from the reorder.
+  `audit` exit 0 (12/12 checks), `FORCE_COLOR=0 npm --prefix harness test`
+  231/231, `lore check` 24 files 0 errors/warnings. Shipped file checksummed
+  post-arm (sha256 `19ad4626…`) and not touched again. Cursor advances to
+  **COS-30**, item 23.
