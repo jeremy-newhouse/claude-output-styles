@@ -60,27 +60,33 @@ export const CONDITION_FIELDS = { maxCodeLines: 'codeOnRequest' }
 /**
  * Fields where the prose can claim a counting BASIS the checker does not use —
  * not a different number, not a lifted condition, but a different definition of
- * what gets counted. maxUpdateWords is the shipped case: total_length always
- * scores `words(stripCode(text))` (checks.mjs), so code never counts toward the
- * cap for any style, no matter what a contract field says — there is no
+ * what gets counted. Keyed by field, valued by the patterns that recognise the
+ * wrong claim. maxUpdateWords is the shipped case: total_length always scores
+ * `words(stripCode(text))` (checks.mjs), so code never counts toward the cap
+ * for any style, no matter what a contract field says — there is no
  * contracts.json field for this because it is not configurable per style.
  * A field absent from this map has no recognised basis claim to check.
+ *
+ * Each pattern is checked against one cap segment at a time (see
+ * `firstSegmentMatch`), so "code" and "included" only need to agree on being
+ * in the same sentence, not adjacent — but every pattern here still anchors on
+ * a real word between them, never bare co-occurrence: a segment can legitimately
+ * mention both "code" and "included" without claiming code counts, exactly as
+ * the shipped fix does ("headers included and code excluded").
  */
-export const BASIS_FIELDS = { maxUpdateWords: true }
-
-/** Prose claiming code counts toward a word cap that in fact excludes it. */
-const CODE_COUNTED = [
-  /\bcode\s+(?:is\s+)?(?:included|counted)\b/i,
-  /\bincluding\s+code\b/i
-]
+export const BASIS_CLAIMS = {
+  maxUpdateWords: [
+    /\bcode\s+(?:(?:is|are)\s+)?(?:also\s+)?(?:included|counted)\b/i,
+    /\bincluding\b(?:\s+\S+){0,4}\s+code\b/i,
+    /\bcode\s+(?:also\s+)?counts?\s+(?:toward|towards|against|to)\b/i,
+    /\bcode\s+and\s+headers?\s+(?:is|are)\s+included\b/i
+  ]
+}
 
 /** The basis claim the prose makes for one field's cap, if it makes one. */
 export function statedBasis (body, field) {
-  if (!BASIS_FIELDS[field]) return null
-  for (const seg of capSegments(body, field)) {
-    if (CODE_COUNTED.some(re => re.test(seg))) return 'includes-code'
-  }
-  return null
+  if (!BASIS_CLAIMS[field]) return null
+  return firstSegmentMatch(body, field, BASIS_CLAIMS[field]) ? 'includes-code' : null
 }
 
 /**
@@ -100,16 +106,21 @@ function capSegments (body, field) {
   return segments.filter(s => res.some(re => re.test(s)))
 }
 
-/** The request-condition the prose attaches to one field's cap, if any. */
-export function statedCondition (body, field) {
-  if (!CONDITION_FIELDS[field]) return null
+/** The first pattern to match any cap segment, across all of them in order. */
+function firstSegmentMatch (body, field, patterns) {
   for (const seg of capSegments(body, field)) {
-    for (const re of ON_REQUEST) {
+    for (const re of patterns) {
       const m = re.exec(seg)
       if (m) return m[0]
     }
   }
   return null
+}
+
+/** The request-condition the prose attaches to one field's cap, if any. */
+export function statedCondition (body, field) {
+  if (!CONDITION_FIELDS[field]) return null
+  return firstSegmentMatch(body, field, ON_REQUEST)
 }
 
 /**
