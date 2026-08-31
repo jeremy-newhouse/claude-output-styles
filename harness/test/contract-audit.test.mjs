@@ -209,6 +209,25 @@ test('the shipped advanced file no longer claims code counts toward its word cap
   assert.equal(statedBasis(advanced, 'maxUpdateWords'), null)
 })
 
+test('statedBasis recognises phrasings other than the exact one that shipped', () => {
+  const phrasings = [
+    'Keep the whole reply under 120, code is also included.',
+    'Keep the whole reply under 120 words, code counts toward it.',
+    'Keep the whole reply under 120 words, including both headers and code.',
+    'Keep the whole reply under 120, code and headers are included.'
+  ]
+  for (const body of phrasings) {
+    assert.equal(statedBasis(body, 'maxUpdateWords'), 'includes-code', body)
+  }
+})
+
+test('a sentence that merely mentions both "code" and "included" is not a basis claim', () => {
+  // The false-positive risk of any broadening: the shipped fix itself says
+  // "included" (for headers) and "code" (for "excluded") in the same
+  // sentence, without claiming code counts.
+  assert.equal(statedBasis('Keep the whole reply under 120, headers included and code excluded.', 'maxUpdateWords'), null)
+})
+
 test('parsing the same body twice gives the same answer', () => {
   // The condition scan tests PATTERNS against individual sentences. PATTERNS
   // carries /g for matchAll, and .test() on a /g/ regex advances lastIndex,
