@@ -1,9 +1,11 @@
 ---
 id: COS-28
 title: Reconcile advanced's stated word-count basis with total_length's
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@jeremy'
 created_date: '2026-08-17 18:58'
+updated_date: '2026-08-31 18:49'
 labels: []
 dependencies: []
 ordinal: 28000
