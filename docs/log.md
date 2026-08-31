@@ -98,6 +98,7 @@
 - 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
 - 2026-08-28T09:24:32-05:00 77b9d66b4f47910955e80d32c3d032f5516be3e3 Re-sync docs/log.md after COS-19's rebase-merge
 - 2026-08-28T15:05:44-05:00 d8281297e9e954edb7112d75c93ecabf679d43e6 Re-sync docs/log.md after COS-1's rebase-merge
+- 2026-08-31T14:14:05-05:00 7f22c2846a13463a82075473b84168547244e716 Record COS-28's resolution in the style-contracts spec
 
 ## docs/adr
 
@@ -211,6 +212,7 @@
 - 2026-08-17T11:02:10-05:00 fa144055e32506f2f17f0a7460b0310af6a57875 Strip cost from the published record
 - 2026-08-17T14:12:09-05:00 606ee237939ba434ce518d39c71840194640d083 Let codeOnRequest lift the whole cap, and see a gloss through bold
 - 2026-08-17T14:12:09-05:00 f8d77d896ea8065cd5768eca4da569886dfcc999 Correct the five published figures the gloss fix moves
+- 2026-08-31T14:14:05-05:00 7f22c2846a13463a82075473b84168547244e716 Record COS-28's resolution in the style-contracts spec
 
 ## docs/stories
 
