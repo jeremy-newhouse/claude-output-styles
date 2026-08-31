@@ -62,6 +62,51 @@ test('pairedInterval throws with fewer than two pairs', () => {
   assert.throws(() => pairedInterval(before, after, { getValue: r => r.v }), /need at least 2 pairs/)
 })
 
+// ---------- pairedInterval: rejects a multi-style rows.json (COS-30) ----------
+// A rows.json holding more than one style is a normal artefact (`run
+// --styles=a,b` writes exactly that), but the pairing key is case+model only,
+// so pooling two styles' rows into one pair used to average them together
+// silently instead of raising an error (COS-18 hit this live: see the
+// real-data regression test below).
+
+test('pairedInterval throws when beforeRows span multiple styles, naming them', () => {
+  const before = [
+    { caseId: 'c1', model: 'opus', styleId: 'plain-english-intermediate', v: 1 },
+    { caseId: 'c2', model: 'opus', styleId: 'plain-english-advanced', v: 1 }
+  ]
+  const after = [
+    { caseId: 'c1', model: 'opus', styleId: 'plain-english-intermediate', v: 2 },
+    { caseId: 'c2', model: 'opus', styleId: 'plain-english-intermediate', v: 2 }
+  ]
+  assert.throws(
+    () => pairedInterval(before, after, { getValue: r => r.v }),
+    /beforeRows span multiple styles \(plain-english-advanced, plain-english-intermediate\) — filter to a single style/
+  )
+})
+
+test('pairedInterval throws when afterRows span multiple styles, naming them', () => {
+  const before = [
+    { caseId: 'c1', model: 'opus', styleId: 'plain-english-intermediate', v: 1 },
+    { caseId: 'c2', model: 'opus', styleId: 'plain-english-intermediate', v: 1 }
+  ]
+  const after = [
+    { caseId: 'c1', model: 'opus', styleId: 'plain-english-intermediate', v: 2 },
+    { caseId: 'c2', model: 'opus', styleId: 'plain-english-advanced', v: 2 }
+  ]
+  assert.throws(
+    () => pairedInterval(before, after, { getValue: r => r.v }),
+    /afterRows span multiple styles \(plain-english-advanced, plain-english-intermediate\) — filter to a single style/
+  )
+})
+
+test('pairedInterval still accepts single-style rows with no styleId field at all', () => {
+  // Every hand-computable test above omits styleId entirely — a Set of one
+  // undefined value must not trip the new guard.
+  const before = [{ caseId: 'c1', model: 'opus', v: 1 }, { caseId: 'c2', model: 'opus', v: 1 }]
+  const after = [{ caseId: 'c1', model: 'opus', v: 2 }, { caseId: 'c2', model: 'opus', v: 2 }]
+  assert.doesNotThrow(() => pairedInterval(before, after, { getValue: r => r.v }))
+})
+
 // ---------- pairedInterval: real data, regression-anchored ----------
 // rulesScore from the actual saved rows behind FINDINGS.md's COS-4 reserve-arm
 // figure (results/2026-08-17T02-12-24-499Z and .../02-16-47-367Z). This is the
@@ -95,6 +140,50 @@ const RESERVE_AFTER = [
   { caseId: 'reserve-agentic-session', model: 'sonnet', rulesScore: 0.822 },
   { caseId: 'reserve-decision-tie', model: 'sonnet', rulesScore: 0.934 }
 ]
+
+// Per-(case, model) means, filtered to plain-english-intermediate, computed
+// from the actual saved rows behind COS-18's two-style-vs-one-style bug
+// (results/2026-08-20T12-12-10-010Z, filtered, and .../12-30-35-376Z). This is
+// the exact pair COS-30 exists to guard: the raw before file also holds
+// plain-english-advanced rows, which pairedInterval used to silently average
+// in because the key is case+model only.
+
+const COS18_BEFORE_FILTERED = [
+  { caseId: 'conv-status-auth', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.984533, meanWords: 62.2667 },
+  { caseId: 'conv-explain-cache', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.872467, meanWords: 197.3333 },
+  { caseId: 'agentic-read-report', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.938567, meanWords: 139.4667 },
+  { caseId: 'conv-status-holdout', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.997633, meanWords: 67.1333 },
+  { caseId: 'conv-followup-drift', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.986567, meanWords: 91.8667 },
+  { caseId: 'conv-status-auth', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.9665, meanWords: 66 },
+  { caseId: 'conv-explain-cache', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.856133, meanWords: 190.6667 },
+  { caseId: 'agentic-read-report', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.971367, meanWords: 104.2 },
+  { caseId: 'conv-status-holdout', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.9774, meanWords: 55.8 },
+  { caseId: 'conv-followup-drift', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.9617, meanWords: 44.2667 }
+]
+const COS18_AFTER = [
+  { caseId: 'conv-status-auth', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.986533, meanWords: 60.3333 },
+  { caseId: 'conv-explain-cache', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.989833, meanWords: 101.2 },
+  { caseId: 'agentic-read-report', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.986, meanWords: 105.0667 },
+  { caseId: 'conv-status-holdout', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.999533, meanWords: 62.2667 },
+  { caseId: 'conv-followup-drift', model: 'opus', styleId: 'plain-english-intermediate', rulesScore: 0.993, meanWords: 83.7 },
+  { caseId: 'conv-status-auth', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.983067, meanWords: 56.6 },
+  { caseId: 'conv-explain-cache', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.934867, meanWords: 133.4333 },
+  { caseId: 'agentic-read-report', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.988, meanWords: 82.7667 },
+  { caseId: 'conv-status-holdout', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.976633, meanWords: 48.9667 },
+  { caseId: 'conv-followup-drift', model: 'sonnet', styleId: 'plain-english-intermediate', rulesScore: 0.9717, meanWords: 38.4667 }
+]
+
+test('pairedInterval reproduces COS-18\'s published filtered rules and words figures exactly', () => {
+  const rules = pairedInterval(COS18_BEFORE_FILTERED, COS18_AFTER, { getValue: r => r.rulesScore * 100 })
+  assert.equal(rules.mean.toFixed(1), '3.0')
+  assert.equal(rules.lo.toFixed(1), '0.1')
+  assert.equal(rules.hi.toFixed(1), '5.8')
+
+  const wordsR = pairedInterval(COS18_BEFORE_FILTERED, COS18_AFTER, { getValue: r => r.meanWords })
+  assert.equal(wordsR.mean.toFixed(1), '-24.6')
+  assert.equal(wordsR.lo.toFixed(1), '-46.4')
+  assert.equal(wordsR.hi.toFixed(1), '-2.8')
+})
 
 test('pairedInterval reproduces the published reserve-arm rules figure exactly', () => {
   const r = pairedInterval(RESERVE_BEFORE, RESERVE_AFTER, { getValue: METRICS.rules })

@@ -3,7 +3,7 @@ id: doc-1
 title: Backlog campaign tracker
 type: other
 created_date: '2026-08-16 13:49'
-updated_date: '2026-08-31 19:42'
+updated_date: '2026-08-31 20:01'
 ---
 # Backlog campaign tracker
 
@@ -15,11 +15,18 @@ fast-forwarded into `main`. A session is not finished until both are pushed.
 
 ## Cursor
 
-**Next issue: COS-30 — NOT YET STARTED.** Campaign 2 item 23. Queue order was
+**Next issue: COS-31 — NOT YET STARTED.** Campaign 2 item 24. Queue order was
 confirmed by the user on 2026-08-17 (see the Campaign 2 section below). Do not
 re-ask before taking it.
 
-**COS-29 resolved this session (38).** Moved E3's precedence sentence directly
+**COS-30 resolved this session (39).** `pairedInterval` now throws when either
+side's rows span more than one styleId, naming the styles and telling the
+caller to filter. Verified against COS-18's own saved rows: the unfiltered
+two-style before file now throws, and the filtered comparison reproduces
+COS-18's published figures (rules +3.0 [+0.1,+5.8], words -24.6 [-46.4,-2.8])
+exactly. See Queue row 23 and the session log below.
+
+**COS-29 resolved in session 38.** Moved E3's precedence sentence directly
 under the router's four bullets — a pure reorder, zero words changed — so its
 nearest antecedent is unambiguous. Measured on a 300-cell arm against baseline
 `2026-08-20T03-03-26`: paired interval showed no significant rules or
@@ -215,7 +222,7 @@ before taking one.
 | 20 | COS-27 | measurement | **Moved to Campaign 3 item 2, 2026-08-18; resolved session 23.** The paired confidence intervals in `FINDINGS.md` have no recorded computation and cannot be reproduced to the last digit, so a scoring change cannot update them. Opened by session 19; **appended**. Runs no cells. |
 | 22 | COS-29 | styles | **Resolved, session 38.** Moved the precedence sentence directly under the router's four bullets (pure reorder, no word change) instead of rewording it, so the antecedent reads unambiguous without touching COS-16's measured bytes' word count. 300-cell arm (150/model) against `2026-08-20T03-03-26`: paired interval rules -0.4pp [-0.8,+0.0] t=-2.24 df=9 (not significant, critical t=2.262), words +0.6 [-0.6,+1.8] t=1.18 (not significant); per-case/model deltas scattered both directions with no pattern tied to the edit. `audit` exit 0, 231/231 harness tests, `lore check` clean, file checksummed post-arm and not touched again. |
 | 21 | COS-28 | styles | **Resolved, session 37.** Advanced's prose ("headers and code included") was wrong, not `total_length`; fixed to "headers included and code excluded". Paired 22-cell confirmatory arm found no regression (composite/judge/rules/words all cross zero); `contract-audit.mjs` now catches this basis-vs-number drift automatically. |
-| 23 | COS-30 | harness | **Opened by session 28**, and **appended**. `interval` keys pairs on `caseId|model` and ignores the style, so a two-style before file silently averages both styles into each pair and raises no error. It reported rules +1.4 [−0.3, +3.0] and words −14.8 [−30.9, +1.3] on COS-18's own comparison — "the edit did nothing" — where the filtered figures are +3.0 [+0.1, +5.8] and −24.6 [−46.4, −2.8]. Runs no cells. |
+| 23 | COS-30 | harness | **Resolved, session 39.** `pairedInterval` now throws when either side's rows span more than one styleId, naming the styles and telling the caller to filter. Verified against the real COS-18 run pair (`2026-08-20T12-12-10-010Z` / `12-30-35-376Z`): the unfiltered before file now throws, and the filtered comparison reproduces `rules +3.0 [+0.1, +5.8]`, `words -24.6 [-46.4, -2.8]` exactly. 4 new tests in `interval.test.mjs` — AC #3 named `checks.test.mjs`, which has no interval coverage at all; flagged rather than silently redirected. Runs no cells. |
 | 24 | COS-31 | styles | **Opened by session 28**, and **appended**. Both intermediate and advanced lack a reply-shape router. All 138 shape violations in COS-18's arm fall on non-status cases and none on a status update. Costs one 300-cell arm per style plus reserve. **COS-29 is resolved (session 38)** — beginner's precedence sentence now sits directly under its four router bullets; copy that placement, not the pre-fix version. |
 | 25 | COS-32 | styles | **Opened by session 28**, and **appended**. Intermediate's unrationed comparison rule (`:28`) and its skip-the-internals contradiction (`:27` against `:33`). Two edits, measured separately. Also carries the decision on advanced's own weak contradiction (`:23` against `:43`). |
 | 26 | COS-33 | styles | **Opened by session 28**, and **appended**. Ship COS-18's measured E1 — the re-scoped intermediate cap. **Its shared-five arm is complete and must not be re-run**: rules +3.0 [+0.1, +5.8], words −24.6 [−46.4, −2.8], 300 cells, 0 errored. Only the reserve pair is outstanding, and that is roughly four hours a side at session 28's measured throughput. |
@@ -1904,3 +1911,28 @@ Both remaining issues carry known risk against that policy:
   231/231, `lore check` 24 files 0 errors/warnings. Shipped file checksummed
   post-arm (sha256 `19ad4626…`) and not touched again. Cursor advances to
   **COS-30**, item 23.
+- 2026-08-31 — session 39: restored, verified no drift (`dev`/`main` both at
+  `a375f76`, pushed, level; no leftover branches or PRs; cursor and task
+  status agreed). **Resolved COS-30, item 23.** Added `assertSingleStyle`
+  to `pairedInterval` in `harness/src/interval.mjs`: throws when either
+  side's rows span more than one distinct `styleId`, naming the styles and
+  telling the caller to filter — the same class of guard the function
+  already applies to mismatched key sets. Rows with no `styleId` field
+  (every pre-existing hand-computable test fixture) hash to a Set of one
+  `undefined` and don't trip it, so single-style behaviour is unchanged.
+  Verified against the real bug: `results/2026-08-20T12-12-10-010Z/rows.json`
+  (600 rows, `plain-english-intermediate` + `plain-english-advanced`) passed
+  unfiltered now throws; filtered to intermediate and paired against
+  `results/2026-08-20T12-30-35-376Z/rows.json` (300 rows, intermediate only)
+  reproduces COS-18's published figures exactly: rules +3.0 [+0.1, +5.8],
+  words -24.6 [-46.4, -2.8]. **AC #3 named `harness/test/checks.test.mjs`,
+  which has no interval coverage at all** — `pairedInterval` is defined and
+  tested entirely in `interval.mjs`/`interval.test.mjs`. Wrote the 4 new
+  tests there instead of silently redirecting to satisfy the AC's literal
+  wording, and recorded the discrepancy explicitly in the task notes rather
+  than checking the box quietly — the same transparency lesson COS-29's
+  review just taught. `FORCE_COLOR=0 npm --prefix harness test` 231→235,
+  235/235 pass; `audit` exit 0; `lore check` 24 files 0 errors/warnings.
+  `git diff dev...feature/COS-30` touches `harness/src/interval.mjs`,
+  `harness/test/interval.test.mjs`, this tracker and COS-30's task file.
+  Cursor advances to **COS-31**, item 24.
