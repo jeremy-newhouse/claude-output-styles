@@ -97,6 +97,7 @@
 - 2026-08-27T21:46:38-05:00 77cc9eee91561b72b83fd50dd6f60adf33ec5658 Re-sync docs/log.md after COS-21's rebase-merge
 - 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
 - 2026-08-28T09:24:32-05:00 77b9d66b4f47910955e80d32c3d032f5516be3e3 Re-sync docs/log.md after COS-19's rebase-merge
+- 2026-08-28T15:05:44-05:00 d8281297e9e954edb7112d75c93ecabf679d43e6 Re-sync docs/log.md after COS-1's rebase-merge
 
 ## docs/adr
 
@@ -270,3 +271,4 @@
 - 2026-08-27T21:46:38-05:00 77cc9eee91561b72b83fd50dd6f60adf33ec5658 Re-sync docs/log.md after COS-21's rebase-merge
 - 2026-08-28T09:24:00-05:00 64a62f904514c7bb91b909aa3228087c50fe11b5 Raise 10 of 12 four-tier judge cells to n=150, add single-sample intervals
 - 2026-08-28T09:24:00-05:00 bb826095416b6418e2a4861a94733f50d5bdda4b Fix pseudo-replication in singleSampleInterval, redo the clean-split re-check
+- 2026-08-28T15:05:44-05:00 d8281297e9e954edb7112d75c93ecabf679d43e6 Re-sync docs/log.md after COS-1's rebase-merge

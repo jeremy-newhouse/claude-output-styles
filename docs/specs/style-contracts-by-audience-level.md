@@ -282,12 +282,20 @@ evaluate it, so it stays an ordinary unconditional cap.
 `audit` cannot verify this about itself, so all three files were read against
 every contract field by hand. Two findings survive, and neither is a conditional:
 
-- **Advanced states a basis its contract grades differently.** The file says
-  "Keep the whole reply under 120, **headers and code included**"; `total_length`
-  counts `stripCode(text)`, so code is excluded. The scored cap is more permissive
-  than the stated one. Filed rather than fixed here: changing the basis moves
-  every `total_length` figure ever published, and changing the prose costs a
-  measured arm.
+- **Advanced states a basis its contract grades differently — fixed in COS-28.**
+  The file said "Keep the whole reply under 120, **headers and code included**";
+  `total_length` counts `stripCode(text)`, so code is excluded and the scored cap
+  was more permissive than the stated one. Changing the count would have moved
+  every `total_length` figure ever published across all three styles, so the
+  prose changed instead: it now reads "headers included and code excluded",
+  matching what the checker actually measures. A paired 22-cell confirmatory arm
+  (11 conversational cases x opus/sonnet, old prose vs new, 2026-08-31) found no
+  move: composite −2.2 [−5.5, +1.1], judge −6.1 [−15.8, +3.5], rules −0.5 [−2.1,
+  +1.0], words +4.3 [−10.3, +19.0] — every interval crosses zero. `audit` also
+  gained a basis check (`contract-audit.mjs`'s `statedBasis`): a style claiming
+  code counts toward `maxUpdateWords` now fails the audit even when the number
+  agrees with `contracts.json`, the same way a request-conditioned cap already
+  did for `maxCodeLines`.
 - **Intermediate's "under about 100 words *when things are normal*" is a soft
   cap, and the contract grades it as one.** `total_length` gives full credit at
   the cap and decays to 0 at twice it, so the graded rule is already "about 100,
