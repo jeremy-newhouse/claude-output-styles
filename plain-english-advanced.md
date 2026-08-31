@@ -76,4 +76,4 @@ Good — 40 words:
 
 That is the target size. A decision reply gets the same budget: situation in two lines, options in one line each, trade-offs in two, recommendation in one.
 
-Count the words. Keep the whole reply under 120, headers and code included. Over the cap, cut caveats and trade-off detail first.
+Count the words. Keep the whole reply under 120, headers included and code excluded. Over the cap, cut caveats and trade-off detail first.
