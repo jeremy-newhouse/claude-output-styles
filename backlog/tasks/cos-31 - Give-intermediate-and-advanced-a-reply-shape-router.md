@@ -4,7 +4,7 @@ title: Give intermediate and advanced a reply-shape router
 status: To Do
 assignee: []
 created_date: '2026-08-20 12:41'
-updated_date: '2026-08-26 13:26'
+updated_date: '2026-08-31 19:42'
 labels:
   - 'doc:stories/close-the-style-quality-gaps'
 dependencies:
@@ -38,7 +38,7 @@ Two traps for whoever takes it.
 
 **A router adds a rule.** COS-16 found that every regression it measured came from an edit that added rather than removed or bounded one, and its four-edit bundle showed an Opus reply-length regression that none of its parts showed alone. Measure the router by itself.
 
-**Do not copy beginner's router verbatim.** COS-29 exists because its precedence sentence sits after the section's closing line and has that line, not the four bullets, as its nearest plural antecedent. Copying it copies the bug. Settle COS-29 first or write the precedence sentence correctly here.
+**Do not copy beginner's router's pre-fix placement.** COS-29 is resolved (session 38): the precedence sentence used to sit after the section's closing line, giving it that line — not the four bullets — as its nearest plural antecedent. It now sits directly under the four router bullets, above 'The shape changes with the question. The size never does.' Copy that placement, verbatim in spirit, when writing this router's own precedence sentence.
 
 Advanced needs one extra thing intermediate does not: `plain-english-advanced.md:34` says 'Beat 3 always appears', making one status beat unconditional in a file that never says when the status shape applies. A router has to say whether 'always' survives outside a status update.
 <!-- SECTION:DESCRIPTION:END -->
