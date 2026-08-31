@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@jeremy.newhouse'
 created_date: '2026-08-20 12:40'
-updated_date: '2026-08-31 20:00'
+updated_date: '2026-08-31 20:05'
 labels:
   - 'doc:stories/make-the-measurements-trustworthy'
 dependencies: []
@@ -63,6 +63,8 @@ Tests added to harness/test/interval.test.mjs (not checks.test.mjs, which the ta
 AC #5, verified against real data: results/2026-08-20T12-12-10-010Z/rows.json (600 rows, styles plain-english-intermediate + plain-english-advanced) passed unfiltered as beforeRows throws 'beforeRows span multiple styles (plain-english-advanced, plain-english-intermediate)'. Filtered to plain-english-intermediate and paired against results/2026-08-20T12-30-35-376Z/rows.json (300 rows, intermediate only): rules +3.0 [+0.1, +5.8], words -24.6 [-46.4, -2.8] -- exact match to COS-18's published filtered figures. Per-case/model means hardcoded into the new test as COS18_BEFORE_FILTERED/COS18_AFTER since harness/results/ is git-ignored.
 
 FORCE_COLOR=0 npm --prefix harness test: 235/235 pass (231 -> 235, 4 new). node src/cli.mjs audit: exit 0, 12/12 checks agree. lore check: 24 files, 0 errors, 0 warnings (docs/ untouched by this task; ran per lifecycle gate).
+
+code-review high found 2 findings, both real and reachable but outside this task's ACs (which are scoped to pairedInterval's within-side check only): (1) pairedInterval never checks that beforeRows' and afterRows' styles match each other, only that each side is internally single-style -- a cross-style comparison would silently pair and diff two unrelated styles. (2) singleSampleInterval has the identical unguarded multi-style-pooling defect, untouched by this task. Not folded into COS-30's scope per the campaign's scope-change rule; opened as COS-35 instead, appended to the tracker queue.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
