@@ -58,6 +58,32 @@ const ON_REQUEST = [
 export const CONDITION_FIELDS = { maxCodeLines: 'codeOnRequest' }
 
 /**
+ * Fields where the prose can claim a counting BASIS the checker does not use —
+ * not a different number, not a lifted condition, but a different definition of
+ * what gets counted. maxUpdateWords is the shipped case: total_length always
+ * scores `words(stripCode(text))` (checks.mjs), so code never counts toward the
+ * cap for any style, no matter what a contract field says — there is no
+ * contracts.json field for this because it is not configurable per style.
+ * A field absent from this map has no recognised basis claim to check.
+ */
+export const BASIS_FIELDS = { maxUpdateWords: true }
+
+/** Prose claiming code counts toward a word cap that in fact excludes it. */
+const CODE_COUNTED = [
+  /\bcode\s+(?:is\s+)?(?:included|counted)\b/i,
+  /\bincluding\s+code\b/i
+]
+
+/** The basis claim the prose makes for one field's cap, if it makes one. */
+export function statedBasis (body, field) {
+  if (!BASIS_FIELDS[field]) return null
+  for (const seg of capSegments(body, field)) {
+    if (CODE_COUNTED.some(re => re.test(seg))) return 'includes-code'
+  }
+  return null
+}
+
+/**
  * The prose segments that state one field's cap. The condition is tested
  * against these and nothing else — beginner's file says "Do not elaborate
  * unless asked" three sections above its code rule, and a whole-body test
@@ -213,6 +239,22 @@ export function auditStyle (styleId, body, contract) {
         configured,
         status: 'mismatch',
         detail: `both say ${value}, but contracts.json sets ${lift} and the file states no such permission`,
+        condition
+      }
+    }
+    // The number agreeing is not the whole contract either: COS-28 shipped with
+    // advanced's maxUpdateWords stated correctly at 120 while its prose claimed
+    // code counted toward that number, when total_length excludes it for every
+    // style. A number match hides a basis mismatch the same way it hid a
+    // condition mismatch above.
+    if (statedBasis(body, field) === 'includes-code') {
+      return {
+        styleId,
+        field,
+        stated: value,
+        configured,
+        status: 'mismatch',
+        detail: `both say ${value}, but the file says code counts toward it and total_length excludes code (words(stripCode(text)))`,
         condition
       }
     }

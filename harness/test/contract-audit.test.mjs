@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { statedCaps, statedCondition, auditStyle, auditAll, problemsOf, renderAudit, PATTERNS } from '../src/contract-audit.mjs'
+import { statedCaps, statedCondition, statedBasis, auditStyle, auditAll, problemsOf, renderAudit, PATTERNS } from '../src/contract-audit.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const CONTRACTS_PATH = join(ROOT, 'config/contracts.json')
@@ -176,6 +176,37 @@ test('the shipped beginner and intermediate files both state the code cap condit
   const advanced = readFileSync(resolve(ROOT, contracts['plain-english-advanced'].styleFile), 'utf8')
   assert.equal(statedCondition(advanced, 'maxCodeLines'), null)
   assert.equal(contracts['plain-english-advanced'].codeOnRequest, undefined)
+})
+
+// ---------- word-cap basis (COS-28) ----------
+
+test('a word cap the prose says includes code is drift even when the number agrees', () => {
+  // The defect COS-28 opened on. total_length always scores
+  // words(stripCode(text)) — code excluded, for every style — so a file that
+  // claims code counts toward its cap is wrong regardless of what number it
+  // states, and the old audit only ever compared the number.
+  const body = 'Keep the whole reply under 120, headers and code included.'
+  const rows = auditStyle('x', body, { maxUpdateWords: 120 })
+  const length = rows.find(r => r.field === 'maxUpdateWords')
+  assert.equal(length.status, 'mismatch')
+  assert.match(length.detail, /both say 120, but the file says code counts toward it and total_length excludes code/)
+})
+
+test('a word cap that excludes code, or says nothing about code, passes', () => {
+  const excludes = auditStyle('x', 'Keep the whole reply under 120, headers included and code excluded.', { maxUpdateWords: 120 })
+  assert.equal(excludes.find(r => r.field === 'maxUpdateWords').status, 'ok')
+
+  const silent = auditStyle('x', 'Keep the whole update under about 80 words.', { maxUpdateWords: 80 })
+  assert.equal(silent.find(r => r.field === 'maxUpdateWords').status, 'ok')
+})
+
+test('statedBasis is read from the sentence that states the cap, not the whole file', () => {
+  assert.equal(statedBasis('Code included in every code review.\n\nKeep the whole reply under 120.', 'maxUpdateWords'), null)
+})
+
+test('the shipped advanced file no longer claims code counts toward its word cap', () => {
+  const advanced = readFileSync(resolve(ROOT, contracts['plain-english-advanced'].styleFile), 'utf8')
+  assert.equal(statedBasis(advanced, 'maxUpdateWords'), null)
 })
 
 test('parsing the same body twice gives the same answer', () => {
